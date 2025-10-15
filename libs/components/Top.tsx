@@ -145,13 +145,13 @@ const Top = () => {
 				<Link href={'/'}>
 					<div>{t('Home')}</div>
 				</Link>
-				<Link href={'/property'}>
-					<div>{t('Properties')}</div>
+				<Link href={'/product'}>
+					<div>{t('Products')}</div>
 				</Link>
-				<Link href={'/agent'}>
-					<div> {t('Agents')} </div>
+				<Link href={'/clinic'}>
+					<div> {t('Clinics')} </div>
 				</Link>
-				<Link href={'/community?articleCategory=FREE'}>
+				<Link href={'/community?articleCategory=NEWS'}>
 					<div> {t('Community')} </div>
 				</Link>
 				<Link href={'/cs'}>
@@ -173,13 +173,13 @@ const Top = () => {
 							<Link href={'/'}>
 								<div>{t('Home')}</div>
 							</Link>
-							<Link href={'/property'}>
-								<div>{t('Properties')}</div>
-							</Link>
-							<Link href={'/agent'}>
-								<div> {t('Agents')} </div>
-							</Link>
-							<Link href={'/community?articleCategory=FREE'}>
+              <Link href={'/product'}>
+                <div>{t('Products')}</div>
+              </Link>
+              <Link href={'/clinic'}>
+                <div> {t('Clinics')} </div>
+              </Link>
+							<Link href={'/community?articleCategory=NEWS'}>
 								<div> {t('Community')} </div>
 							</Link>
 							{user?._id && (
