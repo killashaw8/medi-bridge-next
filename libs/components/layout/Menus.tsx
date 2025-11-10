@@ -1,0 +1,54 @@
+export const menus = [
+  {
+    id: "home",
+    title: "Home",
+    isDropdown: true,
+    dropdownItems: [
+      { title: "About Us", href: "/about-us" },
+    ],
+  },
+  {
+    id: "services",
+    title: "Services",
+    href: "/bookAppointment"
+  },
+  {
+    id: "doctors",
+    title: "Clinics",
+    isDropdown: true,
+    dropdownItems: [
+      { title: "Clinics", href: "/getClinics/" },
+      { title: "Doctors", href: "/getDoctors/" },
+    ],
+  },
+  {
+    id: "pricing",
+    title: "Shopping",
+    isDropdown: true,
+    dropdownItems: [
+      { title: "Products", href: "/getProducts/" },
+      { title: "My Orders", href: "/myOrders/" },
+    ],
+  },
+  {
+    id: "blog",
+    title: "Blog",
+    isDropdown: true,
+    dropdownItems: [
+      { title: "Blog", href: "/getArticles/" },
+      { title: "News", href: "/getArticles/" },
+    ],
+  },
+  {
+    id: "pages",
+    title: "FAQ & Contact",
+    isDropdown: true,
+    dropdownItems: [
+      { title: "Feedbacks", href: "/feedbacks/" },
+      { title: "FAQ's", href: "/faq/" },
+      { title: "Privacy Policy", href: "/privacy-policy/" },
+      { title: "Terms & Conditions", href: "/terms-conditions/" },
+      { title: "Contact Us", href: "/contact-us/" },
+    ],
+  },
+];
