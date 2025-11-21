@@ -2,13 +2,13 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-interface Props {
+interface PageBannerProps {
   pageTitle: string;
   shortText: string;
   homePageUrl: string;
   homePageText: string;
   activePageText: string;
-  image: string;
+  image?: string;
 }
 
 function PageBanner({
@@ -17,8 +17,8 @@ function PageBanner({
   homePageText,
   activePageText,
   shortText,
-  image,
-}: Props) {
+  image = "/images/page-banner.png",
+}: PageBannerProps) {
   return (
     <>
       <div className="page-banner-area">
@@ -43,6 +43,11 @@ function PageBanner({
                   alt="Page Banner Image"
                   width={428}
                   height={562}
+                  onError={(e) => {
+                    if (image !== "/images/page-banner.png") {
+                      e.currentTarget.src = "/images/page-banner.png";
+                    }
+                  }}
                 />
               </div>
             </div>

@@ -4,11 +4,14 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
 import { menus } from "./Menus";
+import { useReactiveVar } from "@apollo/client";
+import { userVar } from "@/apollo/store";
 // Menus data
 
 function Navbar() {
   const router = useRouter();
   const pathname = router.pathname;
+  const user = useReactiveVar(userVar);
 
   // Sticky navbar effect
   useEffect(() => {
