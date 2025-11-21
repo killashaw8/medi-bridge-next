@@ -7,8 +7,8 @@ import Benefits from '@/libs/components/homepage/Benefits';
 import AboutUs from '@/libs/components/homepage/AboutUs';
 import HowItWorks from '@/libs/components/homepage/HowItWorks';
 import OurServices from '@/libs/components/homepage/OurServices';
-import OurDoctors from '@/libs/components/homepage/OurDoctors';
 import OurBlog from '@/libs/components/homepage/OurBlog';
+import TopDoctors from '@/libs/components/homepage/TopDoctors';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -24,7 +24,7 @@ const Home: NextPage = () => {
 				<Benefits />
 				<AboutUs />
 				<OurServices />
-				<OurDoctors />
+				<TopDoctors />
 				<OurBlog />
 				<HowItWorks />
 			</Stack>

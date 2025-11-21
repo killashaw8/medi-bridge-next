@@ -13,7 +13,7 @@ export interface Member {
   memberPhone?: string;
   memberNick: string;
   memberPassword?: string;
-  memberFullName?: string;
+  memberFullName: string;
   memberImage: string;
   memberAddress?: string;
   memberDesc?: string;

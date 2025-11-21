@@ -51,7 +51,7 @@ export interface DoctorsInquiry {
   page: number;
   limit: number;
   sort?: string;
-  direction?: Direction;
+  direction?: Direction | string;
   search: DISearch;
 }
 

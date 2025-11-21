@@ -1,68 +1,94 @@
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { DoctorsInquiry } from "@/libs/types/member/member.input";
+import { useQuery, useApolloClient } from "@apollo/client";
+import { GET_DOCTORS, GET_MEMBER } from "@/apollo/user/query";
+import { Member } from "@/libs/types/member/member";
+import { T } from "@/libs/types/common";
+import { useRouter } from "next/router";
 
-// Doctor data structure
-interface Doctor {
-  id: number;
-  name: string;
-  qualification: string;
-  specialization: string;
-  experience: string;
-  rating: number;
-  reviews: number;
-  imageUrl: string;
-  profileLink: string;
+
+interface TopDoctorsProps {
+  initialInput?: DoctorsInquiry;
 }
 
-const OurDoctors = () => {
-  // Sample doctor data - this could come from an API or CMS
-  const doctorsData: Doctor[] = [
-    {
-      id: 1,
-      name: "Dr. Kim Jeong Gi",
-      qualification: "MBBS, FCPS (Medicine)",
-      specialization: "Internal Medicine",
-      experience: "12+ Years of Experience",
-      rating: 4.9,
-      reviews: 3760,
-      imageUrl: "/images/doctors/doctor1.png",
-      profileLink: "/doctors/profile",
+const TopDoctors = (props: TopDoctorsProps = {}) => {
+  const { initialInput } = props;
+  const router = useRouter();
+  const apolloClient = useApolloClient();
+  const [topDoctors, setTopDoctors] = useState<Member[]>([]);
+  const [clinicNames, setClinicNames] = useState<Record<string, string>>({});
+
+  // Default input if not provided
+  const defaultInput: DoctorsInquiry = {
+    page: 1,
+    limit: 10,
+    sort: 'memberRank',
+    direction: 'DESC',
+    search: {},
+  };
+
+  const queryInput = initialInput || defaultInput;
+
+  // APOLLO Requests
+  const {
+    loading: getDoctorsLoading,
+    data: getDoctorsData,
+    error: getDoctorsError,
+    refetch: getDoctorsRefetch
+  } = useQuery(GET_DOCTORS, {
+    fetchPolicy: "cache-and-network",
+    variables: { input: queryInput },
+    notifyOnNetworkStatusChange: true,
+    onCompleted: (data: T) => {
+      setTopDoctors(data?.getDoctors?.list || []);
     },
-    {
-      id: 2,
-      name: "Dr. Park Yun Ah",
-      qualification: "MD, Pediatrics",
-      specialization: "Pediatrics",
-      experience: "4+ Years of Experience",
-      rating: 4.8,
-      reviews: 1350,
-      imageUrl: "/images/doctors/doctor2.png",
-      profileLink: "/doctors/profile",
-    },
-    {
-      id: 3,
-      name: "Dr. Samuel Lee",
-      qualification: "MD, FAAD",
-      specialization: "Dermatology",
-      experience: "3+ Years of Experience",
-      rating: 4.7,
-      reviews: 1375,
-      imageUrl: "/images/doctors/doctor3.png",
-      profileLink: "/doctors/profile",
-    },
-    {
-      id: 4,
-      name: "Dr. Lee Ji Hoon",
-      qualification: "MBBS, MD",
-      specialization: "Chronic Conditions",
-      experience: "15+ Years of Experience",
-      rating: 4.9,
-      reviews: 4892,
-      imageUrl: "/images/doctors/doctor4.png",
-      profileLink: "/doctors/profile",
-    },
-  ];
+  });
+
+  // Fetch clinic names for all unique clinic IDs
+  const uniqueClinicIds = useMemo(() => {
+    const ids = new Set<string>();
+    topDoctors.forEach(doctor => {
+      if (doctor.clinicId) {
+        ids.add(doctor.clinicId);
+      }
+    });
+    return Array.from(ids);
+  }, [topDoctors]);
+
+  // Fetch clinic data for each unique clinic ID
+  useEffect(() => {
+    if (uniqueClinicIds.length === 0) return;
+
+    const fetchClinicNames = async () => {
+      const names: Record<string, string> = {};
+      
+      // Fetch each clinic's data using Apollo Client
+      const promises = uniqueClinicIds.map(async (clinicId) => {
+        try {
+          const { data } = await apolloClient.query({
+            query: GET_MEMBER,
+            variables: { targetId: clinicId },
+            fetchPolicy: 'cache-first', // Use cache if available
+          });
+          if (data?.getMember?.memberFullName) {
+            names[clinicId] = data.getMember.memberFullName;
+          } else {
+            names[clinicId] = clinicId; // Fallback to ID if name not found
+          }
+        } catch (error) {
+          console.error(`Failed to fetch clinic ${clinicId}:`, error);
+          names[clinicId] = clinicId; // Fallback to ID if fetch fails
+        }
+      });
+
+      await Promise.all(promises);
+      setClinicNames(names);
+    };
+
+    fetchClinicNames();
+  }, [uniqueClinicIds, apolloClient]);
 
   // Function to render star ratings
   const renderRatingStars = (rating: number) => {
@@ -129,14 +155,14 @@ const OurDoctors = () => {
           </div>
 
           <div className="row justify-content-center g-4">
-            {doctorsData.map((doctor) => (
-              <div key={doctor.id} className="col-xl-3 col-md-6">
+            {topDoctors.map((doctor: Member) => (
+              <div key={doctor._id} className="col-xl-3 col-md-6">
                 <div className="doctor-card">
                   <div className="image">
-                    <Link href={doctor.profileLink}>
+                    <Link href={doctor._id}>
                       <Image
-                        src={doctor.imageUrl}
-                        alt={doctor.name}
+                        src={doctor.memberImage}
+                        alt={doctor.memberNick}
                         width={340}
                         height={340}
                         style={{ borderRadius: "10%" }}
@@ -145,19 +171,20 @@ const OurDoctors = () => {
                   </div>
                   <div className="content">
                     <h3>
-                      <Link href={doctor.profileLink}>{doctor.name}</Link>
+                      <Link href={doctor._id}>{doctor.memberFullName}</Link>
                     </h3>
-                    <span className="sub">{doctor.qualification}</span>
+                    <span className="sub">
+                      {doctor.clinicId ? (clinicNames[doctor.clinicId] || doctor.clinicId) : 'No Clinic'}
+                    </span>
                     <span className="tag">{doctor.specialization}</span>
-                    <span className="experience">{doctor.experience}</span>
 
                     <div className="rating-info">
                       <ul className="list">
-                        {renderRatingStars(doctor.rating)}
+                        {renderRatingStars(doctor.memberLikes)}
                       </ul>
 
-                      <b>{doctor.rating}</b>
-                      <span>({doctor.reviews.toLocaleString()} Reviews)</span>
+                      <b>{doctor.memberLikes}</b>
+                      <span>({doctor.memberLikes.toLocaleString()} Reviews)</span>
                     </div>
 
                     <div className="doctor-btn">
@@ -204,4 +231,4 @@ const OurDoctors = () => {
   );
 };
 
-export default OurDoctors;
+export default TopDoctors;
