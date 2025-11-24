@@ -7,6 +7,7 @@ import { GET_DOCTORS, GET_MEMBER } from "@/apollo/user/query";
 import { Member } from "@/libs/types/member/member";
 import { T } from "@/libs/types/common";
 import { useRouter } from "next/router";
+import { getImageUrl } from "@/libs/imageHelper";
 
 
 interface TopDoctorsProps {
@@ -161,10 +162,10 @@ const TopDoctors = (props: TopDoctorsProps = {}) => {
                   <div className="image">
                     <Link href={doctor._id}>
                       <Image
-                        src={doctor.memberImage}
+                        src={getImageUrl(doctor.memberImage)}
                         alt={doctor.memberNick}
                         width={340}
-                        height={340}
+                        height={440}
                         style={{ borderRadius: "10%" }}
                       />
                     </Link>
