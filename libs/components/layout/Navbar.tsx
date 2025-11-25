@@ -219,7 +219,7 @@ function Navbar() {
                 </Link>
               </div>
               <div className="option-item">
-                <Link href="/register" className="default-btn">
+                <Link href="/signup" className="default-btn">
                   <span className="left">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

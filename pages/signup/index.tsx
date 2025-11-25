@@ -1,6 +1,6 @@
 import withLayoutBasic from "@/libs/components/layout/LayoutBasic";
-import LoginForm from "@/libs/components/layout/LoginForm";
 import PageBanner from "@/libs/components/layout/PageBanner";
+import RegisterForm from "@/libs/components/layout/RegisterForm";
 import { GetStaticProps, NextPage } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
@@ -8,26 +8,25 @@ export const getStaticProps: GetStaticProps = async ({ locale }) => {
   return {
     props: {
       ...(await serverSideTranslations(locale || "en", ["common"])),
-    },
-  };
-};
+    }
+  }
+}
 
-const Login: NextPage = () => {
+const Signup: NextPage = () => {
   return (
     <>
-
       <PageBanner
-        pageTitle="Welcome Back"
-        shortText="Log in to your MediBridge account to manage appointments, access medical records, and stay connected with your healthcare providers."
+        pageTitle="Create Your Account"
+        shortText="Join Doutor today to book appointments, access expert medical care, and manage your health easily from anywhere."
         homePageUrl="/"
         homePageText="Home"
-        activePageText="Login"
+        activePageText="Register"
         image="/images/page-banner.png"
       />
 
-      <LoginForm />
+      <RegisterForm />
     </>
   );
 }
 
-export default withLayoutBasic(Login);
+export default withLayoutBasic(Signup);
