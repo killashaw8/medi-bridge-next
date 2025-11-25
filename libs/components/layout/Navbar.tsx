@@ -193,8 +193,8 @@ function Navbar() {
         <Offcanvas.Header closeButton>
           <Offcanvas.Title>
             <Image
-              src="/images/logo.svg"
-              alt="Doutor"
+              src="/images/mdbrdg_large.png"
+              alt="MediBridge"
               width={134}
               height={35}
             />

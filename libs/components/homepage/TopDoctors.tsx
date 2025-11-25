@@ -164,9 +164,14 @@ const TopDoctors = (props: TopDoctorsProps = {}) => {
                       <Image
                         src={getImageUrl(doctor.memberImage)}
                         alt={doctor.memberNick}
-                        width={340}
-                        height={440}
-                        style={{ borderRadius: "10%" }}
+                        width={220}
+                        height={300}
+                        style={{ 
+                          borderRadius: "10%",
+                          objectFit: "cover",
+                          width: "100%",          
+                          height: "100%", 
+                        }}
                       />
                     </Link>
                   </div>

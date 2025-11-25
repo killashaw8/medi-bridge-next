@@ -1788,20 +1788,14 @@ Doctors Area CSS
   z-index: 1;
 
   .image {
-    width: 340px;
-    height: 440px;
-    overflow: hidden;
-    border-radius: 10%;
-    margin: 0 auto;
-
+    height: 300px;
     img,             
     span {               
       width: 100%;
       height: 100%;
       object-fit: cover;   
     }
-  }
-
+  }  
   .content {
     margin-top: 25px;
 
