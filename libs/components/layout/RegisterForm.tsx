@@ -3,25 +3,58 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { signUp } from "@/libs/auth";
 import { sweetMixinErrorAlert } from "@/libs/sweetAlert";
+import { DoctorSpecialization, MemberType } from "@/libs/enums/member.enum";
+import { ClinicsInquiry } from "@/libs/types/member/member.input";
+import { useQuery } from "@apollo/client";
+import { GET_CLINICS } from "@/apollo/user/query";
+import { Member } from "@/libs/types/member/member";
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { IconButton } from "@mui/material";
 
 const RegisterForm = () => {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
-    email: "", // Note: email is collected but signUp uses nick, so we'll use name as nick
+    fullName: "",
+    email: "",
     phone: "",
     password: "",
     confirmPassword: "",
-    userType: "0", // Default to Patient
+    userType: MemberType.USER,
+    specialization: "" as DoctorSpecialization | "",
+    clinicId: "",
   });
   const [loading, setLoading] = useState(false);
   const [agree, setAgree] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const clinicsInput: ClinicsInquiry = {
+    page: 1,
+    limit: 100, // Get all clinics
+    sort: 'createdAt',
+    direction: 'ASC',
+    search: {},
+  };
+
+  const { data: clinicsData, loading: clinicsLoading } = useQuery(GET_CLINICS, {
+    variables: { input: clinicsInput },
+    skip: formData.userType !== MemberType.DOCTOR,
+    fetchPolicy: "cache-and-network",
+  });
+
+  const clinics: Member[] = clinicsData?.getClinics?.list || [];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+      ...(name === "userType" && value !== MemberType.DOCTOR && {
+        specialization: "",
+        clinicId: "",
+      }),
     }));
   };
 
@@ -30,6 +63,11 @@ const RegisterForm = () => {
     
     // Validation
     if (!formData.name.trim()) {
+      await sweetMixinErrorAlert("Please enter your username");
+      return;
+    }
+
+    if (!formData.fullName.trim()) {
       await sweetMixinErrorAlert("Please enter your full name");
       return;
     }
@@ -59,6 +97,17 @@ const RegisterForm = () => {
       return;
     }
 
+    if (formData.userType === MemberType.DOCTOR) {
+      if (!formData.specialization) {
+        await sweetMixinErrorAlert("Please select your specialization");
+        return;
+      }
+      if (!formData.clinicId) {
+        await sweetMixinErrorAlert("Please select a clinic");
+        return;
+      }
+    }
+
     if (!agree) {
       await sweetMixinErrorAlert("Please agree to the Privacy Policy to continue");
       return;
@@ -67,30 +116,46 @@ const RegisterForm = () => {
     setLoading(true);
 
     try {
-      // signUp expects: nick, password, phone, type
-      // We'll use name as nick (or you can use email if preferred)
-      const nick = formData.name.trim(); // Using name as nickname
-      // Alternative: const nick = formData.email.trim(); // If you prefer email as nick
+      const nick = formData.name.trim(); 
+      const memberType = formData.userType as string;
       
-      await signUp(
+      const signUpParams: {
+        nick: string;
+        password: string;
+        phone: string;
+        type: string;
+        specialization?: DoctorSpecialization;
+        clinicId?: string;
+      } = {
         nick,
-        formData.password.trim(),
-        formData.phone.trim(),
-        formData.userType
+        password: formData.password.trim(),
+        phone: formData.phone.trim(),
+        type: memberType,
+      };
+
+      if (formData.userType === MemberType.DOCTOR) {
+        signUpParams.specialization = formData.specialization as DoctorSpecialization;
+        signUpParams.clinicId = formData.clinicId;
+      }
+
+      await signUp(
+        signUpParams.nick,
+        signUpParams.password,
+        signUpParams.phone,
+        signUpParams.type,
+        signUpParams.specialization,
+        signUpParams.clinicId
       );
       
-      // On successful registration, redirect to home or login
-      // The signUp function already handles token storage and user info update
-      router.push("/"); // or router.push("/account/login") if you want to redirect to login
+      router.push("/");
     } catch (error) {
-      // Error handling is already done in signUp function
-      // But we can add additional handling here if needed
       console.error("Registration error:", error);
-      // Don't show error here - signUp already shows error alerts
     } finally {
       setLoading(false);
     }
   };
+
+  const isDoctor = formData.userType === MemberType.DOCTOR;
 
   return (
     <>
@@ -108,7 +173,7 @@ const RegisterForm = () => {
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>
-                  Full Name <span>(required)</span>
+                  Username <span>(required)</span>
                 </label>
                 <input
                   type="text"
@@ -116,7 +181,23 @@ const RegisterForm = () => {
                   value={formData.name}
                   onChange={handleChange}
                   className="form-control"
-                  placeholder="e.g. Emily Carter"
+                  placeholder="e.g. Lara7"
+                  disabled={loading}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>
+                  Full Name <span>(required)</span>
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  className="form-control"
+                  placeholder="e.g. Lara Croft"
                   disabled={loading}
                   required
                 />
@@ -132,7 +213,7 @@ const RegisterForm = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className="form-control"
-                  placeholder="e.g. emily@support.com"
+                  placeholder="e.g. lara@support.com"
                   disabled={loading}
                   required
                 />
@@ -148,7 +229,7 @@ const RegisterForm = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   className="form-control"
-                  placeholder="e.g. 1-202-555-0147"
+                  placeholder="e.g. 010-1234-5678"
                   disabled={loading}
                   required
                 />
@@ -158,33 +239,87 @@ const RegisterForm = () => {
                 <label>
                   Password <span>(required)</span>
                 </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="form-control"
-                  placeholder="Enter your password (min. 6 characters)"
-                  disabled={loading}
-                  required
-                  minLength={6}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="form-control"
+                    placeholder="Enter your password (min. 6 characters)"
+                    disabled={loading}
+                    required
+                    minLength={6}
+                    style={{ paddingRight: '45px' }}
+                  />
+                  {/* ✅ ADD: Material-UI IconButton */}
+                  <IconButton
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    sx={{
+                      position: 'absolute',
+                      right: '5px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      padding: '4px',
+                      color: '#666',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                      },
+                    }}
+                  >
+                    {showPassword ? (
+                      <VisibilityOffIcon fontSize="small" />
+                    ) : (
+                      <VisibilityIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                </div>
               </div>
 
               <div className="form-group">
                 <label>
                   Confirm Password <span>(required)</span>
                 </label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="form-control"
-                  placeholder="Confirm your password"
-                  disabled={loading}
-                  required
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    className="form-control"
+                    placeholder="Confirm your password"
+                    disabled={loading}
+                    required
+                    style={{ paddingRight: '45px' }}
+                  />
+                  {/* ✅ ADD: Material-UI IconButton */}
+                  <IconButton
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={loading}
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    sx={{
+                      position: 'absolute',
+                      right: '5px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      padding: '4px',
+                      color: '#666',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                      },
+                    }}
+                  >
+                    {showConfirmPassword ? (
+                      <VisibilityOffIcon fontSize="small" />
+                    ) : (
+                      <VisibilityIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                </div>
               </div>
 
               <div className="form-group">
@@ -197,11 +332,71 @@ const RegisterForm = () => {
                   disabled={loading}
                   required
                 >
-                  <option value="0">Clinic</option>
-                  <option value="1">Doctor</option>
-                  <option value="2">User</option>
+                  <option value={MemberType.USER}>User</option>
+                  <option value={MemberType.CLINIC}>Clinic</option>
+                  <option value={MemberType.DOCTOR}>Doctor</option>
                 </select>
               </div>
+
+              {isDoctor && (
+                <div className="form-group">
+                  <label>
+                    Specialization <span>(required)</span>
+                  </label>
+                  <select
+                    className="form-control form-select"
+                    name="specialization"
+                    value={formData.specialization}
+                    onChange={handleChange}
+                    disabled={loading || clinicsLoading}
+                    required
+                  >
+                    <option value="">Select Specialization</option>
+                    <option value={DoctorSpecialization.CARDIOLOGIST}>Cardiologist</option>
+                    <option value={DoctorSpecialization.DENTIST}>Dentist</option>
+                    <option value={DoctorSpecialization.PEDIATRICIAN}>Pediatrician</option>
+                    <option value={DoctorSpecialization.DERMATOLOGIST}>Dermatologist</option>
+                    <option value={DoctorSpecialization.PSYCHIATRIST}>Psychiatrist</option>
+                    <option value={DoctorSpecialization.NEUROLOGIST}>Neurologist</option>
+                    <option value={DoctorSpecialization.OPHTHALMOLOGIST}>Ophthalmologist</option>
+                    <option value={DoctorSpecialization.ORTHOPEDIC}>Orthopedic</option>
+                    <option value={DoctorSpecialization.ONCOLOGIST}>Oncologist</option>
+                    <option value={DoctorSpecialization.GYNAECOLOGIST}>Gynaecologist</option>
+                    <option value={DoctorSpecialization.GASTROENTEROLOGIST}>Gastroenterologist</option>
+                    <option value={DoctorSpecialization.OTOLARYNGOLOGIST}>Otolaryngologist</option>
+                    <option value={DoctorSpecialization.SURGEON}>Surgeon</option>
+                  </select>
+                </div>
+              )}
+
+              {isDoctor && (
+                <div className="form-group">
+                  <label>
+                    Clinic <span>(required)</span>
+                  </label>
+                  <select
+                    className="form-control form-select"
+                    name="clinicId"
+                    value={formData.clinicId}
+                    onChange={handleChange}
+                    disabled={loading || clinicsLoading}
+                    required
+                  >
+                    <option value="">Select Clinic</option>
+                    {clinics.map((clinic) => (
+                      <option key={clinic._id} value={clinic._id}>
+                        {clinic.memberFullName || clinic.memberNick}
+                      </option>
+                    ))}
+                  </select>
+                  {clinicsLoading && (
+                    <small className="text-muted">Loading clinics...</small>
+                  )}
+                  {!clinicsLoading && clinics.length === 0 && (
+                    <small className="text-muted">No clinics available</small>
+                  )}
+                </div>
+              )}
 
               <div className="options">
                 <label>

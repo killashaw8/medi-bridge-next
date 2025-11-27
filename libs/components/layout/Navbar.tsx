@@ -15,9 +15,10 @@ const Navbar = () => {
   const router = useRouter();
   const pathname = router.pathname;
   const user = useReactiveVar(userVar);
-  const [colorChange, setColorChange] = useState(false);
   const [logoutAnchor, setLogoutAnchor] = useState<null | HTMLElement>(null);
   const logoutOpen = Boolean(logoutAnchor);
+  const [isSticky, setIsSticky] = useState(false);
+  const [colorChange, setColorChange] = useState(false);
 
   // ✅ ADD: Initialize user state on mount (safety measure)
   useEffect(() => {
@@ -39,30 +40,23 @@ const Navbar = () => {
 
   // Sticky navbar effect
   useEffect(() => {
-    const element = document.getElementById("navbar");
     const onScroll = () => {
-      if (!element) return;
-      if (window.scrollY >= 50) {
-        element.classList.add("sticky");
-      } else {
-        element.classList.remove("sticky");
-      }
+      const scrolled = window.scrollY >= 50;
+      setIsSticky(scrolled);
+      setColorChange(scrolled);
     };
-    onScroll();
+ 
+    onScroll(); // initialize
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      element?.classList.remove("sticky");
-    };
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  	const changeNavbarColor = () => {
-		if (window.scrollY >= 50) {
-			setColorChange(true);
-		} else {
-			setColorChange(false);
-		}
-	};
+ 
+  const navClasses = [
+    "navbar",
+    "navbar-expand-xl",
+    isSticky ? "sticky" : "",
+    colorChange ? "navbar-colored" : "",
+  ].join(" ");  
 
   // Offcanvas state
   const [show, setShow] = useState(false);
@@ -92,13 +86,9 @@ const Navbar = () => {
   // ✅ ADD: Check if user is logged in
   const isLoggedIn = user?._id && user._id !== '';
 
-  if (typeof window !== 'undefined') {
-		window.addEventListener('scroll', changeNavbarColor);
-	}
-
   return (
     <>
-      <nav className="navbar navbar-expand-xl" id="navbar">
+      <nav className={navClasses} id="navbar">
         <div className={`container-fluid ${colorChange ? 'transparent' : ''}`}>
           <Link href="/" className="navbar-brand">
             <Image

@@ -5,6 +5,7 @@ export interface MemberInput {
   memberNick: string;
   memberPassword: string;
   memberPhone: string;
+  memberFullName: string;
   memberType?: MemberType;
   authProvider?: AuthProvider;
   clinicId?: string;
@@ -63,7 +64,7 @@ export interface ClinicsInquiry {
   page: number;
   limit: number;
   sort?: string;
-  direction?: Direction;
+  direction?: Direction | string;
   search: CISearch;
 }
 

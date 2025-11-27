@@ -4,6 +4,7 @@ import { userVar } from '../../apollo/store';
 import { CustomJwtPayload } from '../types/customJwtPayload';
 import { sweetMixinErrorAlert } from '../sweetAlert';
 import { LOGIN, SIGN_UP } from '@/apollo/user/mutation';
+import { DoctorSpecialization } from '../enums/member.enum';
 
 
 export function getRefreshToken(): string | null {
@@ -42,9 +43,23 @@ export const logIn = async (nick: string, password: string): Promise<void> => {
 	}
 };
 
-export const signUp = async (nick: string, password: string, phone: string, type: string): Promise<void> => {
+export const signUp = async (
+	nick: string, 
+	password: string, 
+	phone: string, 
+	type: string, 
+	specialization?: DoctorSpecialization, 
+	clinicId?: string
+): Promise<void> => {
 	try {
-		const { accessToken, refreshToken } = await requestSignUpJwtToken({ nick, password, phone, type });
+		const { accessToken, refreshToken } = await requestSignUpJwtToken({ 
+			nick, 
+			password, 
+			phone, 
+			type,
+			specialization, 
+			clinicId 
+		});
 
 		if (accessToken) {
 			updateStorage({ accessToken, refreshToken });
@@ -128,15 +143,33 @@ const requestSignUpJwtToken = async ({
 	password,
 	phone,
 	type,
+	specialization,
+	clinicId
 }: {
 	nick: string;
 	password: string;
 	phone: string;
 	type: string;
+	specialization?: DoctorSpecialization;
+	clinicId?: string;
 }): Promise<{ accessToken: string, refreshToken: string | null }> => {
 	const apolloClient = await initializeApollo();
 
 	try {
+		const input: any = {
+			memberNick: nick,
+			memberPassword: password,
+			memberPhone: phone,
+			memberType: type,
+		};
+
+		if (specialization) {
+			input.specialization = specialization;
+		}
+		if (clinicId) {
+			input.clinicId = clinicId;
+		}
+
 		const result = await apolloClient.mutate({
 			mutation: SIGN_UP,
 			variables: {
