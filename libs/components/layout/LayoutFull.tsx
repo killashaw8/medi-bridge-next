@@ -12,6 +12,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import GoTop from './GoTop';
 
 const withLayoutFull = (Component: any) => {
 	return (props: any) => {
@@ -41,6 +42,7 @@ const withLayoutFull = (Component: any) => {
 					</Stack>
 
 					<Chat />
+					<GoTop />
 
 					<Stack id={'footer'}>
 						<Footer />

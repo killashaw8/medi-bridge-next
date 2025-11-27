@@ -173,35 +173,47 @@ export const updateStorage = ({ accessToken, refreshToken }: {
 	window.localStorage.setItem('login', Date.now().toString());
 };
 
+const DEFAULT_USER_IMAGE = '/images/users/defaultUser.svg';
+
 export const updateUserInfo = (jwtToken: any) => {
 	if (!jwtToken) return false;
 
-	const claims = jwtDecode<CustomJwtPayload>(jwtToken);
-	userVar({
-		_id: claims._id ?? '',
-		memberType: claims.memberType ?? '',
-		memberStatus: claims.memberStatus ?? '',
-		authProvider: claims.authProvider,
-		memberPhone: claims.memberPhone ?? '',
-		memberNick: claims.memberNick ?? '',
-		memberFullName: claims.memberFullName ?? '',
-		memberImage:
-			claims.memberImage === null || claims.memberImage === undefined
-				? '/img/profile/defaultUser.svg'
-				: `${claims.memberImage}`,
-		memberAddress: claims.memberAddress ?? '',
-		memberDesc: claims.memberDesc ?? '',
-		memberAppointments: claims.memberAppointments ?? '',
-		memberProducts: claims.memberProducts,
-		memberRank: claims.memberRank,
-		memberArticles: claims.memberArticles,
-		memberPoints: claims.memberPoints,
-		memberLikes: claims.memberLikes,
-		memberViews: claims.memberViews,
-		memberComments: claims.memberComments,
-		memberWarnings: claims.memberWarnings,
-		memberBlocks: claims.memberBlocks,
-	});
+	try {
+		const claims = jwtDecode<any>(jwtToken);
+		
+		const userId = claims.sub || claims._id || '';
+		
+		userVar({
+			_id: userId,
+			memberType: claims.memberType ?? '',
+			memberStatus: claims.memberStatus ?? '',
+			authProvider: claims.authProvider ?? '',
+			memberPhone: claims.memberPhone ?? '',
+			memberNick: claims.memberNick ?? '',
+			memberFullName: claims.memberFullName ?? '',
+			memberImage:
+				claims.memberImage === null || claims.memberImage === undefined
+					? DEFAULT_USER_IMAGE
+					: `${claims.memberImage}`,
+			memberAddress: claims.memberAddress ?? '',
+			memberDesc: claims.memberDesc ?? '',
+			memberAppointments: claims.memberAppointments ?? 0,
+			memberProducts: claims.memberProducts ?? 0,
+			memberRank: claims.memberRank ?? 0,
+			memberArticles: claims.memberArticles ?? 0,
+			memberPoints: claims.memberPoints ?? 0,
+			memberLikes: claims.memberLikes ?? 0,
+			memberViews: claims.memberViews ?? 0,
+			memberComments: claims.memberComments ?? 0,
+			memberWarnings: claims.memberWarnings ?? 0,
+			memberBlocks: claims.memberBlocks ?? 0,
+		});
+		
+		return true;
+	} catch (error) {
+		console.error('Error decoding JWT:', error);
+		return false;
+	}
 };
 
 export const logOut = () => {

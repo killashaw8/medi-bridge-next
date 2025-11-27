@@ -1,3 +1,18 @@
+/**
+ * FIXED NAVBAR: libs/components/layout/Navbar.tsx
+ * 
+ * ISSUE: My Page and avatar not appearing
+ * 
+ * FIXES:
+ * 1. Added user state initialization in Navbar (safety measure)
+ * 2. Added "My Page" link when user is logged in
+ * 3. Added user profile image with logout menu
+ * 4. Added debug logging to help diagnose issues
+ * 5. Fixed conditional rendering for logged in/out states
+ * 
+ * IMPORTANT: Make sure you're logged in (user._id should not be empty)
+ */
+
 import React, { useState, useEffect } from "react";
 import Offcanvas from "react-bootstrap/Offcanvas";
 import { useRouter } from "next/router";
@@ -6,17 +21,43 @@ import Image from "next/image";
 import { menus } from "./Menus";
 import { useReactiveVar } from "@apollo/client";
 import { userVar } from "@/apollo/store";
-// Menus data
+import { logOut, getJwtToken, updateUserInfo } from "@/libs/auth";
+import { REACT_APP_API_URL } from "@/libs/config";
+// ✅ ADD: Material-UI imports
+import { Menu, MenuItem } from "@mui/material";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { getImageUrl } from "@/libs/imageHelper";
 
 function Navbar() {
   const router = useRouter();
   const pathname = router.pathname;
   const user = useReactiveVar(userVar);
+  
+  // ✅ ADD: State for logout menu
+  const [logoutAnchor, setLogoutAnchor] = useState<null | HTMLElement>(null);
+  const logoutOpen = Boolean(logoutAnchor);
+
+  // ✅ ADD: Initialize user state on mount (safety measure)
+  useEffect(() => {
+    const jwt = getJwtToken();
+    if (jwt) {
+      updateUserInfo(jwt);
+    }
+  }, []);
+
+  // ✅ ADD: Debug logging (remove in production)
+  useEffect(() => {
+    console.log('Navbar - User state:', {
+      hasId: !!user?._id,
+      id: user?._id,
+      nick: user?.memberNick,
+      image: user?.memberImage,
+    });
+  }, [user]);
 
   // Sticky navbar effect
   useEffect(() => {
     const element = document.getElementById("navbar");
-
     const onScroll = () => {
       if (!element) return;
       if (window.scrollY > 170) {
@@ -25,14 +66,8 @@ function Navbar() {
         element.classList.remove("sticky");
       }
     };
-
-    // Run once to set initial state
     onScroll();
-
-    // Add listener (passive for performance)
     window.addEventListener("scroll", onScroll, { passive: true });
-
-    // Cleanup to prevent memory leaks
     return () => {
       window.removeEventListener("scroll", onScroll);
       element?.classList.remove("sticky");
@@ -52,6 +87,20 @@ function Navbar() {
 
   // Check if a link is active
   const isActive = (href: string) => pathname === href;
+
+  // ✅ ADD: Handler for logout
+  const handleLogout = () => {
+    setLogoutAnchor(null);
+    logOut();
+  };
+
+  // ✅ ADD: Get user image URL
+  const getUserImageUrl = () => {
+    return getImageUrl(user?.memberImage);
+  };
+
+  // ✅ ADD: Check if user is logged in
+  const isLoggedIn = user?._id && user._id !== '';
 
   return (
     <>
@@ -129,61 +178,143 @@ function Navbar() {
                   )}
                 </li>
               ))}
+              
+              {/* ✅ ADD: My Page link when logged in */}
+              {isLoggedIn && (
+                <li className="nav-item">
+                  <Link
+                    href="/mypage"
+                    className={`nav-link ${isActive("/mypage") ? "active" : ""}`}
+                  >
+                    My Page
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 
-          {/* others-options */}
+          {/* ✅ MODIFIED: others-options - Conditional rendering based on login status */}
           <div className="others-option align-items-center overflow-hidden d-none d-sm-flex">
-            <div className="option-item">
-              <Link href="/login" className="login-btn">
-                <Image
-                  src="/images/icons/user.svg"
-                  alt="user"
-                  width={20}
-                  height={20}
-                />
-                <span>Login</span>
-              </Link>
-            </div>
-            <div className="option-item">
-              <Link href="/signup" className="default-btn">
-                <span className="left">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                  >
-                    <path
-                      d="M11.5385 0H0.461538C0.206769 0 0 0.206769 0 0.461538C0 0.716308 0.206769 0.923077 0.461538 0.923077H10.4241L0.135231 11.2122C-0.045 11.3924 -0.045 11.6845 0.135231 11.8648C0.225462 11.955 0.343385 12 0.461538 12C0.579692 12 0.697846 11.955 0.787846 11.8648L11.0769 1.57569V11.5385C11.0769 11.7932 11.2837 12 11.5385 12C11.7932 12 12 11.7932 12 11.5385V0.461538C12 0.206769 11.7932 0 11.5385 0Z"
-                      fill="white"
+            {isLoggedIn ? (
+              // ✅ User is logged in - show profile image with menu
+              <div className="option-item">
+                <div
+                  className="user-profile-box"
+                  onClick={(event: React.MouseEvent<HTMLElement>) => 
+                    setLogoutAnchor(event.currentTarget)
+                  }
+                  style={{
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '4px 8px',
+                    borderRadius: '8px',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  <Image
+                    src={getUserImageUrl()}
+                    alt={user?.memberNick}
+                    width={32}
+                    height={32}
+                    unoptimized={getUserImageUrl().startsWith('http')}
+                    onError={() => {
+                      console.error('Image failed to load:', getUserImageUrl());
+                    }}
+                    style={{
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                  <span>
+                    {user?.memberNick}
+                  </span>
+                </div>
+                
+                {/* ✅ Logout Menu */}
+                <Menu
+                  id="logout-menu"
+                  anchorEl={logoutAnchor}
+                  open={logoutOpen}
+                  onClose={() => setLogoutAnchor(null)}
+                  sx={{ mt: '5px' }}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                >
+                  <MenuItem onClick={handleLogout}>
+                    <LogoutIcon fontSize="small" style={{ color: '#616161', marginRight: '10px' }} />
+                    Logout
+                  </MenuItem>
+                </Menu>
+              </div>
+            ) : (
+              // ✅ User is not logged in - show login/register buttons
+              <>
+                <div className="option-item">
+                  <Link href="/login" className="login-btn">
+                    <Image
+                      src="/images/icons/user.svg"
+                      alt="user"
+                      width={20}
+                      height={20}
                     />
-                  </svg>
-                </span>
-                <strong>Register Now</strong>{" "}
-                <span className="d-none d-xxl-inline">- It&apos;s Free</span>
-                <span className="right">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                  >
-                    <path
-                      d="M11.5385 0H0.461538C0.206769 0 0 0.206769 0 0.461538C0 0.716308 0.206769 0.923077 0.461538 0.923077H10.4241L0.135231 11.2122C-0.045 11.3924 -0.045 11.6845 0.135231 11.8648C0.225462 11.955 0.343385 12 0.461538 12C0.579692 12 0.697846 11.955 0.787846 11.8648L11.0769 1.57569V11.5385C11.0769 11.7932 11.2837 12 11.5385 12C11.7932 12 12 11.7932 12 11.5385V0.461538C12 0.206769 11.7932 0 11.5385 0Z"
-                      fill="white"
-                    />
-                  </svg>
-                </span>
-              </Link>
-            </div>
+                    <span>Login</span>
+                  </Link>
+                </div>
+                <div className="option-item">
+                  <Link href="/signup" className="default-btn">
+                    <span className="left">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                      >
+                        <path
+                          d="M11.5385 0H0.461538C0.206769 0 0 0.206769 0 0.461538C0 0.716308 0.206769 0.923077 0.461538 0.923077H10.4241L0.135231 11.2122C-0.045 11.3924 -0.045 11.6845 0.135231 11.8648C0.225462 11.955 0.343385 12 0.461538 12C0.579692 12 0.697846 11.955 0.787846 11.8648L11.0769 1.57569V11.5385C11.0769 11.7932 11.2837 12 11.5385 12C11.7932 12 12 11.7932 12 11.5385V0.461538C12 0.206769 11.7932 0 11.5385 0Z"
+                          fill="white"
+                        />
+                      </svg>
+                    </span>
+                    <strong>Register Now</strong>{" "}
+                    <span className="d-none d-xxl-inline">- It&apos;s Free</span>
+                    <span className="right">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                      >
+                        <path
+                          d="M11.5385 0H0.461538C0.206769 0 0 0.206769 0 0.461538C0 0.716308 0.206769 0.923077 0.461538 0.923077H10.4241L0.135231 11.2122C-0.045 11.3924 -0.045 11.6845 0.135231 11.8648C0.225462 11.955 0.343385 12 0.461538 12C0.579692 12 0.697846 11.955 0.787846 11.8648L11.0769 1.57569V11.5385C11.0769 11.7932 11.2837 12 11.5385 12C11.7932 12 12 11.7932 12 11.5385V0.461538C12 0.206769 11.7932 0 11.5385 0Z"
+                          fill="white"
+                        />
+                      </svg>
+                    </span>
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </nav>
 
-      {/* For Mobile Menu */}
+      {/* ✅ MODIFIED: For Mobile Menu */}
       <Offcanvas
         show={show}
         onHide={handleClose}
@@ -202,56 +333,114 @@ function Navbar() {
         </Offcanvas.Header>
         <Offcanvas.Body>
           <div className="mobile-menu">
-            {/* others-options */}
+            {/* ✅ MODIFIED: others-options for mobile */}
             <div className="others-option d-flex align-items-center gap-3 mb-3">
-              <div className="option-item">
-                <Link
-                  href="/login"
-                  className="login-btn d-flex align-items-center gap-2"
-                >
-                  <Image
-                    src="/images/icons/user.svg"
-                    alt="user"
-                    width={20}
-                    height={20}
-                  />
-                  <span>Login</span>
-                </Link>
-              </div>
-              <div className="option-item">
-                <Link href="/signup" className="default-btn">
-                  <span className="left">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="12"
-                      height="12"
-                      viewBox="0 0 12 12"
-                      fill="none"
+              {isLoggedIn ? (
+                // ✅ User is logged in - show profile
+                <div className="option-item w-100">
+                  <div
+                    className="user-profile-box d-flex align-items-center gap-2 p-2"
+                    onClick={(event: React.MouseEvent<HTMLElement>) => 
+                      setLogoutAnchor(event.currentTarget)
+                    }
+                    style={{
+                      cursor: 'pointer',
+                      borderRadius: '8px',
+                      transition: 'background-color 0.2s',
+                    }}
+                  >
+                    <Image
+                      src={getUserImageUrl()}
+                      alt={user?.memberNick}
+                      width={40}
+                      height={40}
+                      unoptimized={getUserImageUrl().startsWith('http')}
+                      onError={() => {
+                        console.error('Image failed to load:', getUserImageUrl());
+                      }}                      
+                      style={{
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '500' }}>
+                        {user?.memberFullName || user?.memberNick || "User"}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#888' }}>
+                        {user?.memberPhone || ""}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* ✅ Logout Menu for mobile */}
+                  <Menu
+                    id="logout-menu-mobile"
+                    anchorEl={logoutAnchor}
+                    open={logoutOpen}
+                    onClose={() => setLogoutAnchor(null)}
+                    sx={{ mt: '5px' }}
+                  >
+                    <MenuItem onClick={handleLogout}>
+                      <LogoutIcon fontSize="small" style={{ color: '#616161', marginRight: '10px' }} />
+                      Logout
+                    </MenuItem>
+                  </Menu>
+                </div>
+              ) : (
+                // ✅ User is not logged in
+                <>
+                  <div className="option-item">
+                    <Link
+                      href="/login"
+                      className="login-btn d-flex align-items-center gap-2"
                     >
-                      <path
-                        d="M11.5385 0H0.461538C0.206769 0 0 0.206769 0 0.461538C0 0.716308 0.206769 0.923077 0.461538 0.923077H10.4241L0.135231 11.2122C-0.045 11.3924 -0.045 11.6845 0.135231 11.8648C0.225462 11.955 0.343385 12 0.461538 12C0.579692 12 0.697846 11.955 0.787846 11.8648L11.0769 1.57569V11.5385C11.0769 11.7932 11.2837 12 11.5385 12C11.7932 12 12 11.7932 12 11.5385V0.461538C12 0.206769 11.7932 0 11.5385 0Z"
-                        fill="white"
+                      <Image
+                        src="/images/icons/user.svg"
+                        alt="user"
+                        width={20}
+                        height={20}
                       />
-                    </svg>
-                  </span>
-                  <strong>Register Now</strong>
-                  <span className="right">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="12"
-                      height="12"
-                      viewBox="0 0 12 12"
-                      fill="none"
-                    >
-                      <path
-                        d="M11.5385 0H0.461538C0.206769 0 0 0.206769 0 0.461538C0 0.716308 0.206769 0.923077 0.461538 0.923077H10.4241L0.135231 11.2122C-0.045 11.3924 -0.045 11.6845 0.135231 11.8648C0.225462 11.955 0.343385 12 0.461538 12C0.579692 12 0.697846 11.955 0.787846 11.8648L11.0769 1.57569V11.5385C11.0769 11.7932 11.2837 12 11.5385 12C11.7932 12 12 11.7932 12 11.5385V0.461538C12 0.206769 11.7932 0 11.5385 0Z"
-                        fill="white"
-                      />
-                    </svg>
-                  </span>
-                </Link>
-              </div>
+                      <span>Login</span>
+                    </Link>
+                  </div>
+                  <div className="option-item">
+                    <Link href="/signup" className="default-btn">
+                      <span className="left">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                        >
+                          <path
+                            d="M11.5385 0H0.461538C0.206769 0 0 0.206769 0 0.461538C0 0.716308 0.206769 0.923077 0.461538 0.923077H10.4241L0.135231 11.2122C-0.045 11.3924 -0.045 11.6845 0.135231 11.8648C0.225462 11.955 0.343385 12 0.461538 12C0.579692 12 0.697846 11.955 0.787846 11.8648L11.0769 1.57569V11.5385C11.0769 11.7932 11.2837 12 11.5385 12C11.7932 12 12 11.7932 12 11.5385V0.461538C12 0.206769 11.7932 0 11.5385 0Z"
+                            fill="white"
+                          />
+                        </svg>
+                      </span>
+                      <strong>Register Now</strong>
+                      <span className="right">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                        >
+                          <path
+                            d="M11.5385 0H0.461538C0.206769 0 0 0.206769 0 0.461538C0 0.716308 0.206769 0.923077 0.461538 0.923077H10.4241L0.135231 11.2122C-0.045 11.3924 -0.045 11.6845 0.135231 11.8648C0.225462 11.955 0.343385 12 0.461538 12C0.579692 12 0.697846 11.955 0.787846 11.8648L11.0769 1.57569V11.5385C11.0769 11.7932 11.2837 12 11.5385 12C11.7932 12 12 11.7932 12 11.5385V0.461538C12 0.206769 11.7932 0 11.5385 0Z"
+                            fill="white"
+                          />
+                        </svg>
+                      </span>
+                    </Link>
+                  </div>
+                </>
+              )}
             </div>
+            
             {/* mobile-menu-list */}
             <ul className="mobile-menu-list">
               {menus.map((item) => (
@@ -315,6 +504,19 @@ function Navbar() {
                   )}
                 </li>
               ))}
+              
+              {/* ✅ ADD: My Page link in mobile menu when logged in */}
+              {isLoggedIn && (
+                <li className="nav-item">
+                  <Link
+                    href="/mypage"
+                    className={`nav-link ${isActive("/mypage") ? "active" : ""}`}
+                    onClick={handleClose}
+                  >
+                    My Page
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
         </Offcanvas.Body>
@@ -324,3 +526,37 @@ function Navbar() {
 }
 
 export default Navbar;
+
+/**
+ * ✅ KEY CHANGES:
+ * 
+ * 1. Added user state initialization in Navbar useEffect
+ * 2. Added isLoggedIn helper: checks if user._id exists and is not empty
+ * 3. Added "My Page" link when isLoggedIn is true
+ * 4. Added user profile image with logout menu when isLoggedIn is true
+ * 5. Added debug logging (check browser console)
+ * 6. Fixed image URL construction to handle different formats
+ * 
+ * ✅ TROUBLESHOOTING:
+ * 
+ * If features still don't appear:
+ * 
+ * 1. Check browser console for debug logs:
+ *    - Look for "Navbar - User state:" log
+ *    - Check if hasId is true
+ *    - Check if id is not empty
+ * 
+ * 2. Verify you're logged in:
+ *    - Check localStorage for 'accessToken'
+ *    - Try logging in again
+ * 
+ * 3. Check if userVar is being updated:
+ *    - After login, userVar should have _id populated
+ *    - Check in React DevTools (Apollo Client DevTools)
+ * 
+ * 4. Make sure Material-UI is installed:
+ *    npm install @mui/material @mui/icons-material
+ * 
+ * 5. Check REACT_APP_API_URL is set in .env
+ */
+

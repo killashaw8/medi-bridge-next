@@ -11,6 +11,7 @@ import 'swiper/css/navigation';
 import Chat from '../Chat';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import GoTop from './GoTop';
 
 const withLayoutMain = (Component: any) => {
 	return (props: any) => {
@@ -44,6 +45,7 @@ const withLayoutMain = (Component: any) => {
 					</Stack>
 
 					<Chat />
+					<GoTop />
 
 					<Stack id={'footer'}>
 						<Footer />
