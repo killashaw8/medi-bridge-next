@@ -1,39 +1,21 @@
-/**
- * FIXED NAVBAR: libs/components/layout/Navbar.tsx
- * 
- * ISSUE: My Page and avatar not appearing
- * 
- * FIXES:
- * 1. Added user state initialization in Navbar (safety measure)
- * 2. Added "My Page" link when user is logged in
- * 3. Added user profile image with logout menu
- * 4. Added debug logging to help diagnose issues
- * 5. Fixed conditional rendering for logged in/out states
- * 
- * IMPORTANT: Make sure you're logged in (user._id should not be empty)
- */
-
 import React, { useState, useEffect } from "react";
 import Offcanvas from "react-bootstrap/Offcanvas";
-import { useRouter } from "next/router";
+import { useRouter, withRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
 import { menus } from "./Menus";
 import { useReactiveVar } from "@apollo/client";
 import { userVar } from "@/apollo/store";
 import { logOut, getJwtToken, updateUserInfo } from "@/libs/auth";
-import { REACT_APP_API_URL } from "@/libs/config";
-// ✅ ADD: Material-UI imports
 import { Menu, MenuItem } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { getImageUrl } from "@/libs/imageHelper";
 
-function Navbar() {
+const Navbar = () => {
   const router = useRouter();
   const pathname = router.pathname;
   const user = useReactiveVar(userVar);
-  
-  // ✅ ADD: State for logout menu
+  const [colorChange, setColorChange] = useState(false);
   const [logoutAnchor, setLogoutAnchor] = useState<null | HTMLElement>(null);
   const logoutOpen = Boolean(logoutAnchor);
 
@@ -60,7 +42,7 @@ function Navbar() {
     const element = document.getElementById("navbar");
     const onScroll = () => {
       if (!element) return;
-      if (window.scrollY > 170) {
+      if (window.scrollY >= 50) {
         element.classList.add("sticky");
       } else {
         element.classList.remove("sticky");
@@ -73,6 +55,14 @@ function Navbar() {
       element?.classList.remove("sticky");
     };
   }, []);
+
+  	const changeNavbarColor = () => {
+		if (window.scrollY >= 50) {
+			setColorChange(true);
+		} else {
+			setColorChange(false);
+		}
+	};
 
   // Offcanvas state
   const [show, setShow] = useState(false);
@@ -102,10 +92,14 @@ function Navbar() {
   // ✅ ADD: Check if user is logged in
   const isLoggedIn = user?._id && user._id !== '';
 
+  if (typeof window !== 'undefined') {
+		window.addEventListener('scroll', changeNavbarColor);
+	}
+
   return (
     <>
       <nav className="navbar navbar-expand-xl" id="navbar">
-        <div className="container-fluid">
+        <div className={`container-fluid ${colorChange ? 'transparent' : ''}`}>
           <Link href="/" className="navbar-brand">
             <Image
               src="/images/mdbrdg_large.png"
@@ -525,38 +519,5 @@ function Navbar() {
   );
 }
 
-export default Navbar;
-
-/**
- * ✅ KEY CHANGES:
- * 
- * 1. Added user state initialization in Navbar useEffect
- * 2. Added isLoggedIn helper: checks if user._id exists and is not empty
- * 3. Added "My Page" link when isLoggedIn is true
- * 4. Added user profile image with logout menu when isLoggedIn is true
- * 5. Added debug logging (check browser console)
- * 6. Fixed image URL construction to handle different formats
- * 
- * ✅ TROUBLESHOOTING:
- * 
- * If features still don't appear:
- * 
- * 1. Check browser console for debug logs:
- *    - Look for "Navbar - User state:" log
- *    - Check if hasId is true
- *    - Check if id is not empty
- * 
- * 2. Verify you're logged in:
- *    - Check localStorage for 'accessToken'
- *    - Try logging in again
- * 
- * 3. Check if userVar is being updated:
- *    - After login, userVar should have _id populated
- *    - Check in React DevTools (Apollo Client DevTools)
- * 
- * 4. Make sure Material-UI is installed:
- *    npm install @mui/material @mui/icons-material
- * 
- * 5. Check REACT_APP_API_URL is set in .env
- */
+export default withRouter(Navbar);
 
