@@ -35,8 +35,8 @@ export const menus = [
     title: "Blog",
     isDropdown: true,
     dropdownItems: [
-      { title: "Blog", href: "/getArticles/" },
-      { title: "News", href: "/getArticles/" },
+      { title: "Blog", href: "/blog" },
+      { title: "News", href: "/news" },
     ],
   },
   {
