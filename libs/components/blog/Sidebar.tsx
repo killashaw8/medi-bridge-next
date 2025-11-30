@@ -1,9 +1,52 @@
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { handleBlogSearch } from "@/libs/blogActions";
+import { useRouter } from "next/router";
+import { ArticlesInquiry } from "@/libs/types/article/article.input";
+import { IconButton, Stack, Tooltip } from "@mui/material";
+import RefreshIcon from '@mui/icons-material/Refresh';
 
-const Sidebar = () => {
+
+interface SidebarProps {
+  searchFilter?: ArticlesInquiry | any;
+	setSearchFilter?: any;
+	initialInput?: ArticlesInquiry;
+}
+
+const Sidebar = ( props: SidebarProps ) => {
+  const { searchFilter, setSearchFilter, initialInput } = props;
+  const router = useRouter();
+  const [searchText, setSearchText] = useState<string>('');
+
+
+	const refreshHandler = async () => {
+		try {
+			setSearchText('');
+			await router.push(
+				`/blog?input=${JSON.stringify(initialInput)}`,
+				`/blog?input=${JSON.stringify(initialInput)}`,
+				{ scroll: false },
+			);
+		} catch (err: any) {
+			console.log('ERROR, refreshHandler:', err);
+		}
+	};
+
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (setSearchFilter && searchFilter) {
+      setSearchFilter({
+        ...searchFilter,
+        page: 1,
+        search: {
+          ...searchFilter.search,
+          text: searchText.trim() || undefined,
+        },
+      });
+    }
+  };
+
+
   // Dynamic data objects
   const searchData = {
     title: "Search",
@@ -67,37 +110,51 @@ const Sidebar = () => {
       {/* Search Widget */}
       <div className="widget widget_search">
         <h3 className="widget-title">{searchData.title}</h3>
-        <form className="search-form" action={handleBlogSearch}>
-          <input
-            type="text"
-            name="q"
-            className="form-control"
-            placeholder={searchData.placeholder}
-          />
-          <button type="submit">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <mask
-                id="mask0_10040_10702"
-                style={{ maskType: "luminance" }}
-                maskUnits="userSpaceOnUse"
-                x="1"
-                y="1"
-                width="22"
-                height="22"
-              >
-                <path
-                  d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"
-                  stroke="white"
-                  strokeWidth="1.5"
-                />
-                <path opacity="0.5" d="M20 20L22 22" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-              </mask>
-              <g mask="url(#mask0_10040_10702)">
-                <path d="M0 0H24V24H0V0Z" fill="#336AEA" />
-              </g>
-            </svg>
-          </button>
-        </form>
+        <Stack className="searchbar">
+          <form className="search-form" onSubmit={handleSearch}>
+            <input
+              type="text"
+              name="q"
+              className="form-control"
+              placeholder={searchData.placeholder}
+              onChange={(e: any) => setSearchText(e.target.value)}
+              onKeyDown={(event: any) => {
+                if (event.key == "Enter") {
+                  event.preventDefault();
+                  handleSearch(event);
+                }
+              }}
+            />
+            <button type="submit">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <mask
+                  id="mask0_10040_10702"
+                  style={{ maskType: "luminance" }}
+                  maskUnits="userSpaceOnUse"
+                  x="1"
+                  y="1"
+                  width="22"
+                  height="22"
+                >
+                  <path
+                    d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"
+                    stroke="white"
+                    strokeWidth="1.5"
+                  />
+                  <path opacity="0.5" d="M20 20L22 22" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+                </mask>
+                <g mask="url(#mask0_10040_10702)">
+                  <path d="M0 0H24V24H0V0Z" fill="#336AEA" />
+                </g>
+              </svg>
+            </button>
+          </form>
+          <Tooltip className={"refresh"} title="Reset">
+            <IconButton onClick={refreshHandler}>
+              <RefreshIcon />
+            </IconButton>
+          </Tooltip>
+        </Stack>
       </div>
 
       {/* Popular Posts Widget */}

@@ -92,6 +92,16 @@ export const GET_DOCTORS = gql`
         naverId
         clinicId
         specialization
+        meLiked {
+          memberId
+          likeRefId
+          myFavorite
+        }
+        meFollowed {
+					followingId
+					followerId
+					myFollowing
+				}
       }
       metaCounter {
         total
@@ -137,6 +147,16 @@ export const GET_CLINICS = gql`
         naverId
         clinicId
         specialization
+        meLiked {
+          memberId
+          likeRefId
+          myFavorite
+        }
+        meFollowed {
+					followingId
+					followerId
+					myFollowing
+				}
       }
       metaCounter {
         total
@@ -171,6 +191,20 @@ export const GET_PRODUCT = gql`
       deletedAt
       createdAt
       updatedAt
+      memberData {
+        _id
+        memberNick
+        memberFullName
+        memberType
+        memberStatus
+        memberImage
+        memberDesc
+      }
+      meLiked {
+        memberId
+        likeRefId
+        myFavorite
+      }
     }
   }
 `;
@@ -196,6 +230,20 @@ export const GET_PRODUCTS = gql`
         deletedAt
         createdAt
         updatedAt
+        memberData {
+          _id
+          memberNick
+          memberFullName
+          memberType
+          memberStatus
+          memberImage
+          memberDesc
+        }
+        meLiked {
+          memberId
+          likeRefId
+          myFavorite
+        }
       }
       metaCounter {
         total
@@ -225,6 +273,11 @@ export const GET_CLINIC_PRODUCTS = gql`
         deletedAt
         createdAt
         updatedAt
+        meLiked {
+					memberId
+					likeRefId
+					myFavorite
+				}
       }
       metaCounter {
         total
@@ -353,6 +406,20 @@ export const GET_ARTICLE = gql`
       memberId
       createdAt
       updatedAt
+      memberData {
+        _id
+        memberNick
+        memberFullName
+        memberType
+        memberStatus
+        memberImage
+        memberDesc
+      }
+      meLiked {
+        memberId
+        likeRefId
+        myFavorite
+      }
     }
   }
 `;
@@ -373,6 +440,20 @@ export const GET_ARTICLES = gql`
         memberId
         createdAt
         updatedAt
+        memberData {
+          _id
+          memberNick
+          memberFullName
+          memberType
+          memberStatus
+          memberImage
+          memberDesc
+        }
+        meLiked {
+          memberId
+          likeRefId
+          myFavorite
+        }
       }
       metaCounter {
         total
@@ -494,7 +575,7 @@ export const GET_MEMBER_FOLLOWINGS = gql`
   }
 `;
 
-export const GET_MEMBER_FOLLOWers = gql`
+export const GET_MEMBER_FOLLOWERS = gql`
   query GetMemberFollowers($input: FollowInquiry!) {
     getMemberFollowers(input: $input) {
       list {

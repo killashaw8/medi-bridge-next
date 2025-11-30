@@ -1,139 +1,131 @@
-import React, { useState, useRef } from "react";
-import Image from "next/image";
-import Link from "next/link";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import Sidebar from "./Sidebar";
+import { useRouter } from "next/router";
+import { ArticleCategory } from "@/libs/enums/article.enum";
+import { ArticlesInquiry } from "@/libs/types/article/article.input";
+import { useMutation, useQuery } from "@apollo/client";
+import { GET_ARTICLES, LIKE_TARGET_ARTICLE } from "@/apollo/user/query";
+import { Article, } from "@/libs/types/article/article";
+import { T } from "@/libs/types/common";
+import { Pagination, Stack, } from "@mui/material";
+import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from "@/libs/sweetAlert";
+import { Messages } from "@/libs/config";
+import BlogCard from "./BlogCard";
 
+interface BlogClassicProps {
+  initialInput?: ArticlesInquiry;
+}
 
-const BlogClassic = () => {
-  // Create a ref for the blog area to scroll to
+const BlogClassic = (props: BlogClassicProps) => {
+  const { initialInput } = props;
+  const router = useRouter();
   const blogAreaRef = useRef<HTMLDivElement>(null);
+	const { query } = router;
+	const articleCategory = query?.articleCategory as string;
+	const [articles, setArticles] = useState<Article[]>([]);
+	const [totalCount, setTotalCount] = useState<number>(0);
+
+  // Default input if not provided
+  const defaultInput: ArticlesInquiry = {
+    page: 1,
+    limit: 6,
+    sort: 'createdAt',
+    direction: "DESC",
+    search: {
+      articleCategory: ArticleCategory.BLOG,
+    },
+  };
+
+  const [searchArticles, setSearchArticles] = useState<ArticlesInquiry>(() => {
+    const baseInput = initialInput || defaultInput;
+    // Ensure search object exists
+    const baseSearch = baseInput.search || { articleCategory: ArticleCategory.BLOG };
+    // If articleCategory is in query, update the search
+    if (articleCategory && (articleCategory === ArticleCategory.BLOG || articleCategory === ArticleCategory.NEWS)) {
+      return {
+        ...baseInput,
+        search: {
+          ...baseSearch,
+          articleCategory: articleCategory as ArticleCategory,
+        },
+      };
+    }
+    return {
+      ...baseInput,
+      search: baseSearch,
+    };
+  });
   
-  // Dynamic blog data
-  const blogData = [
-    {
-      id: 1,
-      imageSrc: "/images/blog/blog1.jpg",
-      category: "Telehealth Tips",
-      date: "Mar 12, 2025",
-      title: "5 Signs You Should See a Doctor Virtually",
-      slug: "/blogs/details",
-    },
-    {
-      id: 2,
-      imageSrc: "/images/blog/blog2.jpg",
-      category: "Mental Health",
-      date: "Mar 15, 2025",
-      title: "Managing Anxiety: How Online Therapy Can Help",
-      slug: "/blogs/details",
-    },
-    {
-      id: 3,
-      imageSrc: "/images/blog/blog3.jpg",
-      category: "Internal Medicine",
-      date: "Mar 15, 2025",
-      title: "What to Expect During Your First Telehealth Visit",
-      slug: "/blogs/details",
-    },
-    {
-      id: 4,
-      imageSrc: "/images/blog/blog4.jpg",
-      category: "Preventive Care",
-      date: "Mar 18, 2025",
-      title: "Annual Checkups: Why They Matter More Than Ever",
-      slug: "/blogs/details",
-    },
-    {
-      id: 5,
-      imageSrc: "/images/blog/blog5.jpg",
-      category: "Chronic Conditions",
-      date: "Mar 20, 2025",
-      title: "Managing Diabetes Through Telemedicine",
-      slug: "/blogs/details",
-    },
-    {
-      id: 6,
-      imageSrc: "/images/blog/blog6.jpg",
-      category: "Pediatrics",
-      date: "Mar 22, 2025",
-      title: "Virtual Visits for Children: What Parents Need to Know",
-      slug: "/blogs/details",
-    },
-    {
-      id: 7,
-      imageSrc: "/images/blog/blog7.jpg",
-      category: "Nutrition",
-      date: "Mar 25, 2025",
-      title: "Healthy Eating Habits You Can Discuss With Your Doctor Online",
-      slug: "/blogs/details",
-    },
-    {
-      id: 8,
-      imageSrc: "/images/blog/blog8.jpg",
-      category: "Women's Health",
-      date: "Mar 28, 2025",
-      title: "How Telehealth is Changing Women's Preventive Care",
-      slug: "/blogs/details",
-    },
-    {
-      id: 9,
-      imageSrc: "/images/blog/blog9.jpg",
-      category: "Senior Care",
-      date: "Apr 1, 2025",
-      title: "Telemedicine for Seniors: Safer Care from Home",
-      slug: "/blogs/details",
-    },
-    {
-      id: 10,
-      imageSrc: "/images/blog/blog10.jpg",
-      category: "Technology",
-      date: "Apr 3, 2025",
-      title: "AI in Telemedicine: What Patients Should Know",
-      slug: "/blogs/details",
-    },
-    {
-      id: 11,
-      imageSrc: "/images/blog/blog11.jpg",
-      category: "Fitness & Wellness",
-      date: "Apr 6, 2025",
-      title: "Combining Virtual Care With Your Wellness Routine",
-      slug: "/blogs/details",
-    },
-    {
-      id: 12,
-      imageSrc: "/images/blog/blog12.jpg",
-      category: "Global Health",
-      date: "Apr 10, 2025",
-      title: "How Telehealth is Expanding Access to Care Worldwide",
-      slug: "/blogs/details",
-    },
-  ];
   
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 6;
   
-  // Calculate pagination values
-  const indexOfLastPost = currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = blogData.slice(indexOfFirstPost, indexOfLastPost);
-  const totalPages = Math.ceil(blogData.length / postsPerPage);
-  
-  // Check if pagination should be shown
-  const showPagination = blogData.length > postsPerPage;
-  
-  // Generate page numbers to display
-  const pageNumbers = [];
-  const maxVisiblePages = 6;
-  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-  const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1); // Fixed: changed 'let' to 'const'
-  
-  if (endPage - startPage + 1 < maxVisiblePages) {
-    startPage = Math.max(1, endPage - maxVisiblePages + 1);
-  }
-  
-  for (let i = startPage; i <= endPage; i++) {
-    pageNumbers.push(i);
-  }
+  // APOLLO Requests
+  const [likeTargetArticle] = useMutation(LIKE_TARGET_ARTICLE);
+
+  const { 
+    loading: getArticlesLoading,
+    data: getArticlesData,  
+    error: getArticlesError,
+    refetch: articlesRefetch,
+  } = useQuery(GET_ARTICLES, {
+    fetchPolicy: "cache-and-network",
+    variables: { input: searchArticles },
+    notifyOnNetworkStatusChange: true,
+		onCompleted: (data: T) => {
+			setArticles(data?.getArticles?.list);
+			setTotalCount(data?.getArticles?.metaCounter[0]?.total)
+		}
+  });
+
+	/** LIFECYCLES **/
+	useEffect(() => {
+		if (!query?.articleCategory)
+			router.push(
+				{
+					pathname: router.pathname,
+					query: { articleCategory: 'BLOG' },
+				},
+				router.pathname,
+				{ shallow: true },
+			);
+	}, []);
+
+  useEffect(() => {
+    if (articleCategory && (articleCategory === ArticleCategory.BLOG || articleCategory === ArticleCategory.NEWS)) {
+      setSearchArticles(prev => ({
+        ...prev,
+        page: 1, // Reset to first page when category changes
+        search: {
+          ...prev.search,
+          articleCategory: articleCategory as ArticleCategory,
+        },
+      }));
+    }
+  }, [articleCategory]);
+
+
+  /** HANDLERS **/
+	const paginationHandler = (e: T, value: number) => {
+		setSearchArticles({ ...searchArticles, page: value });
+	};
+
+	const likeArticleHandler = async (e: any, user: any, id: string) => {
+		try {
+			e.stopPropagation();
+			if (!id) return;
+			if (!user._id) throw new Error(Messages.error2);
+
+			await likeTargetArticle({
+				variables: {
+					input: id
+				}
+			});
+			await articlesRefetch({ input: searchArticles });
+			await sweetTopSmallSuccessAlert('success', 800);
+		} catch (err: any) {
+			console.log('ERROR, likePropertyHandler:', err.message);
+			sweetMixinErrorAlert(err.message).then();
+		}
+	};   
   
   // Function to scroll to top of blog area
   const scrollToTop = () => {
@@ -142,147 +134,69 @@ const BlogClassic = () => {
     }
   };
   
-  // Handle page change with scroll to top
-  const paginate = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-    scrollToTop();
-  };
-  
-  const goToPrevPage = () => {
-    setCurrentPage((prev) => Math.max(1, prev - 1));
-    scrollToTop();
-  };
-  
-  const goToNextPage = () => {
-    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
-    scrollToTop();
-  };
-  
   return (
-    <>
-      <div ref={blogAreaRef} className="blog-area ptb-140">
-        <div className="container">
-          <div className="row justify-content-center g-4">
-            <div className="col-xl-8 col-md-12">
-              <div className="row justify-content-center g-4">
-                {currentPosts.map((post) => (
-                  <div key={post.id} className="col-lg-12 col-md-12">
-                    <div className="blog-card wrap-style2">
-                      <div className="image">
-                        <Link href={post.slug}>
-                          <Image
-                            src={post.imageSrc}
-                            alt={post.title}
-                            width={832}
-                            height={832}
-                          />
-                        </Link>
-                      </div>
-                      <div className="content">
-                        <ul className="meta">
-                          <li>
-                            <Link href={post.slug}>{post.category}</Link>
-                          </li>
-                          <li>{post.date}</li>
-                        </ul>
-                        <h3>
-                          <Link href={post.slug}>{post.title}</Link>
-                        </h3>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+      <Stack ref={blogAreaRef} className="blog-area ptb-140">
+        <Stack className="container">
+          <Stack className="blog-view row justify-content-center g-4">
+            <Stack className="col-xl-8 col-md-12">
+              <Stack className="row justify-content-center g-4">
+                {totalCount ? (
+                  articles.map((article: Article) => {
+                    return (
+                      <BlogCard 
+                        article={article}
+                        key={article._id}
+                        likeArticleHandler={likeArticleHandler}
+                      />
+                    );
+                  })
+                ) : (
+                  <Stack className={'no-data'}>
+                    <img src="/images/icons/icoAlert.svg" alt="" />
+                    <p>No Article found!</p>
+                  </Stack>
+                )}
                 
                 {/* Conditionally render pagination */}
-                {showPagination && (
-                  <div className="col-lg-12 col-md-12">
-                    <div className="pagination-area">
-                      <button
-                        type="button"
-                        onClick={goToPrevPage}
-                        disabled={currentPage === 1}
-                        className={currentPage === 1 ? "disabled" : ""}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M13 19L7 12L13 5"
-                            stroke="#63667D"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            opacity="0.5"
-                            d="M17 19L11 12L17 5"
-                            stroke="#63667D"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </button>
-                      
-                      {pageNumbers.map((number) => (
-                        <button
-                          key={number}
-                          type="button"
-                          onClick={() => paginate(number)}
-                          className={currentPage === number ? "active" : ""}
-                        >
-                          {number}
-                        </button>
-                      ))}
-                      
-                      <button
-                        type="button"
-                        onClick={goToNextPage}
-                        disabled={currentPage === totalPages}
-                        className={currentPage === totalPages ? "disabled" : ""}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M11 19L17 12L11 5"
-                            stroke="#63667D"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            opacity="0.5"
-                            d="M7 19L13 12L7 5"
-                            stroke="#63667D"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
+                {totalCount > 0 && (
+                  <Stack className="col-lg-12 col-md-12">
+                    <Stack className="pagination-area">
+                      <Pagination
+                        count={Math.ceil(totalCount / searchArticles.limit)}
+                        page={searchArticles.page}
+                        shape="circular"
+                        color="primary"
+                        onChange={paginationHandler}
+                      />
+                    </Stack>
+                  </Stack>
                 )}
-              </div>
-            </div>
+              </Stack>
+            </Stack>
             
-            <div className="col-xl-4 col-md-12">
-              <Sidebar />
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+            <Stack className="col-xl-4 col-md-12">
+              <Sidebar 
+                searchFilter={searchArticles}
+                setSearchFilter={setSearchArticles}
+                initialInput={defaultInput}
+              />
+            </Stack>
+          </Stack>
+        </Stack>
+      </Stack>
   );
+};
+
+BlogClassic.defaultProps = {
+	initialInput: {
+		page: 1,
+		limit: 6,
+		sort: 'createdAt',
+		direction: 'ASC',
+		search: {
+			articleCategory: 'FREE',
+		},
+	},
 };
 
 export default BlogClassic;

@@ -9,7 +9,7 @@ export interface Article {
 	articleStatus: ArticleStatus;
 	articleTitle: string;
 	articleContent: string;
-	articleImage?: string;
+	articleImage?: string | any;
 	articleViews: number;
 	articleLikes: number;
 	articleComments: number;
