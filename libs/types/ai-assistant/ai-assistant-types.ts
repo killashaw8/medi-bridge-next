@@ -1,6 +1,6 @@
 export interface AskAiContextInput {
   userId?: string;
-  role?: 'USER' | 'DOCTOR' | 'CLINIC' | 'ADMIN';
+  role?: 'USER' | 'DOCTOR' | 'CLINIC' | 'ADMIN' | string;
   lang?: 'en' | 'ko' | 'ru' | 'uz';
   clientId?: string;
   clinicId?: string;

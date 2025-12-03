@@ -21,4 +21,6 @@ export interface CustomJwtPayload extends JwtPayload {
 	memberComments: number;
 	memberWarnings: number;
 	memberBlocks: number;
+	clinicId: string;
+	specialization: string;
 }

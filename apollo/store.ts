@@ -24,6 +24,8 @@ export const userVar = makeVar<CustomJwtPayload>({
 	memberComments: 0,
 	memberWarnings: 0,
 	memberBlocks: 0,
+	clinicId: '',
+	specialization: '',
 });
 
 // @ts-ignore
