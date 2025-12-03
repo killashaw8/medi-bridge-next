@@ -5,9 +5,11 @@ import { ArticleCategory } from "@/libs/enums/article.enum";
 import { ArticlesInquiry } from "@/libs/types/article/article.input";
 import { useMutation, useQuery } from "@apollo/client";
 import { GET_ARTICLES, LIKE_TARGET_ARTICLE } from "@/apollo/user/query";
+import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { Article, } from "@/libs/types/article/article";
 import { T } from "@/libs/types/common";
-import { Pagination, Stack, } from "@mui/material";
+import { Box, Pagination, Stack } from "@mui/material";
+import Tab from '@mui/material/Tab';
 import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from "@/libs/sweetAlert";
 import { Messages } from "@/libs/config";
 import BlogCard from "./BlogCard";
@@ -82,7 +84,7 @@ const BlogClassic = (props: BlogClassicProps) => {
 			router.push(
 				{
 					pathname: router.pathname,
-					query: { articleCategory: 'BLOG' },
+					query: { articleCategory: 'NEWS' },
 				},
 				router.pathname,
 				{ shallow: true },
@@ -90,10 +92,10 @@ const BlogClassic = (props: BlogClassicProps) => {
 	}, []);
 
   useEffect(() => {
-    if (articleCategory && (articleCategory === ArticleCategory.BLOG || articleCategory === ArticleCategory.NEWS)) {
+    if (articleCategory && (articleCategory === ArticleCategory.NEWS || articleCategory === ArticleCategory.BLOG)) {
       setSearchArticles(prev => ({
         ...prev,
-        page: 1, // Reset to first page when category changes
+        page: 1,
         search: {
           ...prev.search,
           articleCategory: articleCategory as ArticleCategory,
@@ -104,6 +106,20 @@ const BlogClassic = (props: BlogClassicProps) => {
 
 
   /** HANDLERS **/
+	const tabChangeHandler = async (e: T, value: string) => {
+		console.log(value);
+
+		setSearchArticles({ ...searchArticles, page: 1, search: { articleCategory: value as ArticleCategory } });
+		await router.push(
+			{
+				pathname: '/article',
+				query: { articleCategory: value },
+			},
+			router.pathname,
+			{ shallow: true },
+		);
+	};
+
 	const paginationHandler = (e: T, value: number) => {
 		setSearchArticles({ ...searchArticles, page: value });
 	};
@@ -135,55 +151,104 @@ const BlogClassic = (props: BlogClassicProps) => {
   };
   
   return (
-      <Stack ref={blogAreaRef} className="blog-area ptb-140">
+    <>
+      <div ref={blogAreaRef} className="blog-area ptb-140">
         <Stack className="container">
-          <Stack className="blog-view row justify-content-center g-4">
-            <Stack className="col-xl-8 col-md-12">
-              <Stack className="row justify-content-center g-4">
-                {totalCount ? (
-                  articles.map((article: Article) => {
-                    return (
-                      <BlogCard 
-                        article={article}
-                        key={article._id}
-                        likeArticleHandler={likeArticleHandler}
-                      />
-                    );
-                  })
-                ) : (
-                  <Stack className={'no-data'}>
-                    <img src="/images/icons/icoAlert.svg" alt="" />
-                    <p>No Article found!</p>
-                  </Stack>
-                )}
-                
-                {/* Conditionally render pagination */}
-                {totalCount > 0 && (
-                  <Stack className="col-lg-12 col-md-12">
-                    <Stack className="pagination-area">
-                      <Pagination
-                        count={Math.ceil(totalCount / searchArticles.limit)}
-                        page={searchArticles.page}
-                        shape="circular"
-                        color="primary"
-                        onChange={paginationHandler}
-                      />
+          <TabContext value={searchArticles.search?.articleCategory}>
+            <Stack className="blog-view row justify-content-center g-4">
+              <Stack className="left col-xl-8 col-md-12">
+                <Stack className="row justify-content-center g-4">
+                  <Box sx={{ borderBottom: 1, borderColor: 'divider' }} className="blog-tablist">
+                    <TabList
+                      orientation="horizontal"
+                      aria-label="basic tabs example"
+                      TabIndicatorProps={{
+                        style: { display: 'none' },
+                      }}
+                      onChange={tabChangeHandler}
+                      centered
+                    >
+                      <Tab
+                        value={'NEWS'}
+                        label={'News'}
+                        className={`tab-button ${searchArticles.search?.articleCategory == 'NEWS' ? 'active' : ''}`}
+                      />    
+                      <Tab
+                        value={'BLOG'}
+                        label={'Blog'}
+                        className={`tab-button ${searchArticles.search?.articleCategory == 'BLOG' ? 'active' : ''}`}
+                      />                                 
+                    </TabList>
+                  </Box>
+
+                  <TabPanel value="NEWS">
+                    {totalCount ? (
+                      articles.map((article: Article) => {
+                        return (
+                          <BlogCard 
+                            article={article}
+                            key={article._id}
+                            likeArticleHandler={likeArticleHandler}
+                          />
+                        );
+                      })
+                    ) : (
+                      <Stack className={'no-data'}>
+                        <img src="/images/icons/icoAlert.svg" alt="" />
+                        <p>No Article found!</p>
+                      </Stack>
+                    )}
+                  </TabPanel>
+                  <TabPanel value="BLOG">
+                    {totalCount ? (
+                      articles.map((article: Article) => {
+                        return (
+                          <BlogCard 
+                            article={article}
+                            key={article._id}
+                            likeArticleHandler={likeArticleHandler}
+                          />
+                        );
+                      })
+                    ) : (
+                      <Stack className={'no-data'}>
+                        <img src="/images/icons/icoAlert.svg" alt="" />
+                        <p>No Article found!</p>
+                      </Stack>
+                    )}
+                  </TabPanel>
+                  
+                  {/* Conditionally render pagination */}
+                  {totalCount > 0 && (
+                    <Stack>
+                      <Stack>
+                        <Pagination
+                          count={Math.ceil(totalCount / searchArticles.limit)}
+                          page={searchArticles.page}
+                          shape="rounded"
+                          variant="outlined"
+                          size="large"
+                          color="primary"
+                          onChange={paginationHandler}
+                        />
+                      </Stack>
                     </Stack>
-                  </Stack>
-                )}
+                  )}
+                </Stack>
               </Stack>
+              
+              <div className="col-xl-4 col-md-12">
+                <Sidebar 
+                  searchFilter={searchArticles}
+                  setSearchFilter={setSearchArticles}
+                  initialInput={defaultInput}
+                />
+              </div>
             </Stack>
-            
-            <Stack className="col-xl-4 col-md-12">
-              <Sidebar 
-                searchFilter={searchArticles}
-                setSearchFilter={setSearchArticles}
-                initialInput={defaultInput}
-              />
-            </Stack>
-          </Stack>
+          </TabContext>
         </Stack>
-      </Stack>
+      </div>
+    </>
   );
 };
 

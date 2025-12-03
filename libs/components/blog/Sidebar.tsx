@@ -1,10 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useQuery } from "@apollo/client";
 import { ArticlesInquiry } from "@/libs/types/article/article.input";
+import { GET_ARTICLES } from "@/apollo/user/query";
+import { Article } from "@/libs/types/article/article";
 import { IconButton, Stack, Tooltip } from "@mui/material";
 import RefreshIcon from '@mui/icons-material/Refresh';
+import Moment from 'react-moment';
+import { getImageUrl } from "@/libs/imageHelper";
 
 
 interface SidebarProps {
@@ -18,6 +23,34 @@ const Sidebar = ( props: SidebarProps ) => {
   const router = useRouter();
   const [searchText, setSearchText] = useState<string>('');
 
+  // Fetch popular articles (most viewed)
+  
+  const popularArticlesInput: ArticlesInquiry = {
+    page: 1,
+    limit: 3,
+    sort: 'articleViews',
+    direction: "DESC",
+    search: {
+    },
+  };
+
+  const { data: popularArticlesData, loading: popularLoading, error: popularError } = useQuery(GET_ARTICLES, {
+    variables: { input: popularArticlesInput },
+    fetchPolicy: "cache-and-network",
+  });
+
+  const popularPosts: Article[] = popularArticlesData?.getArticles?.list || [];
+
+  // Debug logging
+  useEffect(() => {
+    if (popularArticlesData) {
+      console.log('Popular Articles Data:', popularArticlesData);
+      console.log('Popular Posts:', popularPosts);
+    }
+    if (popularError) {
+      console.error('Popular Articles Error:', popularError);
+    }
+  }, [popularArticlesData, popularPosts, popularError]);
 
 	const refreshHandler = async () => {
 		try {
@@ -53,57 +86,19 @@ const Sidebar = ( props: SidebarProps ) => {
     placeholder: "Search keywords",
   };
 
-  const popularPosts = [
-    {
-      id: 1,
-      imageSrc: "/images/blog/blog1.jpg",
-      date: "June 5, 2025",
-      title: "5 Signs You Should See a Doctor Virtually",
-      slug: "/blogs/details",
-    },
-    {
-      id: 2,
-      imageSrc: "/images/blog/blog2.jpg",
-      date: "May 28, 2025",
-      title: "Understanding Cold vs. Flu Symptoms",
-      slug: "/blogs/details",
-    },
-    {
-      id: 3,
-      imageSrc: "/images/blog/blog3.jpg",
-      date: "May 12, 2025",
-      title: "How Telemedicine Supports Working Parents",
-      slug: "/blogs/details",
-    },
-  ];
-
   const widgetBoxData = {
     image: {
       src: "/images/mdbrdg_large.png",
       alt: "Experience Virtual Care",
     },
     description: "Experience Virtual Care Today",
-    buttonText: "Register Now - It's Free",
-    buttonLink: "/signup",
+    buttonText: "Make Appointment - It's Free",
+    buttonLink: "/makeAppointment",
     shapeImage: {
       src: "/images/shape.png",
       alt: "Decorative shape",
     },
   };
-
-  const categories = [
-    { name: "Blogs", link: "/blog" },
-    { name: "News", link: "/news" },
-  ];
-
-  const tags = [
-    { name: "VirtualCare", link: "/blog" },
-    { name: "MentalHealth", link: "/blog" },
-    { name: "OnlineTherapy", link: "/blog" },
-    { name: "ChronicCare", link: "/blog" },
-    { name: "HealthTips", link: "/blog" },
-    { name: "FamilyCare", link: "/blog" },
-  ];
 
   return (
     <div className="widget-area">
@@ -160,19 +155,49 @@ const Sidebar = ( props: SidebarProps ) => {
       {/* Popular Posts Widget */}
       <div className="widget widget_posts_thumb">
         <h3 className="widget-title">Popular Posts</h3>
-        {popularPosts.slice(0, 3).map((post) => (
-          <article key={post.id} className="item">
-            <Link href={post.slug} className="thumb">
-              <Image src={post.imageSrc} alt={post.title} width={85} height={85} />
-            </Link>
-            <div className="info">
-              <span>{post.date}</span>
-              <h4 className="title usmall">
-                <Link href={post.slug}>{post.title}</Link>
-              </h4>
-            </div>
-          </article>
-        ))}
+        {popularLoading ? (
+          <div style={{ padding: '10px', color: '#5A6A85', fontSize: '14px' }}>
+            Loading...
+          </div>
+        ) : popularError ? (
+          <div style={{ padding: '10px', color: '#D30082', fontSize: '14px' }}>
+            Error loading posts
+          </div>
+        ) : popularPosts.length > 0 ? (
+          popularPosts.map((post: Article) => (
+            <article key={post._id} className="item">
+              <Link href={`/blog/${post._id}`} className="thumb">
+                <Image 
+                  src={getImageUrl(post.articleImage) || '/images/blog/blog1.jpg'} 
+                  alt={post.articleTitle} 
+                  width={85} 
+                  height={85}
+                  style={{ 
+                    objectFit: 'cover', 
+                    borderRadius: '10%',
+                    width: '85px',
+                    height: '85px',
+                    flexShrink: 0 
+                  }}
+                />
+              </Link>
+              <div className="info">
+                <span>
+                  <Moment format={'MMM DD, YYYY'}>
+                    {post.createdAt}
+                  </Moment>
+                </span>
+                <h4 className="title usmall">
+                  <Link href={`/blog/${post._id}`}>{post.articleTitle}</Link>
+                </h4>
+              </div>
+            </article>
+          ))
+        ) : (
+          <div style={{ padding: '10px', color: '#5A6A85', fontSize: '14px' }}>
+            No popular posts available
+          </div>
+        )}
       </div>
 
       {/* Widget Box */}
@@ -192,30 +217,6 @@ const Sidebar = ( props: SidebarProps ) => {
         </Link>
         <div className="shape">
           <Image src={widgetBoxData.shapeImage.src} alt={widgetBoxData.shapeImage.alt} width={165} height={128} />
-        </div>
-      </div>
-
-      {/* Categories Widget */}
-      <div className="widget widget_categories">
-        <h3 className="widget-title">Categories</h3>
-        <ul className="list">
-          {categories.map((category, index) => (
-            <li key={index}>
-              <Link href={category.link}>{category.name}</Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Tags Widget */}
-      <div className="widget widget_tag_cloud">
-        <h3 className="widget-title">Tags</h3>
-        <div className="tag-cloud">
-          {tags.map((tag, index) => (
-            <Link key={index} href={tag.link}>
-              {tag.name}
-            </Link>
-          ))}
         </div>
       </div>
     </div>

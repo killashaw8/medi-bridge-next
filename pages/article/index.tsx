@@ -13,7 +13,7 @@ export const getStaticProps: GetStaticProps = async ({ locale }) => {
   };
 };
 
-const Blog: NextPage = () => {
+const Article: NextPage = () => {
   return (
     <>
 
@@ -33,4 +33,4 @@ const Blog: NextPage = () => {
   );
 }
 
-export default withLayoutBasic(Blog);
+export default withLayoutBasic(Article);

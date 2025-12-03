@@ -44,7 +44,7 @@ const BlogDetailsContent = (props: BlogCardProps) => {
   const chooseArticleHandler = (e: React.SyntheticEvent, article: Article) => {
     router.push(
       {
-        pathname: '/blog/[id]',
+        pathname: '/article/[id]',
         query: { id: article?._id },
       },
       `/blog/${article?._id}`,
@@ -59,31 +59,28 @@ const BlogDetailsContent = (props: BlogCardProps) => {
 
   return (
     <div className="col-lg-12 col-md-12">
-      <div 
-        className="blog-card wrap-style2"
-        onClick={(e: any) => chooseArticleHandler(e, article)}
-      >
-        <div className="image">
+      <div className="blog-card wrap-style2">
+        <div 
+          className="image"
+          onClick={(e: any) => chooseArticleHandler(e, article)}
+          >
           <Image
             src={imagePath}
-            alt={article?.articleTitle || "Blog Image"}
-            width={500}
-            height={500}
+            alt={article?.articleTitle || "Article Image"}
+            width={600}
+            height={400}
             style={{ 
               objectFit: "cover",
-              borderRadius: "20px" 
+              borderRadius: "20px",
+              width: '600px',
+              height: '400px'
             }}
           />
         </div>
         <div className="content">
           <ul className="meta">
             <li>
-              <Link 
-                href={`/blog?category=${article?.articleCategory}`}
-                onClick={(e) => e.stopPropagation()}
-              >
                 {getCategoryDisplayName(article?.articleCategory)}
-              </Link>
             </li>
             <li>
               <Moment format={'MMM DD, YYYY'}>
@@ -101,7 +98,7 @@ const BlogDetailsContent = (props: BlogCardProps) => {
           <Stack 
             direction="row" 
             alignItems="center" 
-            width={'500px'}
+            width={'600px'}
             gap={1}
             sx={{ marginTop: '15px' }}
           >

@@ -31,13 +31,9 @@ export const menus = [
     ],
   },
   {
-    id: "blog",
-    title: "Blog",
-    isDropdown: true,
-    dropdownItems: [
-      { title: "Blog", href: "/blog" },
-      { title: "News", href: "/news" },
-    ],
+    id: "articles",
+    title: "Articles",
+    href: "/article"
   },
   {
     id: "pages",

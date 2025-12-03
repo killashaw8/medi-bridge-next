@@ -10,7 +10,7 @@ export interface ArticleInput {
 }
 
 interface AISearch {
-	articleCategory?: ArticleCategory;
+	articleCategory?: ArticleCategory | any;
 	text?: string;
 	memberId?: string;
 }
@@ -20,7 +20,7 @@ export interface ArticlesInquiry {
 	limit: number;
 	sort?: string;
 	direction?: Direction | string;
-	search: AISearch;
+	search?: AISearch;
 }
 
 interface AAISearch {

@@ -415,3 +415,17 @@ export const UNSUBSCRIBE = gql`
     }
   }
 `;
+
+
+/*******************************
+ *         AI-ASSISTANT        *
+ ******************************/
+
+
+export const ASK_AI = gql`
+  mutation AskAI($input: AskAiInput!) {
+    askAI(input: $input) {
+      reply
+    }
+  }
+`;

@@ -50,7 +50,7 @@ interface InfoPayload {
   action: string;
 }
 
-const Chat = () => {
+const Ask_AI = () => {
 	const chatContentRef = useRef<HTMLDivElement>(null);
 	const [messagesList, setMessagesList] = useState<MessagePayload[]>([]);
 	const [onlineUsers, setOnlineUsers] = useState<number>(0);
@@ -145,7 +145,7 @@ const Chat = () => {
 			) : null}
 			<Stack className={`chat-frame ${open ? 'open' : ''}`}>
 				<Box className={'chat-top'} component={'div'}>
-					<div style={{ fontFamily: 'Nunito' }}>Online Chat</div>
+					<div style={{ fontFamily: 'Nunito' }}>MediBridge AI</div>
 					<RippleBadge style={{margin: "-18px 0 0 21px"}} badgeContent={onlineUsers} />
 				</Box>
 				<Box className={'chat-content'} id="chat-content" ref={chatContentRef} component={'div'}>
@@ -188,7 +188,7 @@ const Chat = () => {
 						type={'text'}
 						name={'message'}
 						className={'msg-input'}
-						placeholder={'Type message'}
+						placeholder={'Ask AI...'}
 						value={messageInput}
 						onChange={getInputMessageHandler}
 						onKeyDown={getKeyHandler}
@@ -202,4 +202,4 @@ const Chat = () => {
 	);
 };
 
-export default Chat;
+export default Ask_AI;
