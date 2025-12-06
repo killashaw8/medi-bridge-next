@@ -1,7 +1,7 @@
 import React, { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { signUp } from "@/libs/auth";
+import { signUp, updateUserInfoFromResponse } from "@/libs/auth";
 import { sweetMixinErrorAlert } from "@/libs/sweetAlert";
 import { DoctorSpecialization, MemberType } from "@/libs/enums/member.enum";
 import { ClinicsInquiry } from "@/libs/types/member/member.input";
@@ -11,11 +11,18 @@ import { Member } from "@/libs/types/member/member";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { IconButton } from "@mui/material";
+import { useMutation } from "@apollo/client";
+import Image from "next/image";
+import { IMAGE_UPLOADER } from "@/apollo/user/mutation";
+import { UPDATE_MEMBER } from "@/apollo/user/mutation";
+import { GET_MEMBER } from "@/apollo/user/query";
+import { initializeApollo } from "@/apollo/client";
+import ImageCropper from "@/libs/components/common/ImageCropper";
 
 const RegisterForm = () => {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     fullName: "",
     email: "",
     phone: "",
@@ -29,10 +36,18 @@ const RegisterForm = () => {
   const [agree, setAgree] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+
+  const [uploadImage] = useMutation(IMAGE_UPLOADER);
+  const [updateMember] = useMutation(UPDATE_MEMBER);
 
   const clinicsInput: ClinicsInquiry = {
     page: 1,
-    limit: 100, // Get all clinics
+    limit: 100,
     sort: 'createdAt',
     direction: 'ASC',
     search: {},
@@ -58,11 +73,73 @@ const RegisterForm = () => {
     }));
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        sweetMixinErrorAlert('Please select a valid image file');
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        sweetMixinErrorAlert('Image size must be less than 5MB');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageUrl = reader.result as string;
+        setImageToCrop(imageUrl);  
+        setCropperOpen(true); 
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCropComplete = (croppedFile: File) => {
+    // Set the cropped file as selected image
+    setSelectedImage(croppedFile);
+
+    // Create preview from cropped file
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(croppedFile);
+
+    // Reset cropper state
+    setImageToCrop(null);
+  };
+
+  const uploadMemberImage = async (file: File): Promise<string | null> => {
+    try {
+      setUploadingImage(true);
+      
+      const result = await uploadImage({
+        variables: {
+          file: file,
+          target: 'member',
+        },
+      });
+
+      if (result?.data?.imageUploader) {
+        return result.data.imageUploader;
+      }
+      return null;
+    } catch (error: any) {
+      console.error('Image upload error:', error);
+      await sweetMixinErrorAlert('Failed to upload image. Please try again.');
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     // Validation
-    if (!formData.name.trim()) {
+    if (!formData.username.trim()) {
       await sweetMixinErrorAlert("Please enter your username");
       return;
     }
@@ -116,7 +193,6 @@ const RegisterForm = () => {
     setLoading(true);
 
     try {
-      const nick = formData.name.trim(); 
       const memberType = formData.userType as string;
       
       const signUpParams: {
@@ -124,13 +200,17 @@ const RegisterForm = () => {
         password: string;
         phone: string;
         type: string;
+        fullName: string;
+        email: string;
         specialization?: DoctorSpecialization;
         clinicId?: string;
       } = {
-        nick,
+        nick: formData.username.trim(),
         password: formData.password.trim(),
         phone: formData.phone.trim(),
         type: memberType,
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
       };
 
       if (formData.userType === MemberType.DOCTOR) {
@@ -143,13 +223,49 @@ const RegisterForm = () => {
         signUpParams.password,
         signUpParams.phone,
         signUpParams.type,
+        signUpParams.fullName,
+        signUpParams.email,
         signUpParams.specialization,
         signUpParams.clinicId
       );
+
+      if (selectedImage) {
+        const imageUrl = await uploadMemberImage(selectedImage);
+        if (imageUrl) {
+          try {
+            const updateResult = await updateMember({
+              variables: {
+                input: {
+                  memberImage: imageUrl,
+                },
+              },
+            });
+            
+            if (updateResult?.data?.updateMember) {
+              const updatedMember = updateResult.data.updateMember;
+              updateUserInfoFromResponse(updatedMember);
+              
+              const apolloClient = initializeApollo();
+              const { data } = await apolloClient.query({
+                query: GET_MEMBER,
+                variables: { targetId: updatedMember._id },
+                fetchPolicy: 'network-only',
+              });
+              if (data?.getMember) {
+                updateUserInfoFromResponse(data.getMember);
+              }
+              console.log('Member image updated successfully:', imageUrl);
+            }
+          } catch (error: any) {
+            console.error('Failed to update member image:', error);
+          }
+        }
+      }      
       
       router.push("/");
-    } catch (error) {
-      console.error("Registration error:", error);
+    } catch (error: any) {
+      console.error("signup error:", error);
+      await sweetMixinErrorAlert(error?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -177,8 +293,8 @@ const RegisterForm = () => {
                 </label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="username"
+                  value={formData.username}
                   onChange={handleChange}
                   className="form-control"
                   placeholder="e.g. Lara7"
@@ -321,6 +437,94 @@ const RegisterForm = () => {
                   </IconButton>
                 </div>
               </div>
+
+              <div className="form-group">
+                <label htmlFor="memberImage">Profile Image (Optional)</label>
+                <div className="image-upload-container">
+                  {imagePreview && (
+                    <div className="image-preview">
+                      <Image
+                        src={imagePreview}
+                        alt="Profile preview"
+                        width={100}
+                        height={100}
+                        style={{
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          marginBottom: '10px',
+                        }}
+                      />
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (selectedImage) {
+                              // Reopen cropper with current image
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setImageToCrop(reader.result as string);
+                                setCropperOpen(true);
+                              };
+                              reader.readAsDataURL(selectedImage);
+                            } else if (imagePreview) {
+                              // Reopen cropper with preview
+                              setImageToCrop(imagePreview);
+                              setCropperOpen(true);
+                            }
+                          }}
+                          className="crop-image-btn"
+                          disabled={loading || uploadingImage}
+                        >
+                          Edit/Crop Image
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedImage(null);
+                            setImagePreview(null);
+                          }}
+                          className="remove-image-btn"
+                          disabled={loading || uploadingImage}
+                        >
+                          Remove Image
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    id="memberImage"
+                    name="memberImage"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    disabled={loading || uploadingImage}
+                    style={{ display: 'none' }}
+                  />
+                  {!imagePreview && (
+                    <label
+                      htmlFor="memberImage"
+                      className={`file-upload-label ${loading || uploadingImage ? 'disabled' : ''}`}
+                    >
+                      Select Profile Image
+                    </label>
+                  )}
+                  {uploadingImage && <p>Uploading image...</p>}
+                </div>
+
+                {/* Image Cropper Modal */}
+                {imageToCrop && (
+                  <ImageCropper
+                    image={imageToCrop}
+                    open={cropperOpen}
+                    onClose={() => {
+                      setCropperOpen(false);
+                      setImageToCrop(null);
+                    }}
+                    onCropComplete={handleCropComplete}
+                    aspectRatio={1} // Square crop (1:1) - change to 4/3 for 4:3, etc.
+                  />
+                )}
+              </div>             
 
               <div className="form-group">
                 <label>User Type</label>

@@ -31,6 +31,22 @@
         }
     }
 
+    .image-upload-container {
+        padding: 15px;
+    }
+
+    .file-upload-label {
+        min-width: 150px;
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+
+    .crop-image-btn,
+    .remove-image-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
     .preloader-area {
         .waviy {
             font-size: 25px;

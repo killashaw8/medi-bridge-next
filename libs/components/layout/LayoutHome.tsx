@@ -16,11 +16,17 @@ import GoTop from './GoTop';
 const withLayoutMain = (Component: any) => {
 	return (props: any) => {
 		const user = useReactiveVar(userVar);
+		const DEFAULT_USER_IMAGE = '/images/users/defaultUser.svg'
 
 		/** LIFECYCLES **/
 		useEffect(() => {
 			const jwt = getJwtToken();
-			if (jwt) updateUserInfo(jwt);
+			const currentUser = userVar();
+			if (jwt) {
+				if (!currentUser?._id || !currentUser?.memberImage || currentUser.memberImage === DEFAULT_USER_IMAGE) {
+					updateUserInfo(jwt);
+				}
+			}
 		}, []);
 
 		/** HANDLERS **/

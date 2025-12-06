@@ -4328,6 +4328,117 @@ Profile Authentication Area CSS
           font-style: italic;
         }
       }
+
+      .image-upload-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        padding: 20px;
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        transition: border-color 0.3s;
+
+        &:hover {
+          border-color: #336AEA;
+        }
+
+        .image-preview {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 15px;
+          width: 100%;
+        }  
+        .file-upload-label {
+          padding: 12px 24px;
+          background-color: #336AEA;
+          color: white;
+          border-radius: 8px;
+          cursor: pointer;
+          text-align: center;
+          transition: all 0.3s;
+          font-weight: 500;
+          display: inline-block;
+          width: auto;
+          min-width: 200px;
+
+          &:hover:not(.disabled) {
+            background-color: #2856c7;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(51, 106, 234, 0.3);
+          }
+
+          &.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+
+        .file-upload-label:hover:not(.disabled) {
+          background-color: #2856c7;
+        }
+
+        .file-upload-label.disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .crop-image-btn {
+          padding: 8px 16px;
+          background-color: #336AEA;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: background-color 0.3s;
+
+          &:hover:not(:disabled) {
+            background-color: #2856c7;
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+
+        .remove-image-btn {
+          padding: 8px 16px;
+          background-color: #dc3545;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: background-color 0.3s;
+
+          &:hover:not(:disabled) {
+            background-color: #c82333;
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+
+        .MuiModal-root {
+          z-index: 1300; 
+        }
+
+        .reactEasyCrop_Container {
+          background-color: #000;
+        }
+
+        .reactEasyCrop_CropArea {
+          border: 2px solid #336AEA;
+          box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.5);
+        }            
+      }
+
       .form-control {
         display: inline-block;
         height: 57px;

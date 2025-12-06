@@ -429,3 +429,15 @@ export const ASK_AI = gql`
     }
   }
 `;
+
+
+/***************************
+ *         UPLOADER        *
+ **************************/
+
+
+export const IMAGE_UPLOADER = gql`
+  mutation ImageUploader($file: Upload!, $target: String!) {
+    imageUploader(file: $file, target: $target)
+  }
+`;

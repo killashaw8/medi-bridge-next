@@ -53,8 +53,11 @@ export const signUp = async (
 	password: string, 
 	phone: string, 
 	type: string, 
+	name: string,
+	email: string,
 	specialization?: DoctorSpecialization, 
-	clinicId?: string
+	clinicId?: string,
+	memberImage?: string
 ): Promise<void> => {
 	try {
 		const { accessToken, refreshToken, userData } = await requestSignUpJwtToken({ 
@@ -62,8 +65,11 @@ export const signUp = async (
 			password, 
 			phone, 
 			type,
+			name,
+			email,
 			specialization, 
-			clinicId 
+			clinicId,
+			memberImage 
 		});
 
 		if (accessToken) {
@@ -161,15 +167,21 @@ const requestSignUpJwtToken = async ({
 	password,
 	phone,
 	type,
+	name,
+	email,
 	specialization,
-	clinicId
+	clinicId,
+	memberImage
 }: {
 	nick: string;
 	password: string;
 	phone: string;
 	type: string;
+	name: string;
+	email: string;
 	specialization?: DoctorSpecialization;
 	clinicId?: string;
+	memberImage?: string;
 }): Promise<{ 
 	accessToken: string, 
 	refreshToken: string | null,
@@ -178,11 +190,13 @@ const requestSignUpJwtToken = async ({
 	const apolloClient = await initializeApollo();
 
 	try {
-		const input: any = {
+		const input: T = {
 			memberNick: nick,
 			memberPassword: password,
 			memberPhone: phone,
 			memberType: type,
+			memberFullName: name,
+			memberEmail: email,
 		};
 
 		if (specialization) {
@@ -191,11 +205,14 @@ const requestSignUpJwtToken = async ({
 		if (clinicId) {
 			input.clinicId = clinicId;
 		}
+		if (memberImage) {
+			input.memberImage = memberImage;
+		}		
 
 		const result = await apolloClient.mutate({
 			mutation: SIGN_UP,
 			variables: {
-				input: { memberNick: nick, memberPassword: password, memberPhone: phone, memberType: type },
+				input: input,
 			},
 			fetchPolicy: 'network-only',
 		});
@@ -234,10 +251,17 @@ export const updateStorage = ({ accessToken, refreshToken }: {
 
 const DEFAULT_USER_IMAGE = '/images/users/defaultUser.svg';
 
-export const updateUserInfo = (jwtToken: any) => {
+export const updateUserInfo = (jwtToken: any, force: boolean = false) => {
 	if (!jwtToken) return false;
 
 	try {
+		if (!force) {
+			const currentUser = userVar();
+			if (currentUser?._id && currentUser?.memberImage && currentUser.memberImage !== DEFAULT_USER_IMAGE) {
+				console.log('userVar already has data, skipping JWT update to preserve fresh data');
+				return true;
+			}
+		}		
 		const claims = jwtDecode<any>(jwtToken);
 		
 		const userId = claims.sub || claims._id || '';
@@ -257,6 +281,7 @@ export const updateUserInfo = (jwtToken: any) => {
 				? DEFAULT_USER_IMAGE
 				: String(claims.memberImage).trim(),
 			memberAddress: claims.memberAddress ?? '',
+			memberEmail: claims.memberEmail ?? '',
 			memberDesc: claims.memberDesc ?? '',
 			memberAppointments: claims.memberAppointments ?? 0,
 			memberProducts: claims.memberProducts ?? 0,
@@ -293,6 +318,7 @@ export const updateUserInfoFromResponse = (userData: any) => {
 			memberFullName: userData.memberFullName ?? '',
 			memberImage: userData.memberImage || DEFAULT_USER_IMAGE,
 			memberAddress: userData.memberAddress ?? '',
+			memberEmail: userData.memberEmail ?? '',
 			memberDesc: userData.memberDesc ?? '',
 			memberAppointments: userData.memberAppointments ?? 0,
 			memberProducts: userData.memberProducts ?? 0,
@@ -338,6 +364,7 @@ const deleteUserInfo = () => {
 		memberFullName: '',
 		memberImage: '',
 		memberAddress: '',
+		memberEmail: '',
 		memberDesc: '',
 		memberAppointments: 0,
 		memberProducts: 0,

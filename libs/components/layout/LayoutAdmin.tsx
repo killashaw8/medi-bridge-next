@@ -29,11 +29,18 @@ const withAdminLayout = (Component: ComponentType) => {
 		const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 		const [title, setTitle] = useState('admin');
 		const [loading, setLoading] = useState(true);
+		const DEFAULT_USER_IMAGE = '/images/users/defaultUser.svg'
 
 		/** LIFECYCLES **/
 		useEffect(() => {
 			const jwt = getJwtToken();
-			if (jwt) updateUserInfo(jwt);
+			const currentUser = userVar();
+			if (jwt) {
+				if (!currentUser?._id || !currentUser?.memberImage || currentUser.memberImage === DEFAULT_USER_IMAGE) {
+					updateUserInfo(jwt);
+				}
+			}
+
 			setLoading(false);
 		}, []);
 

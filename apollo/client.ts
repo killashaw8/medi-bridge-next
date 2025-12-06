@@ -44,10 +44,15 @@ function buildAuthHeaders(): Record<string, string> {
 }
 
 const authLink = new ApolloLink((operation, forward) => {
+	const operationName = operation.operationName || '';
+	
 	operation.setContext(({ headers = {} }) => ({
 		headers: {
 			...headers,
 			...buildAuthHeaders(),
+			'x-apollo-operation-name': operationName,
+			'apollo-require-preflight': 'true',
+			'content-type': 'application/json',
 		},
 	}));
 

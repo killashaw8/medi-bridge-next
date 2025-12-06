@@ -19,73 +19,18 @@ const withLayoutBasic = (Component: any) => {
 	return (props: any) => {
 		const router = useRouter();
 		const { t, i18n } = useTranslation('common');
-		const device = useDeviceDetect();
-		const [authHeader, setAuthHeader] = useState<boolean>(false);
 		const user = useReactiveVar(userVar);
-
-		const memoizedValues = useMemo(() => {
-			let title = '',
-				desc = '',
-				bgImage = '';
-
-			switch (router.pathname) {
-				case '/property':
-					title = 'Property Search';
-					desc = 'We are glad to see you again!';
-					bgImage = '/img/banner/properties.png';
-					break;
-				case '/agent':
-					title = 'Agents';
-					desc = 'Home / For Rent';
-					bgImage = '/img/banner/agents.webp';
-					break;
-				case '/agent/detail':
-					title = 'Agent Page';
-					desc = 'Home / For Rent';
-					bgImage = '/img/banner/header2.svg';
-					break;
-				case '/mypage':
-					title = 'my page';
-					desc = 'Home / For Rent';
-					bgImage = '/img/banner/header1.svg';
-					break;
-				case '/community':
-					title = 'Community';
-					desc = 'Home / For Rent';
-					bgImage = '/img/banner/header2.svg';
-					break;
-				case '/community/detail':
-					title = 'Community Detail';
-					desc = 'Home / For Rent';
-					bgImage = '/img/banner/header2.svg';
-					break;
-				case '/cs':
-					title = 'CS';
-					desc = 'We are glad to see you again!';
-					bgImage = '/img/banner/header2.svg';
-					break;
-				case '/account/join':
-					title = 'Login/Signup';
-					desc = 'Authentication Process';
-					bgImage = '/img/banner/header2.svg';
-					setAuthHeader(true);
-					break;
-				case '/member':
-					title = 'Member Page';
-					desc = 'Home / For Rent';
-					bgImage = '/img/banner/header1.svg';
-					break;
-				default:
-					break;
-			}
-
-			return { title, desc, bgImage };
-		}, [router.pathname]);
+		const DEFAULT_USER_IMAGE = '/images/users/defaultUser.svg'
 
 		/** LIFECYCLES **/
 		useEffect(() => {
 			const jwt = getJwtToken();
-			if (jwt) updateUserInfo(jwt);
+			const currentUser = userVar();
+			if (jwt) {
+				if (!currentUser?._id || !currentUser?.memberImage || currentUser.memberImage === DEFAULT_USER_IMAGE) {
+					updateUserInfo(jwt);
+				}
+			}
 		}, []);
 
 		/** HANDLERS **/
@@ -98,20 +43,6 @@ const withLayoutBasic = (Component: any) => {
 				<Stack>
 					<Stack id={'top'}>
 						<Navbar />
-					</Stack>
-
-					<Stack
-						className={`header-basic ${authHeader && 'auth'}`}
-						style={{
-							backgroundImage: `url(${memoizedValues.bgImage})`,
-							backgroundSize: 'cover',
-							boxShadow: 'inset 10px 40px 150px 40px rgb(24 22 36)',
-						}}
-					>
-						<Stack className={'container'}>
-							<strong>{t(memoizedValues.title)}</strong>
-							<span>{t(memoizedValues.desc)}</span>
-						</Stack>
 					</Stack>
 
 					<Stack id={'main'}>

@@ -21,11 +21,16 @@ const Navbar = () => {
   const [isSticky, setIsSticky] = useState(false);
   const [colorChange, setColorChange] = useState(false);
 
-  // Initialize user state on mount (safety measure)
+  const DEFAULT_USER_IMAGE = '/images/users/defaultUser.svg'
+
+  /** LIFECYCLES **/
   useEffect(() => {
     const jwt = getJwtToken();
+    const currentUser = userVar();
     if (jwt) {
-      updateUserInfo(jwt);
+      if (!currentUser?._id || !currentUser?.memberImage || currentUser.memberImage === DEFAULT_USER_IMAGE) {
+        updateUserInfo(jwt);
+      }
     }
   }, []);
 
