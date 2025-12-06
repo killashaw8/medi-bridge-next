@@ -1,10 +1,10 @@
 import jwtDecode from 'jwt-decode';
 import { initializeApollo } from '../../apollo/client';
 import { userVar } from '../../apollo/store';
-import { CustomJwtPayload } from '../types/customJwtPayload';
 import { sweetMixinErrorAlert } from '../sweetAlert';
 import { LOGIN, SIGN_UP } from '@/apollo/user/mutation';
 import { DoctorSpecialization } from '../enums/member.enum';
+import { T } from '../types/common';
 
 
 export function getRefreshToken(): string | null {
@@ -30,11 +30,16 @@ export function setJwtToken(token: string) {
 
 export const logIn = async (nick: string, password: string): Promise<void> => {
 	try {
-		const { accessToken , refreshToken} = await requestJwtToken({ nick, password });
+		const { accessToken , refreshToken, userData } = await requestJwtToken({ nick, password });
 
 		if (accessToken) {
 			updateStorage({ accessToken, refreshToken });
-			updateUserInfo(accessToken);
+
+			if(userData) {
+				updateUserInfoFromResponse(userData);
+			} else {
+				updateUserInfo(accessToken);
+			}
 		}
 	} catch (err) {
 		console.warn('login err', err);
@@ -52,7 +57,7 @@ export const signUp = async (
 	clinicId?: string
 ): Promise<void> => {
 	try {
-		const { accessToken, refreshToken } = await requestSignUpJwtToken({ 
+		const { accessToken, refreshToken, userData } = await requestSignUpJwtToken({ 
 			nick, 
 			password, 
 			phone, 
@@ -63,7 +68,12 @@ export const signUp = async (
 
 		if (accessToken) {
 			updateStorage({ accessToken, refreshToken });
-			updateUserInfo(accessToken);
+
+			if(userData) {
+				updateUserInfoFromResponse(userData);
+			} else {
+				updateUserInfo(accessToken);
+			}
 		}
 	} catch (err) {
 		console.warn('login err', err);
@@ -109,7 +119,11 @@ const requestJwtToken = async ({
 }: {
 	nick: string;
 	password: string;
-}): Promise<{ accessToken: string, refreshToken: string | null}> => {
+}): Promise<{ 
+	accessToken: string, 
+	refreshToken: string | null,
+	userData?: T
+}> => {
 	const apolloClient = await initializeApollo();
 
 	try {
@@ -120,9 +134,13 @@ const requestJwtToken = async ({
 		});
 
 		console.log('---------- login ----------');
-		const { accessToken, refreshToken } = result?.data?.login ?? {};
+		const { accessToken, refreshToken, ...userData } = result?.data?.login ?? {};
 
-		return { accessToken, refreshToken: refreshToken ?? null };
+		return { 
+			accessToken, 
+			refreshToken: refreshToken ?? null,
+			userData: userData && Object.keys(userData).length > 0 ? userData : undefined
+		};
 	} catch (err: any) {
 		console.log('request token err', err.graphQLErrors);
 		switch (err.graphQLErrors[0].message) {
@@ -152,7 +170,11 @@ const requestSignUpJwtToken = async ({
 	type: string;
 	specialization?: DoctorSpecialization;
 	clinicId?: string;
-}): Promise<{ accessToken: string, refreshToken: string | null }> => {
+}): Promise<{ 
+	accessToken: string, 
+	refreshToken: string | null,
+	userData?: T 
+}> => {
 	const apolloClient = await initializeApollo();
 
 	try {
@@ -179,9 +201,13 @@ const requestSignUpJwtToken = async ({
 		});
 
 		console.log('---------- login ----------');
-		const { accessToken, refreshToken } = result?.data?.signup ?? {};
+		const { accessToken, refreshToken, ...userData } = result?.data?.signup ?? {};
 
-		return { accessToken, refreshToken: refreshToken ?? null };
+		return { 
+			accessToken, 
+			refreshToken: refreshToken ?? null,
+			userData: userData && Object.keys(userData).length > 0 ? userData : undefined
+		};
 	} catch (err: any) {
 		console.log('request token err', err.graphQLErrors);
 		switch (err.graphQLErrors[0].message) {
@@ -224,10 +250,12 @@ export const updateUserInfo = (jwtToken: any) => {
 			memberPhone: claims.memberPhone ?? '',
 			memberNick: claims.memberNick ?? '',
 			memberFullName: claims.memberFullName ?? '',
-			memberImage:
-				claims.memberImage === null || claims.memberImage === undefined
-					? DEFAULT_USER_IMAGE
-					: `${claims.memberImage}`,
+			memberImage: (!claims.memberImage || 
+										claims.memberImage === null || 
+										claims.memberImage === undefined ||
+										String(claims.memberImage).trim() === '')
+				? DEFAULT_USER_IMAGE
+				: String(claims.memberImage).trim(),
 			memberAddress: claims.memberAddress ?? '',
 			memberDesc: claims.memberDesc ?? '',
 			memberAppointments: claims.memberAppointments ?? 0,
@@ -240,11 +268,49 @@ export const updateUserInfo = (jwtToken: any) => {
 			memberComments: claims.memberComments ?? 0,
 			memberWarnings: claims.memberWarnings ?? 0,
 			memberBlocks: claims.memberBlocks ?? 0,
+			clinicId: claims.clinicId ?? '',
+			specialization: claims.specialization ?? ''
 		});
 		
 		return true;
 	} catch (error) {
 		console.error('Error decoding JWT:', error);
+		return false;
+	}
+};
+
+export const updateUserInfoFromResponse = (userData: any) => {
+	if (!userData) return false;
+
+	try {
+		userVar({
+			_id: userData._id || '',
+			memberType: userData.memberType ?? '',
+			memberStatus: userData.memberStatus ?? '',
+			authProvider: userData.authProvider ?? '',
+			memberPhone: userData.memberPhone ?? '',
+			memberNick: userData.memberNick ?? '',
+			memberFullName: userData.memberFullName ?? '',
+			memberImage: userData.memberImage || DEFAULT_USER_IMAGE,
+			memberAddress: userData.memberAddress ?? '',
+			memberDesc: userData.memberDesc ?? '',
+			memberAppointments: userData.memberAppointments ?? 0,
+			memberProducts: userData.memberProducts ?? 0,
+			memberRank: userData.memberRank ?? 0,
+			memberArticles: userData.memberArticles ?? 0,
+			memberPoints: userData.memberPoints ?? 0,
+			memberLikes: userData.memberLikes ?? 0,
+			memberViews: userData.memberViews ?? 0,
+			memberComments: userData.memberComments ?? 0,
+			memberWarnings: userData.memberWarnings ?? 0,
+			memberBlocks: userData.memberBlocks ?? 0,
+			clinicId: userData.clinicId ?? '',
+			specialization: userData.specialization ?? ''
+		});
+		
+		return true;
+	} catch (error) {
+		console.error('Error updating user info from response:', error);
 		return false;
 	}
 };
@@ -283,5 +349,7 @@ const deleteUserInfo = () => {
 		memberComments: 0,
 		memberWarnings: 0,
 		memberBlocks: 0,
+		clinicId: '',
+		specialization: ''
 	});
 };

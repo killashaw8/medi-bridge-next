@@ -10,6 +10,7 @@ import { logOut, getJwtToken, updateUserInfo } from "@/libs/auth";
 import { Menu, MenuItem } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { getImageUrl } from "@/libs/imageHelper";
+import { useMemo } from 'react';
 
 const Navbar = () => {
   const router = useRouter();
@@ -20,7 +21,7 @@ const Navbar = () => {
   const [isSticky, setIsSticky] = useState(false);
   const [colorChange, setColorChange] = useState(false);
 
-  // ✅ ADD: Initialize user state on mount (safety measure)
+  // Initialize user state on mount (safety measure)
   useEffect(() => {
     const jwt = getJwtToken();
     if (jwt) {
@@ -28,7 +29,17 @@ const Navbar = () => {
     }
   }, []);
 
-  // ✅ ADD: Debug logging (remove in production)
+  useEffect(() => {
+    console.log('=== NAVBAR USER DEBUG ===');
+    console.log('User object:', user);
+    console.log('memberImage value:', user?.memberImage);
+    console.log('memberImage type:', typeof user?.memberImage);
+    console.log('memberImage length:', user?.memberImage?.length);
+    console.log('getImageUrl result:', getImageUrl(user?.memberImage));
+    console.log('========================');
+  }, [user]);
+
+  // Debug logging (remove in production)
   useEffect(() => {
     console.log('Navbar - User state:', {
       hasId: !!user?._id,
@@ -72,18 +83,30 @@ const Navbar = () => {
   // Check if a link is active
   const isActive = (href: string) => pathname === href;
 
-  // ✅ ADD: Handler for logout
+  // Handler for logout
   const handleLogout = () => {
     setLogoutAnchor(null);
     logOut();
   };
 
-  // ✅ ADD: Get user image URL
-  const getUserImageUrl = () => {
-    return getImageUrl(user?.memberImage);
-  };
+  // Get user image URL
+const userImageUrl = useMemo(() => {
+  if (!user?.memberImage || user.memberImage === '') {
+    return '/images/users/defaultUser.svg';
+  }
+  
+  const imageUrl = getImageUrl(user.memberImage);
+  
+  // Debug logging (remove in production)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Navbar - User image path:', user.memberImage);
+    console.log('Navbar - Generated image URL:', imageUrl);
+  }
+  
+  return imageUrl;
+}, [user?.memberImage]);
 
-  // ✅ ADD: Check if user is logged in
+  // Check if user is logged in
   const isLoggedIn = user?._id && user._id !== '';
 
   return (
@@ -177,7 +200,7 @@ const Navbar = () => {
             </ul>
           </div>
 
-          {/* ✅ MODIFIED: others-options - Conditional rendering based on login status */}
+          {/* Conditional rendering based on login status */}
           <div className="others-option align-items-center overflow-hidden d-none d-sm-flex">
             {isLoggedIn ? (
               // ✅ User is logged in - show profile image with menu
@@ -204,13 +227,18 @@ const Navbar = () => {
                   }}
                 >
                   <Image
-                    src={getUserImageUrl()}
-                    alt={user?.memberNick}
+                    src={userImageUrl}
+                    alt={user?.memberNick || 'User'}
                     width={32}
                     height={32}
-                    unoptimized={getUserImageUrl().startsWith('http')}
-                    onError={() => {
-                      console.error('Image failed to load:', getUserImageUrl());
+                    unoptimized={true}
+                    onError={(e) => {
+                      console.error('Navbar - Image failed to load:', userImageUrl);
+                      // Fallback to default on error
+                      const target = e.target as HTMLImageElement;
+                      if (target.src !== '/images/users/defaultUser.svg') {
+                        target.src = '/images/users/defaultUser.svg';
+                      }
                     }}
                     style={{
                       borderRadius: '50%',
@@ -334,14 +362,19 @@ const Navbar = () => {
                     }}
                   >
                     <Image
-                      src={getUserImageUrl()}
-                      alt={user?.memberNick}
+                      src={userImageUrl}
+                      alt={user?.memberNick || 'User'}
                       width={40}
                       height={40}
-                      unoptimized={getUserImageUrl().startsWith('http')}
-                      onError={() => {
-                        console.error('Image failed to load:', getUserImageUrl());
-                      }}                      
+                      unoptimized={userImageUrl.startsWith('http')}
+                      onError={(e) => {
+                        console.error('Navbar Mobile - Image failed to load:', userImageUrl);
+                        // Fallback to default on error
+                        const target = e.target as HTMLImageElement;
+                        if (target.src !== '/images/users/defaultUser.svg') {
+                          target.src = '/images/users/defaultUser.svg';
+                        }
+                      }}
                       style={{
                         borderRadius: '50%',
                         objectFit: 'cover',
