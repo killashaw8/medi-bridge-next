@@ -1,3 +1,4 @@
+import { Location } from "@/libs/enums/appointment.enum";
 import { AuthProvider, DoctorSpecialization, MemberStatus, MemberType } from "@/libs/enums/member.enum";
 
 
@@ -13,6 +14,7 @@ export interface MemberUpdate {
   memberAddress?: string;
   memberDesc?: string;
   authProvider?: AuthProvider;
+  location?: Location;
   clinicId?: string;
   specialization?: DoctorSpecialization;
 }

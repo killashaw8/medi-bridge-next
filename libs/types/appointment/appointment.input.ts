@@ -1,4 +1,4 @@
-import { AppointmentStatus, AppointmentTime, AppointmentType } from "@/libs/enums/appointment.enum";
+import { AppointmentStatus, AppointmentTime, AppointmentType, Location } from "@/libs/enums/appointment.enum";
 import { Direction } from "@/libs/enums/common.enum";
 
 
@@ -7,6 +7,7 @@ export interface AppointmentInput {
   time: AppointmentTime;
   channel: AppointmentType;
   note: string;
+  location: Location;
   doctorId: string;
   clinicId: string;
   patientId: string;
@@ -21,6 +22,7 @@ export interface RescheduleAppointmentInput {
   appointmentId: string;
   newDate: string;
   newTime: AppointmentTime;
+  newLocation: Location;
   reason?: string;
 }
 
@@ -29,6 +31,7 @@ export interface AppointmentInquiry {
   limit: number;
   sort?: string;
   direction?: Direction;
+  location?: Location;
   clinicId?: string;
   doctorId?: string;
   patientId?: string;

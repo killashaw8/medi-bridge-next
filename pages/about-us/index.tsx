@@ -5,7 +5,6 @@ import Cta from "@/libs/components/homepage/Cta";
 import Feedbacks from "@/libs/components/homepage/Feedbacks";
 import FrequentlyAskedQuestions from "@/libs/components/homepage/FrequentlyAskedQuestions";
 import HowItWorks from "@/libs/components/homepage/HowItWorks";
-import TopDoctors from "@/libs/components/homepage/TopDoctors";
 import WhatDrivesUs from "@/libs/components/homepage/WhatDrivesUs";
 import PageBanner from "@/libs/components/layout/PageBanner";
 import withLayoutBasic from "@/libs/components/layout/LayoutBasic";

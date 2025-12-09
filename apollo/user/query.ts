@@ -18,6 +18,7 @@ export const GET_MEMBER = gql`
       memberFullName
       memberImage
       memberAddress
+      location
       memberDesc
       memberAppointments
       memberArticles

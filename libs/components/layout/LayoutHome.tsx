@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import useDeviceDetect from '../../hooks/useDeviceDetect';
 import Head from 'next/head';
 import { Stack } from '@mui/material';
 import { userVar } from '../../../apollo/store';

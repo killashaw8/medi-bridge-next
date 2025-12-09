@@ -1,6 +1,7 @@
 import { AuthProvider, DoctorSpecialization, MemberStatus, MemberType } from "@/libs/enums/member.enum";
 import { MeLiked } from "../like/like";
 import { MeFollowed } from "../follow/follow";
+import { Location } from "@/libs/enums/appointment.enum";
 
 
 
@@ -48,6 +49,7 @@ export interface Member {
 
   /** Only for Doctors **/
   clinicId?: string;
+  location?: Location;
   specialization?: DoctorSpecialization;
 }
 

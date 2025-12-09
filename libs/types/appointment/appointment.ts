@@ -1,4 +1,4 @@
-import { AppointmentStatus, AppointmentTime, AppointmentType } from "@/libs/enums/appointment.enum";
+import { AppointmentStatus, AppointmentTime, AppointmentType, Location } from "@/libs/enums/appointment.enum";
 import { Member } from "../member/member";
 
 
@@ -9,6 +9,7 @@ export interface Appointment {
   status: AppointmentStatus;
   channel: AppointmentType;
   note: string;
+  location: Location;
   doctorId: string;
   clinicId: string;
   patientId: string;
