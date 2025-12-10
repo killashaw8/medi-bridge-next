@@ -17,7 +17,7 @@ const Signup: NextPage = () => {
     <>
       <PageBanner
         pageTitle="Create Your Account"
-        shortText="Join Doutor today to book appointments, access expert medical care, and manage your health easily from anywhere."
+        shortText="Join MediBridge today to book appointments, access expert medical care, and manage your health easily from anywhere."
         homePageUrl="/"
         homePageText="Home"
         activePageText="Register"
