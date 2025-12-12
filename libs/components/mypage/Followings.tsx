@@ -1,0 +1,117 @@
+import React, { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useQuery } from "@apollo/client";
+import { GET_MEMBER_FOLLOWINGS } from "@/apollo/user/query";
+import { useReactiveVar } from "@apollo/client";
+import { userVar } from "@/apollo/store";
+import { FollowInquiry } from "@/libs/types/follow/follow.input";
+import { Following } from "@/libs/types/follow/follow";
+import { getImageUrl } from "@/libs/imageHelper";
+import { CircularProgress, Box, Typography } from "@mui/material";
+
+const Followings: React.FC = () => {
+  const user = useReactiveVar(userVar);
+  const [page, setPage] = useState(1);
+  const limit = 20;
+
+  const input: FollowInquiry = {
+    page,
+    limit,
+    search: {
+      followingId: user?._id,
+    },
+  };
+
+  const { data, loading, error } = useQuery(GET_MEMBER_FOLLOWINGS, {
+    variables: { input },
+    skip: !user?._id,
+    fetchPolicy: "cache-and-network",
+  });
+
+  const followings: Following[] = data?.getMemberFollowings?.list || [];
+  const total = data?.getMemberFollowings?.metaCounter?.[0]?.total || 0;
+
+  if (loading) {
+    return (
+      <Box sx={{ textAlign: "center", padding: "40px" }}>
+        <CircularProgress />
+        <Typography sx={{ marginTop: 2 }}>Loading followings...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ textAlign: "center", padding: "40px" }}>
+        <Typography color="error">Error loading followings</Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <div className="mypage-section">
+      <div className="section-header">
+        <h2>Followings</h2>
+        <p>People you are following ({total})</p>
+      </div>
+
+      {followings.length === 0 ? (
+        <div className="empty-state">
+          <i className="ri-user-add-line" style={{ fontSize: "48px", color: "#ccc" }}></i>
+          <p>You're not following anyone yet</p>
+          <Link href="/doctors" className="default-btn">
+            Find Doctors
+          </Link>
+        </div>
+      ) : (
+        <div className="members-list">
+          <div className="row">
+            {followings.map((following) => {
+              const member = following.followingData;
+              if (!member) return null;
+
+              return (
+                <div key={following._id} className="col-md-6 col-lg-4">
+                  <div className="member-card">
+                    <Link href={`/member/${member._id}`}>
+                      <div className="member-avatar">
+                        <Image
+                          src={getImageUrl(member.memberImage) || "/images/users/defaultUser.svg"}
+                          alt={member.memberFullName}
+                          width={80}
+                          height={80}
+                          style={{ borderRadius: "50%", objectFit: "cover" }}
+                        />
+                      </div>
+                      <div className="member-info">
+                        <h3>{member.memberFullName}</h3>
+                        <p className="member-nick">@{member.memberNick}</p>
+                        {member.memberDesc && (
+                          <p className="member-desc">{member.memberDesc.substring(0, 100)}...</p>
+                        )}
+                        <div className="member-stats">
+                          <span>
+                            <i className="ri-article-line"></i>
+                            {member.memberArticles}
+                          </span>
+                          <span>
+                            <i className="ri-user-follow-line"></i>
+                            {member.memberFollowers}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Followings;
+
