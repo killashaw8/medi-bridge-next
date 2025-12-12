@@ -1,9 +1,9 @@
 import { NextPage } from "next";
-import Link from "next/link";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import withLayoutBasic from "@/libs/components/layout/LayoutBasic";
 import { useRouter } from "next/router";
+import Link from "next/link";
+import withLayoutBasic from "@/libs/components/layout/LayoutBasic";
 import PageBanner from "@/libs/components/layout/PageBanner";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Button from "@mui/material/Button";
 
 export const getStaticProps = async ({ locale }: any) => ({
@@ -14,11 +14,12 @@ export const getStaticProps = async ({ locale }: any) => ({
 
 const ThankYou: NextPage = () => {
   const router = useRouter();
+
   return (
     <>
       <PageBanner
         pageTitle="Thank You"
-        shortText="Thanks for booking with us!"
+        shortText="We've received your message and will get back to you soon."
         homePageUrl="/"
         homePageText="Home"
         activePageText="Thank You"
@@ -45,9 +46,10 @@ const ThankYou: NextPage = () => {
                     />
                   </svg>
                 </div>
-                <h2>Thank You for Booking With Us!</h2>
+                <h2>Thank You for Contacting Us!</h2>
                 <p>
-                  Your appointment has been booked successfully. We'll be in touch soon.
+                  We have received your message and our support team will respond
+                  to you as soon as possible. We typically respond within 24-48 hours.
                 </p>
                 <p>
                   If your inquiry is urgent, please feel free to reach out to us
@@ -66,3 +68,4 @@ const ThankYou: NextPage = () => {
 };
 
 export default withLayoutBasic(ThankYou);
+

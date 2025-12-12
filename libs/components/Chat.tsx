@@ -49,6 +49,20 @@ const Ask_AI = () => {
 		setOpenButton(false);
 	}, [router.pathname]);
 
+	// Listen for custom event to open chat from other components
+	useEffect(() => {
+		const handleOpenChatEvent = () => {
+			setOpen(true);
+			setOpenButton(true); // Ensure button is visible
+		};
+
+		window.addEventListener('openChat', handleOpenChatEvent);
+
+		return () => {
+			window.removeEventListener('openChat', handleOpenChatEvent);
+		};
+	}, []);
+
 	/** HANDLERS **/
 	const handleOpenChat = () => {
 		setOpen((prevState) => !prevState);
