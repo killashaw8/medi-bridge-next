@@ -248,7 +248,10 @@ const RegisterForm = () => {
               const apolloClient = initializeApollo();
               const { data } = await apolloClient.query({
                 query: GET_MEMBER,
-                variables: { targetId: updatedMember._id },
+                variables: { 
+                  targetId: updatedMember._id,
+                  includeLocation: updatedMember.memberType === MemberType.CLINIC,
+                },
                 fetchPolicy: 'network-only',
               });
               if (data?.getMember) {

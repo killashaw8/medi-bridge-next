@@ -125,7 +125,7 @@ const BookAnAppointmentForm = () => {
         try {
           const { data } = await apolloClient.query({
             query: GET_MEMBER,
-            variables: { targetId: clinicId },
+            variables: { targetId: clinicId, includeLocation: true },
             fetchPolicy: 'cache-first',
           });
           if (isMounted && data?.getMember) {
@@ -660,4 +660,3 @@ const BookAnAppointmentForm = () => {
 };
 
 export default BookAnAppointmentForm;
-

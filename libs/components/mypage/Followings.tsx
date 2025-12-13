@@ -19,7 +19,7 @@ const Followings: React.FC = () => {
     page,
     limit,
     search: {
-      followingId: user?._id,
+      followerId: user?._id,
     },
   };
 
@@ -27,10 +27,12 @@ const Followings: React.FC = () => {
     variables: { input },
     skip: !user?._id,
     fetchPolicy: "cache-and-network",
+    errorPolicy: "all",
   });
 
-  const followings: Following[] = data?.getMemberFollowings?.list || [];
-  const total = data?.getMemberFollowings?.metaCounter?.[0]?.total || 0;
+  const isNoDataError = error?.message?.includes("No data is found");
+  const followings: Following[] = isNoDataError ? [] : (data?.getMemberFollowings?.list || []);
+  const total = isNoDataError ? 0 : (data?.getMemberFollowings?.metaCounter?.[0]?.total || 0);
 
   if (loading) {
     return (
@@ -41,7 +43,7 @@ const Followings: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error && !isNoDataError) {
     return (
       <Box sx={{ textAlign: "center", padding: "40px" }}>
         <Typography color="error">Error loading followings</Typography>
@@ -114,4 +116,3 @@ const Followings: React.FC = () => {
 };
 
 export default Followings;
-

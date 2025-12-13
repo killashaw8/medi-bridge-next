@@ -6,7 +6,7 @@ import { gql } from '@apollo/client';
  *************************/
 
 export const GET_MEMBER = gql`
-  query GetMember($targetId: ID!) {
+  query GetMember($targetId: ID!, $includeLocation: Boolean = false) {
     getMember(targetId: $targetId) {
       _id
       memberType
@@ -18,7 +18,7 @@ export const GET_MEMBER = gql`
       memberFullName
       memberImage
       memberAddress
-      location
+      location @include(if: $includeLocation)
       memberDesc
       memberAppointments
       memberArticles
@@ -535,15 +535,9 @@ export const GET_MEMBER_FOLLOWINGS = gql`
         }
         followingData {
           _id
-          memberType
-          memberStatus
-          authProvider
-          memberEmail
-          memberPhone
           memberNick
           memberFullName
           memberImage
-          memberAddress
           memberDesc
           memberAppointments
           memberArticles
@@ -553,20 +547,6 @@ export const GET_MEMBER_FOLLOWINGS = gql`
           memberLikes
           memberViews
           memberComments
-          memberRank
-          memberWarnings
-          memberBlocks
-          deletedAt
-          createdAt
-          updatedAt
-          accessToken
-          refreshToken
-          telegramId
-          googleId
-          kakaoId
-          naverId
-          clinicId
-          specialization
         }
       }
       metaCounter {
@@ -597,15 +577,9 @@ export const GET_MEMBER_FOLLOWERS = gql`
         }
         followerData {
           _id
-          memberType
-          memberStatus
-          authProvider
-          memberEmail
-          memberPhone
           memberNick
           memberFullName
           memberImage
-          memberAddress
           memberDesc
           memberAppointments
           memberArticles
@@ -615,20 +589,6 @@ export const GET_MEMBER_FOLLOWERS = gql`
           memberLikes
           memberViews
           memberComments
-          memberRank
-          memberWarnings
-          memberBlocks
-          deletedAt
-          createdAt
-          updatedAt
-          accessToken
-          refreshToken
-          telegramId
-          googleId
-          kakaoId
-          naverId
-          clinicId
-          specialization
         }
       }
       metaCounter {
