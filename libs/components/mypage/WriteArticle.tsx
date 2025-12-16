@@ -1,25 +1,25 @@
 import React, { useState, useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
 import { useMutation, useQuery } from "@apollo/client";
-import { CREATE_ARTICLE, IMAGE_UPLOADER, UPDATE_ARTICLE } from "@/apollo/user/mutation";
+import { CREATE_ARTICLE, UPDATE_ARTICLE } from "@/apollo/user/mutation";
 import { GET_ARTICLE } from "@/apollo/user/query";
 import { ArticleInput } from "@/libs/types/article/article.input";
 import { ArticleUpdate } from "@/libs/types/article/article.update";
 import { ArticleCategory } from "@/libs/enums/article.enum";
 import { sweetMixinSuccessAlert, sweetMixinErrorAlert } from "@/libs/sweetAlert";
 import { CircularProgress, Box, Typography, Button } from "@mui/material";
-const TuiEditor = dynamic(() => import("../common/Teditor"), {
-  ssr: false,
-  loading: () => (
-    <div style={{ padding: "20px", textAlign: "center" }}>
-      <CircularProgress size={24} />
-      <Typography variant="body2" sx={{ marginTop: 1 }}>
-        Loading editor...
-      </Typography>
-    </div>
-  ),
-});
+import { getImageUrl } from "@/libs/imageHelper";
+import { getJwtToken } from "@/libs/auth";
+import { REACT_APP_API_URL } from "@/libs/config";
+import { useRouter } from "next/router";
+import axios from "axios";
+import '@toast-ui/editor/dist/toastui-editor.css';
 
+// Import Editor directly (no dynamic import - following nestar-next pattern)
+// We'll handle SSR with conditional rendering
+let Editor: any = null;
+if (typeof window !== 'undefined') {
+  Editor = require('@toast-ui/react-editor').Editor;
+}
 
 interface WriteArticleProps {
   articleId?: string;
@@ -28,11 +28,13 @@ interface WriteArticleProps {
 
 const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<any>(null); // Direct ref to Editor (like nestar-next)
+  const router = useRouter();
   const [formData, setFormData] = useState({
     articleCategory: ArticleCategory.BLOG,
     articleTitle: "",
     articleContent: "",
+    articleImage: "",
   });
 
   const isEditing = !!articleId;
@@ -40,7 +42,7 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
   const { data: articleData, loading: articleLoading } = useQuery(GET_ARTICLE, {
     variables: { input: articleId },
     skip: !articleId,
-    fetchPolicy: "cache-and-network",
+    fetchPolicy: "network-only",
   });
 
   useEffect(() => {
@@ -50,20 +52,23 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
         articleCategory: article.articleCategory,
         articleTitle: article.articleTitle,
         articleContent: article.articleContent,
+        articleImage: article.articleImage || "",
       });
-      // Populate editor when data arrives
-      setTimeout(() => {
-        const instance = editorRef.current?.getInstance?.();
-        if (instance && article.articleContent) {
-          instance.setHTML(article.articleContent);
-        }
-      }, 0);
+      
+      // Set editor content when data loads (like nestar-next pattern)
+      if (editorRef.current && article.articleContent) {
+        setTimeout(() => {
+          const instance = editorRef.current?.getInstance?.();
+          if (instance) {
+            instance.setHTML(article.articleContent);
+          }
+        }, 100);
+      }
     }
   }, [articleData]);
 
   const [createArticle] = useMutation(CREATE_ARTICLE);
   const [updateArticle] = useMutation(UPDATE_ARTICLE);
-  const [uploadImage] = useMutation(IMAGE_UPLOADER);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -75,13 +80,70 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
     }));
   };
 
+  // Image upload handler (from nestar-next)
+  const uploadImage = async (image: any) => {
+    try {
+      const token = getJwtToken();
+      const formData = new FormData();
+      formData.append(
+        'operations',
+        JSON.stringify({
+          query: `mutation ImageUploader($file: Upload!, $target: String!) {
+            imageUploader(file: $file, target: $target) 
+          }`,
+          variables: {
+            file: null,
+            target: 'article',
+          },
+        }),
+      );
+      formData.append(
+        'map',
+        JSON.stringify({
+          '0': ['variables.file'],
+        }),
+      );
+      formData.append('0', image);
+
+      const response = await axios.post(`${process.env.REACT_APP_API_GRAPHQL_URL}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'apollo-require-preflight': true,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const responseImage = response.data.data.imageUploader;
+      const fullUrl = `${REACT_APP_API_URL}${responseImage}`;
+      
+      // Update article image in formData (for preview)
+      setFormData((prev) => ({
+        ...prev,
+        articleImage: fullUrl,
+      }));
+      
+      return fullUrl;
+    } catch (err) {
+      console.log('Error, uploadImage:', err);
+      throw err;
+    }
+  };
+
+  // Extract first image from editor content
+  const extractFirstImageFromContent = (html: string): string => {
+    if (!html) return "";
+    const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+    return imgMatch && imgMatch[1] ? imgMatch[1] : "";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const articleContent =
-        editorRef.current?.getInstance?.().getHTML?.() || formData.articleContent || "";
+      // Get content directly from editor (like nestar-next pattern)
+      const editor = editorRef.current;
+      const articleContent = editor?.getInstance().getHTML() as string || "";
 
       if (!formData.articleTitle.trim()) {
         await sweetMixinErrorAlert("Please enter an article title");
@@ -95,12 +157,19 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
         return;
       }
 
+      // Extract first image from content if articleImage is not set
+      let articleImage = formData.articleImage || "";
+      if (!articleImage) {
+        articleImage = extractFirstImageFromContent(articleContent);
+      }
+
       if (isEditing) {
         const updateInput: ArticleUpdate = {
           _id: articleId!,
           articleCategory: formData.articleCategory as ArticleCategory,
           articleTitle: formData.articleTitle.trim(),
-          articleContent: articleContent,
+          articleContent: articleContent.trim(),
+          articleImage: articleImage || undefined,
         };
         await updateArticle({
           variables: { input: updateInput },
@@ -110,7 +179,8 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
         const createInput: ArticleInput = {
           articleCategory: formData.articleCategory as ArticleCategory,
           articleTitle: formData.articleTitle.trim(),
-          articleContent: articleContent,
+          articleContent: articleContent.trim(),
+          articleImage: articleImage || undefined,
         };
         await createArticle({
           variables: { input: createInput },
@@ -136,6 +206,16 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
       <Box sx={{ textAlign: "center", padding: "40px" }}>
         <CircularProgress />
         <Typography sx={{ marginTop: 2 }}>Loading article...</Typography>
+      </Box>
+    );
+  }
+
+  // Don't render editor on server side
+  if (typeof window === 'undefined' || !Editor) {
+    return (
+      <Box sx={{ textAlign: "center", padding: "40px" }}>
+        <CircularProgress />
+        <Typography sx={{ marginTop: 2 }}>Loading editor...</Typography>
       </Box>
     );
   }
@@ -206,10 +286,102 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
             <div className="col-md-12" style={{ padding: "0 15px" }}>
               <div className="form-group" style={{ marginBottom: "25px" }}>
                 <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                  Article Image
+                </label>
+                <div className="article-image-preview" style={{ 
+                  minHeight: "200px", 
+                  border: "1px solid #e0e0e0", 
+                  borderRadius: "5px", 
+                  padding: "15px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#f9f9f9"
+                }}>
+                  {formData.articleImage ? (
+                    <img
+                      src={
+                        formData.articleImage.startsWith("http")
+                          ? formData.articleImage
+                          : getImageUrl(formData.articleImage)
+                      }
+                      alt="Article Preview"
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "300px",
+                        borderRadius: "5px",
+                        objectFit: "contain"
+                      }}
+                    />
+                  ) : (
+                    <span style={{ color: "#999", fontStyle: "italic" }}>
+                      No image uploaded yet. Upload an image inside the editor to set a preview.
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: "25px" }}>
+                <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
                   Content <span style={{ color: "#f44336" }}>*</span>
                 </label>
                 <div style={{ border: "1px solid #e0e0e0", borderRadius: "5px", overflow: "hidden" }}>
-                  <TuiEditor ref={editorRef} />
+                  {/* Render editor only on client side */}
+                  {typeof window !== 'undefined' && Editor && (
+                    <Editor
+                      ref={editorRef}
+                      initialValue={isEditing && formData.articleContent ? formData.articleContent : 'Type here'}
+                      placeholder={''}
+                      previewStyle={'vertical'}
+                      height={'640px'}
+                      // @ts-ignore
+                      initialEditType={'WYSIWYG'}
+                      toolbarItems={[
+                        ['heading', 'bold', 'italic', 'strike'],
+                        ['hr', 'quote'],
+                        ['ul', 'ol', 'task', 'indent', 'outdent'],
+                        ['table', 'image', 'link'],
+                        ['code', 'codeblock'],
+                      ]}
+                      hooks={{
+                        addImageBlobHook: async (image: any, callback: any) => {
+                          try {
+                            const uploadedImageURL = await uploadImage(image);
+                            callback(uploadedImageURL);
+
+                            // Normalize preview URL (api already returns full URL, but guard just in case)
+                            const previewUrl = uploadedImageURL.startsWith('http')
+                              ? uploadedImageURL
+                              : `${REACT_APP_API_URL}/${uploadedImageURL}`;
+
+                            // Update preview immediately when image is uploaded
+                            setFormData((prev) => ({
+                              ...prev,
+                              articleImage: previewUrl,
+                            }));
+                            
+                            return false;
+                          } catch (error) {
+                            console.error('Image upload failed:', error);
+                            await sweetMixinErrorAlert('Failed to upload image. Please try again.');
+                          }
+                        },
+                      }}
+                      events={{
+                        load: function (param: any) {
+                          // Set initial content when editing
+                          if (isEditing && formData.articleContent) {
+                            setTimeout(() => {
+                              const instance = editorRef.current?.getInstance?.();
+                              if (instance) {
+                                instance.setHTML(formData.articleContent);
+                              }
+                            }, 100);
+                          }
+                        },
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             </div>

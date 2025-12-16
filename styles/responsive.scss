@@ -53,6 +53,22 @@
         }
     }
 
+    /* My Page Articles */
+    .mypage-section {
+        .articles-grid {
+            margin-top: 15px;
+        }
+        .mypage-article-card {
+            .MuiCardContent-root,
+            .MuiCardActions-root {
+                padding: 12px;
+            }
+        }
+        .mypage-pagination {
+            margin-top: 20px;
+        }
+    }
+
     /* Home One Responsive */
     .navbar {
         padding: {

@@ -46,6 +46,7 @@ const MyPage: NextPage = () => {
   const user = useReactiveVar(userVar);
   const [activeSection, setActiveSection] = useState<MyPageSection>("personal-info");
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
@@ -83,6 +84,12 @@ const MyPage: NextPage = () => {
     router.push(`/mypage?section=edit-product&productId=${productId}`, undefined, { shallow: true });
   };
 
+  const handleEditArticle = (articleId: string) => {
+    setEditingArticleId(articleId);
+    setActiveSection("write-article");
+    router.push(`/mypage?section=write-article&articleId=${articleId}`, undefined, { shallow: true });
+  };
+
   const renderActiveSection = () => {
     switch (activeSection) {
       case "personal-info":
@@ -98,9 +105,17 @@ const MyPage: NextPage = () => {
       case "followings":
         return <Followings />;
       case "my-articles":
-        return <MyArticles />;
+        return <MyArticles onEdit={handleEditArticle} />;
       case "write-article":
-        return <WriteArticle onSuccess={() => handleSectionChange("my-articles")} />;
+        return (
+          <WriteArticle
+            articleId={editingArticleId || (router.query.articleId as string)}
+            onSuccess={() => {
+              setEditingArticleId(null);
+              handleSectionChange("my-articles");
+            }}
+          />
+        );
       case "my-products":
         return <MyProducts onEdit={handleEditProduct} />;
       case "add-product":

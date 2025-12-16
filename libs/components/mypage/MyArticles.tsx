@@ -1,16 +1,15 @@
 import React, { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { useQuery } from "@apollo/client";
+import { useQuery, useMutation, useReactiveVar } from "@apollo/client";
 import { GET_ARTICLES } from "@/apollo/user/query";
-import { useReactiveVar } from "@apollo/client";
+import { UPDATE_ARTICLE } from "@/apollo/user/mutation";
 import { userVar } from "@/apollo/store";
 import { ArticlesInquiry } from "@/libs/types/article/article.input";
 import { Article } from "@/libs/types/article/article";
-import { getImageUrl } from "@/libs/imageHelper";
-import { CircularProgress, Box, Typography } from "@mui/material";
-import Moment from "react-moment";
+import { ArticleStatus } from "@/libs/enums/article.enum";
+import { CircularProgress, Box, Typography, Grid, Pagination, Stack } from "@mui/material";
 import { sweetMixinSuccessAlert, sweetMixinErrorAlert } from "@/libs/sweetAlert";
+import ArticleCard from "@/libs/components/common/ArticleCard";
 
 interface MyArticlesProps {
   onEdit?: (articleId: string) => void;
@@ -19,7 +18,8 @@ interface MyArticlesProps {
 const MyArticles: React.FC<MyArticlesProps> = ({ onEdit }) => {
   const user = useReactiveVar(userVar);
   const [page, setPage] = useState(1);
-  const limit = 12;
+  const limit = 6;
+  const [updateArticle] = useMutation(UPDATE_ARTICLE);
 
   const input: ArticlesInquiry = {
     page,
@@ -39,6 +39,11 @@ const MyArticles: React.FC<MyArticlesProps> = ({ onEdit }) => {
 
   const articles: Article[] = data?.getArticles?.list || [];
   const total = data?.getArticles?.metaCounter?.[0]?.total || 0;
+  const pageCount = Math.ceil(total / limit);
+
+  const paginationHandler = (_: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  };
 
   if (loading) {
     return (
@@ -57,6 +62,19 @@ const MyArticles: React.FC<MyArticlesProps> = ({ onEdit }) => {
     );
   }
 
+  const handleDelete = async (articleId: string) => {
+    try {
+      await updateArticle({
+        variables: { input: { _id: articleId, articleStatus: ArticleStatus.DELETE } },
+      });
+      await sweetMixinSuccessAlert("Article deleted");
+      refetch();
+    } catch (err: any) {
+      console.error("Delete article error:", err);
+      await sweetMixinErrorAlert(err.message || "Failed to delete article");
+    }
+  };
+
   return (
     <div className="mypage-section">
       <div className="section-header">
@@ -65,9 +83,6 @@ const MyArticles: React.FC<MyArticlesProps> = ({ onEdit }) => {
             <h2>My Articles</h2>
             <p>Your published articles ({total})</p>
           </div>
-          <Link href="/mypage?section=write-article" className="default-btn">
-            <i className="ri-add-line"></i> Write New Article
-          </Link>
         </div>
       </div>
 
@@ -80,67 +95,37 @@ const MyArticles: React.FC<MyArticlesProps> = ({ onEdit }) => {
           </Link>
         </div>
       ) : (
-        <div className="articles-list">
-          {articles.map((article) => (
-            <div key={article._id} className="article-item">
-              <div className="row align-items-center">
-                <div className="col-md-3">
-                  <div className="article-image">
-                    <Image
-                      src={
-                        article.articleImage
-                          ? getImageUrl(article.articleImage)
-                          : "/images/blog/blog1.jpg"
-                      }
-                      alt={article.articleTitle}
-                      width={300}
-                      height={200}
-                      style={{ objectFit: "cover", borderRadius: "8px" }}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-7">
-                  <div className="article-content">
-                    <Link href={`/article/${article._id}`}>
-                      <h3>{article.articleTitle}</h3>
-                    </Link>
-                    <div className="article-meta">
-                      <span>
-                        <i className="ri-calendar-line"></i>
-                        <Moment format="MMM DD, YYYY">{article.createdAt}</Moment>
-                      </span>
-                      <span>
-                        <i className="ri-eye-line"></i>
-                        {article.articleViews} views
-                      </span>
-                      <span>
-                        <i className="ri-heart-line"></i>
-                        {article.articleLikes} likes
-                      </span>
-                      <span className="badge">{article.articleCategory}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-2">
-                  <div className="article-actions">
-                    {onEdit && (
-                      <button
-                        className="btn btn-sm btn-primary"
-                        onClick={() => onEdit(article._id)}
-                      >
-                        <i className="ri-edit-line"></i> Edit
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <>
+          <Grid container spacing={3} className="articles-grid">
+            {articles.map((article) => (
+              <Grid item xs={12} sm={6} md={4} key={article._id}>
+                <ArticleCard
+                  article={article}
+                  onEdit={onEdit}
+                  onDelete={handleDelete}
+                />
+              </Grid>
+            ))}
+          </Grid>
+          {pageCount > 0 && (
+            <Stack className="mypage-pagination">
+              <Stack direction="row" justifyContent="center" sx={{ mt: 3 }}>
+                <Pagination
+                  count={pageCount}
+                  page={page}
+                  shape="rounded"
+                  variant="outlined"
+                  size="large"
+                  color="primary"
+                  onChange={paginationHandler}
+                />
+              </Stack>
+            </Stack>
+          )}
+        </>
       )}
     </div>
   );
 };
 
 export default MyArticles;
-
