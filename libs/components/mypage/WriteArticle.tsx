@@ -1,12 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { useMutation, useQuery } from "@apollo/client";
-import { CREATE_ARTICLE, UPDATE_ARTICLE } from "@/apollo/user/mutation";
+import { CREATE_ARTICLE, IMAGE_UPLOADER, UPDATE_ARTICLE } from "@/apollo/user/mutation";
 import { GET_ARTICLE } from "@/apollo/user/query";
 import { ArticleInput } from "@/libs/types/article/article.input";
 import { ArticleUpdate } from "@/libs/types/article/article.update";
 import { ArticleCategory } from "@/libs/enums/article.enum";
 import { sweetMixinSuccessAlert, sweetMixinErrorAlert } from "@/libs/sweetAlert";
-import { CircularProgress, Box, Typography } from "@mui/material";
+import { CircularProgress, Box, Typography, Button } from "@mui/material";
+const TuiEditor = dynamic(() => import("../common/Teditor"), {
+  ssr: false,
+  loading: () => (
+    <div style={{ padding: "20px", textAlign: "center" }}>
+      <CircularProgress size={24} />
+      <Typography variant="body2" sx={{ marginTop: 1 }}>
+        Loading editor...
+      </Typography>
+    </div>
+  ),
+});
+
 
 interface WriteArticleProps {
   articleId?: string;
@@ -15,11 +28,11 @@ interface WriteArticleProps {
 
 const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => {
   const [loading, setLoading] = useState(false);
+  const editorRef = useRef<any>(null);
   const [formData, setFormData] = useState({
     articleCategory: ArticleCategory.BLOG,
     articleTitle: "",
     articleContent: "",
-    articleImage: "",
   });
 
   const isEditing = !!articleId;
@@ -37,13 +50,20 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
         articleCategory: article.articleCategory,
         articleTitle: article.articleTitle,
         articleContent: article.articleContent,
-        articleImage: article.articleImage || "",
       });
+      // Populate editor when data arrives
+      setTimeout(() => {
+        const instance = editorRef.current?.getInstance?.();
+        if (instance && article.articleContent) {
+          instance.setHTML(article.articleContent);
+        }
+      }, 0);
     }
   }, [articleData]);
 
   const [createArticle] = useMutation(CREATE_ARTICLE);
   const [updateArticle] = useMutation(UPDATE_ARTICLE);
+  const [uploadImage] = useMutation(IMAGE_UPLOADER);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -60,10 +80,27 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
     setLoading(true);
 
     try {
+      const articleContent =
+        editorRef.current?.getInstance?.().getHTML?.() || formData.articleContent || "";
+
+      if (!formData.articleTitle.trim()) {
+        await sweetMixinErrorAlert("Please enter an article title");
+        setLoading(false);
+        return;
+      }
+
+      if (!articleContent || articleContent.trim() === '' || articleContent === '<p><br></p>') {
+        await sweetMixinErrorAlert("Please enter article content");
+        setLoading(false);
+        return;
+      }
+
       if (isEditing) {
         const updateInput: ArticleUpdate = {
           _id: articleId!,
-          ...formData,
+          articleCategory: formData.articleCategory as ArticleCategory,
+          articleTitle: formData.articleTitle.trim(),
+          articleContent: articleContent,
         };
         await updateArticle({
           variables: { input: updateInput },
@@ -73,8 +110,7 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
         const createInput: ArticleInput = {
           articleCategory: formData.articleCategory as ArticleCategory,
           articleTitle: formData.articleTitle.trim(),
-          articleContent: formData.articleContent.trim(),
-          articleImage: formData.articleImage || undefined,
+          articleContent: articleContent,
         };
         await createArticle({
           variables: { input: createInput },
@@ -111,75 +147,99 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
         <p>{isEditing ? "Update your article" : "Share your knowledge with the community"}</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="article-form">
-        <div className="form-group">
-          <label>Category <span>*</span></label>
-          <select
-            name="articleCategory"
-            className="form-control form-select"
-            value={formData.articleCategory}
-            onChange={handleChange}
-            required
-            disabled={loading}
-          >
-            {Object.values(ArticleCategory).map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="article-form-content" style={{ padding: "30px 0" }}>
+        <form onSubmit={handleSubmit} className="article-form">
+          <div className="row" style={{ gap: "20px 0" }}>
+            <div className="col-md-6" style={{ padding: "0 15px" }}>
+              <div className="form-group" style={{ marginBottom: "25px" }}>
+                <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                  Category <span style={{ color: "#f44336" }}>*</span>
+                </label>
+                <select
+                  name="articleCategory"
+                  className="form-control form-select"
+                  value={formData.articleCategory}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                  style={{
+                    padding: "12px 15px",
+                    borderRadius: "5px",
+                    border: "1px solid #e0e0e0",
+                    width: "100%",
+                    backgroundColor: "#fff",
+                  }}
+                >
+                  {Object.values(ArticleCategory).map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-        <div className="form-group">
-          <label>Title <span>*</span></label>
-          <input
-            type="text"
-            name="articleTitle"
-            className="form-control"
-            value={formData.articleTitle}
-            onChange={handleChange}
-            placeholder="Enter article title"
-            required
-            disabled={loading}
-          />
-        </div>
+            <div className="col-md-6" style={{ padding: "0 15px" }}>
+              <div className="form-group" style={{ marginBottom: "25px" }}>
+                <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                  Title <span style={{ color: "#f44336" }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  name="articleTitle"
+                  className="form-control"
+                  value={formData.articleTitle}
+                  onChange={handleChange}
+                  placeholder="Enter article title"
+                  required
+                  disabled={loading}
+                  style={{
+                    padding: "12px 15px",
+                    borderRadius: "5px",
+                    border: "1px solid #e0e0e0",
+                    width: "100%",
+                  }}
+                />
+              </div>
+            </div>
 
-        <div className="form-group">
-          <label>Image URL</label>
-          <input
-            type="url"
-            name="articleImage"
-            className="form-control"
-            value={formData.articleImage}
-            onChange={handleChange}
-            placeholder="https://example.com/image.jpg"
-            disabled={loading}
-          />
-        </div>
+            <div className="col-md-12" style={{ padding: "0 15px" }}>
+              <div className="form-group" style={{ marginBottom: "25px" }}>
+                <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                  Content <span style={{ color: "#f44336" }}>*</span>
+                </label>
+                <div style={{ border: "1px solid #e0e0e0", borderRadius: "5px", overflow: "hidden" }}>
+                  <TuiEditor ref={editorRef} />
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <div className="form-group">
-          <label>Content <span>*</span></label>
-          <textarea
-            name="articleContent"
-            className="form-control"
-            rows={15}
-            value={formData.articleContent}
-            onChange={handleChange}
-            placeholder="Write your article content here..."
-            required
-            disabled={loading}
-          ></textarea>
-        </div>
-
-        <div className="form-actions">
-          <button type="submit" className="default-btn" disabled={loading}>
-            {loading ? (isEditing ? "Updating..." : "Publishing...") : (isEditing ? "Update Article" : "Publish Article")}
-          </button>
-        </div>
-      </form>
+          <div className="form-actions" style={{ marginTop: "30px", display: "flex", justifyContent: "flex-end", gap: "15px" }}>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={loading}
+              onClick={handleSubmit}
+              sx={{
+                backgroundColor: '#336AEA',
+                '&:hover': {
+                  backgroundColor: '#2856c7',
+                },
+                padding: '12px 30px',
+                fontSize: '16px',
+                fontWeight: 500,
+                textTransform: 'none',
+                minWidth: '150px',
+              }}
+            >
+              {loading ? (isEditing ? "Updating..." : "Publishing...") : (isEditing ? "Update Article" : "Publish Article")}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
 
 export default WriteArticle;
-

@@ -6991,3 +6991,11 @@ Back to Top CSS
     background: $secondaryColor;
   }
 }
+
+/* Toast UI Editor: keep placeholder text visible (override Bootstrap .placeholder utility) */
+.toastui-editor-default .ProseMirror .placeholder {
+  background-color: transparent;
+  opacity: 1;
+  cursor: text;
+  color: #999;
+}
