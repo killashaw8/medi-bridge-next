@@ -20,6 +20,7 @@ import AddProduct from "@/libs/components/mypage/AddProduct";
 import EditProduct from "@/libs/components/mypage/EditProduct";
 import { MemberType } from "@/libs/enums/member.enum";
 import { sweetMixinErrorAlert } from "@/libs/sweetAlert";
+import { getJwtToken, updateUserInfo } from "@/libs/auth";
 
 export type MyPageSection = 
   | "personal-info"
@@ -45,8 +46,19 @@ const MyPage: NextPage = () => {
   const user = useReactiveVar(userVar);
   const [activeSection, setActiveSection] = useState<MyPageSection>("personal-info");
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
+    // Restore user from token on refresh before deciding redirect
+    if (!authChecked) {
+      const token = getJwtToken();
+      if (token && !user?._id) {
+        updateUserInfo(token, true);
+      }
+      setAuthChecked(true);
+      return;
+    }
+
     // Check if user is logged in
     if (!user?._id) {
       sweetMixinErrorAlert("Please login to access your page");
@@ -54,11 +66,11 @@ const MyPage: NextPage = () => {
       return;
     }
 
-    // Check for section query parameter
+    // Check for section query parameter after auth is confirmed
     if (router.query.section) {
       setActiveSection(router.query.section as MyPageSection);
     }
-  }, [router, user]);
+  }, [router, user, authChecked]);
 
   const handleSectionChange = (section: MyPageSection) => {
     setActiveSection(section);
@@ -105,7 +117,7 @@ const MyPage: NextPage = () => {
     }
   };
 
-  if (!user?._id) {
+  if (!authChecked || !user?._id) {
     return null; // Will redirect
   }
 
@@ -146,4 +158,3 @@ const MyPage: NextPage = () => {
 };
 
 export default withLayoutBasic(MyPage);
-
