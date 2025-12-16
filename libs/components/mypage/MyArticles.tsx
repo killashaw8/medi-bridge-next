@@ -101,6 +101,8 @@ const MyArticles: React.FC<MyArticlesProps> = ({ onEdit }) => {
               <Grid item xs={12} sm={6} md={4} key={article._id}>
                 <ArticleCard
                   article={article}
+                  showActions="manage"
+                  canManage
                   onEdit={onEdit}
                   onDelete={handleDelete}
                 />

@@ -1,17 +1,19 @@
 import React, { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { useQuery } from "@apollo/client";
+import { useQuery, useMutation, useReactiveVar } from "@apollo/client";
 import { GET_ARTICLES } from "@/apollo/user/query";
+import { LIKE_TARGET_ARTICLE } from "@/apollo/user/mutation";
 import { ArticlesInquiry } from "@/libs/types/article/article.input";
 import { Article } from "@/libs/types/article/article";
-import { getImageUrl } from "@/libs/imageHelper";
-import { CircularProgress, Box, Typography } from "@mui/material";
-import Moment from "react-moment";
+import { CircularProgress, Box, Typography, Grid, Stack, Pagination } from "@mui/material";
+import { userVar } from "@/apollo/store";
+import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
+import ArticleCard from "@/libs/components/common/ArticleCard";
 
 const FavoriteArticles: React.FC = () => {
+  const user = useReactiveVar(userVar);
   const [page, setPage] = useState(1);
-  const limit = 12;
+  const limit = 6;
 
   const input: ArticlesInquiry = {
     page,
@@ -23,16 +25,34 @@ const FavoriteArticles: React.FC = () => {
 
   // Note: This would need a GET_FAVORITE_ARTICLES query
   // For now, using GET_ARTICLES with favorite filter
-  const { data, loading, error } = useQuery(GET_ARTICLES, {
+  const { data, loading, error, refetch } = useQuery(GET_ARTICLES, {
     variables: { input },
-    fetchPolicy: "cache-and-network",
+    fetchPolicy: "network-only",
   });
+  const [likeArticle] = useMutation(LIKE_TARGET_ARTICLE);
 
   // Filter articles that are favorited
   const allArticles: Article[] = data?.getArticles?.list || [];
   const favoriteArticles = allArticles.filter(
     (article) => article.meLiked?.some((like) => like.myFavorite)
   );
+  const totalFavorites = favoriteArticles.length;
+  const pageCount = Math.max(1, Math.ceil(totalFavorites / limit));
+
+  const paginationHandler = (_: any, value: number) => {
+    setPage(value);
+  };
+
+  const handleLike = async (articleId: string) => {
+    try {
+      await likeArticle({ variables: { input: articleId } });
+      await refetch();
+      await sweetMixinSuccessAlert("Updated favorites");
+    } catch (err: any) {
+      console.error("Favorite like error:", err);
+      await sweetMixinErrorAlert(err.message || "Failed to update favorite");
+    }
+  };
 
   if (loading) {
     return (
@@ -67,54 +87,39 @@ const FavoriteArticles: React.FC = () => {
           </Link>
         </div>
       ) : (
-        <div className="articles-list">
-          {favoriteArticles.map((article) => (
-            <div key={article._id} className="article-item">
-              <Link href={`/article/${article._id}`}>
-                <div className="row align-items-center">
-                  <div className="col-md-3">
-                    <div className="article-image">
-                      <Image
-                        src={
-                          article.articleImage
-                            ? getImageUrl(article.articleImage)
-                            : "/images/blog/blog1.jpg"
-                        }
-                        alt={article.articleTitle}
-                        width={300}
-                        height={200}
-                        style={{ objectFit: "cover", borderRadius: "8px" }}
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-9">
-                    <div className="article-content">
-                      <h3>{article.articleTitle}</h3>
-                      <div className="article-meta">
-                        <span>
-                          <i className="ri-calendar-line"></i>
-                          <Moment format="MMM DD, YYYY">{article.createdAt}</Moment>
-                        </span>
-                        <span>
-                          <i className="ri-eye-line"></i>
-                          {article.articleViews} views
-                        </span>
-                        <span>
-                          <i className="ri-heart-line"></i>
-                          {article.articleLikes} likes
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </div>
-          ))}
-        </div>
+        <>
+          <Grid container spacing={3} className="articles-grid">
+            {favoriteArticles.map((article) => (
+              <Grid item xs={12} sm={6} md={4} key={article._id}>
+                <ArticleCard
+                  article={article}
+                  showActions="like"
+                  canManage={false}
+                  onLike={handleLike}
+                  likeActive={article.meLiked?.some((like) => like.myFavorite)}
+                />
+              </Grid>
+            ))}
+          </Grid>
+          {pageCount > 1 && (
+            <Stack className="mypage-pagination">
+              <Stack direction="row" justifyContent="center">
+                <Pagination
+                  count={pageCount}
+                  page={page}
+                  shape="rounded"
+                  variant="outlined"
+                  size="large"
+                  color="primary"
+                  onChange={paginationHandler}
+                />
+              </Stack>
+            </Stack>
+          )}
+        </>
       )}
     </div>
   );
 };
 
 export default FavoriteArticles;
-
