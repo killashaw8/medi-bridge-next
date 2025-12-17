@@ -129,8 +129,8 @@ const EditProduct: React.FC<EditProductProps> = ({ productId, onSuccess }) => {
         productCollection: formData.productCollection as ProductCollection,
         productStatus: formData.productStatus as ProductStatus,
         productTitle: formData.productTitle.trim(),
-        productPrice: formData.productPrice,
-        productCount: formData.productCount,
+        productPrice: Number(formData.productPrice) || 0,
+        productCount: Number(formData.productCount) || 0,
         productImages: productImages.filter(Boolean),
         productDesc: formData.productDesc.trim() || undefined,
       };
@@ -174,22 +174,6 @@ const EditProduct: React.FC<EditProductProps> = ({ productId, onSuccess }) => {
         <Box sx={{ p: { xs: 2, md: 3 }, border: "1px solid #EEF1F6", borderRadius: 2, background: "#fff" }}>
           <div className="row">
 
-            <div className="col-md-12">
-              <div className="form-group">
-                <label>Product Title</label>
-                <input
-                  type="text"
-                  name="productTitle"
-                  className="form-control"
-                  value={formData.productTitle}
-                  onChange={handleChange}
-                  placeholder="Enter product title"
-                  required
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
             <div className="col-md-6">
               <div className="form-group">
                 <label>Product Type</label>
@@ -230,6 +214,22 @@ const EditProduct: React.FC<EditProductProps> = ({ productId, onSuccess }) => {
               </div>
             </div>
 
+            <div className="col-md-12">
+              <div className="form-group">
+                <label>Product Title</label>
+                <input
+                  type="text"
+                  name="productTitle"
+                  className="form-control"
+                  value={formData.productTitle}
+                  onChange={handleChange}
+                  placeholder="Enter product title"
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
             <div className="col-md-6">
               <div className="form-group">
                 <label>Product Status</label>
@@ -267,9 +267,9 @@ const EditProduct: React.FC<EditProductProps> = ({ productId, onSuccess }) => {
               </div>
             </div>
 
-            <div className="col-md-12">
+            <div className="col-md-6">
               <div className="form-group">
-                <label>Product Count</label>
+                <label>Stock Count</label>
                 <input
                   type="number"
                   name="productCount"
