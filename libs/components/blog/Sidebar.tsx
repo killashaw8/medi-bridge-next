@@ -50,16 +50,19 @@ const Sidebar = ( props: SidebarProps ) => {
     if (popularError) {
       console.error('Popular Articles Error:', popularError);
     }
-  }, [popularArticlesData, popularPosts, popularError]);
+ }, [popularArticlesData, popularPosts, popularError]);
 
 	const refreshHandler = async () => {
 		try {
 			setSearchText('');
 			await router.push(
-				`/blog?input=${JSON.stringify(initialInput)}`,
-				`/blog?input=${JSON.stringify(initialInput)}`,
-				{ scroll: false },
-			);
+        {
+          pathname: '/article',
+          query: { input: JSON.stringify(initialInput) },
+        },
+        undefined,
+        { scroll: false },
+      );
 		} catch (err: any) {
 			console.log('ERROR, refreshHandler:', err);
 		}
@@ -166,7 +169,13 @@ const Sidebar = ( props: SidebarProps ) => {
         ) : popularPosts.length > 0 ? (
           popularPosts.map((post: Article) => (
             <article key={post._id} className="item">
-              <Link href={`/blog/${post._id}`} className="thumb">
+              <Link
+                href={{
+                  pathname: '/article/details',
+                  query: { articleId: post._id },
+                }}
+                className="thumb"
+              >
                 <Image 
                   src={getImageUrl(post.articleImage) || '/images/blog/blog1.jpg'} 
                   alt={post.articleTitle} 
@@ -188,7 +197,14 @@ const Sidebar = ( props: SidebarProps ) => {
                   </Moment>
                 </span>
                 <h4 className="title usmall">
-                  <Link href={`/blog/${post._id}`}>{post.articleTitle}</Link>
+                  <Link
+                    href={{
+                      pathname: '/article/details',
+                      query: { articleId: post._id },
+                    }}
+                  >
+                    {post.articleTitle}
+                  </Link>
                 </h4>
               </div>
             </article>

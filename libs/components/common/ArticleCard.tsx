@@ -15,6 +15,7 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import IconButton from "@mui/material/IconButton";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import { useRouter } from "next/router";
 
 interface ArticleCardProps {
   article: Article;
@@ -35,12 +36,24 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   likeActive,
   showActions = "like",
 }) => {
+  const router = useRouter();
   const fallbackImage = "/images/blog/blog-fallback.webp";
   const imageSrc = article.articleImage ? getImageUrl(article.articleImage) : fallbackImage;
   const plainText = article.articleContent?.replace(/<[^>]+>/g, "") || "";
+  const goToDetails = () => {
+    if (!article?._id) return;
+    router.push({
+      pathname: "/article/details",
+      query: { articleId: article._id },
+    });
+  };
 
   return (
-    <Card className="mypage-article-card" sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <Card
+      className="mypage-article-card"
+      sx={{ height: "100%", display: "flex", flexDirection: "column", cursor: "pointer" }}
+      onClick={goToDetails}
+    >
       <CardMedia
         image={imageSrc}
         title={article.articleTitle}
@@ -74,11 +87,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               color="default"
               size="small"
               onClick={(e: any) => {
-                e.stopPropagation?.();
-                onLike?.(article._id);
-              }}
-              sx={{ padding: "4px" }}
-            >
+              e.stopPropagation?.();
+              onLike?.(article._id);
+            }}
+            sx={{ padding: "4px" }}
+          >
               {likeActive ? (
                 <FavoriteIcon color={"error"} fontSize="small" />
               ) : (
@@ -93,10 +106,23 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       </CardContent>
       {showActions === "manage" && canManage && (
         <CardActions>
-          <Button startIcon={<EditIcon />} onClick={() => onEdit?.(article._id)}>
+          <Button
+            startIcon={<EditIcon />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(article._id);
+            }}
+          >
             Edit
           </Button>
-          <Button endIcon={<DeleteIcon />} color="error" onClick={() => onDelete?.(article._id)}>
+          <Button
+            endIcon={<DeleteIcon />}
+            color="error"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.(article._id);
+            }}
+          >
             Delete
           </Button>
         </CardActions>

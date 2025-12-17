@@ -44,11 +44,9 @@ const BlogDetailsContent = (props: BlogCardProps) => {
   const chooseArticleHandler = (e: React.SyntheticEvent, article: Article) => {
     router.push(
       {
-        pathname: '/article/[id]',
-        query: { id: article?._id },
+        pathname: '/article/details',
+        query: { articleId: article?._id },
       },
-      `/blog/${article?._id}`,
-      { shallow: true },
     );
   };
 
@@ -89,7 +87,12 @@ const BlogDetailsContent = (props: BlogCardProps) => {
             </li>
           </ul>
           <h3>
-            <Link href={`/blog/${article?._id}`}>
+            <Link
+              href={{
+                pathname: '/article/details',
+                query: { articleId: article?._id },
+              }}
+            >
               {article?.articleTitle}
             </Link>
           </h3>

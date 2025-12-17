@@ -1,26 +1,60 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import '@toast-ui/editor/dist/toastui-editor.css';
-import { Viewer } from '@toast-ui/react-editor';
 import { Box, Stack, CircularProgress } from '@mui/material';
 
-const TViewer = (props: any) => {
-	const [editorLoaded, setEditorLoaded] = useState(false);
+interface TViewerProps {
+	content?: string;
+	className?: string;
+}
 
-	/** LIFECYCLES **/
+const TViewer: React.FC<TViewerProps> = ({ content = '', className }) => {
+	const viewerRef = useRef<any>(null);
+	const [ViewerComponent, setViewerComponent] = useState<any>(null);
+
+	// Lazy-load viewer on client to avoid SSR issues (toast-ui expects window/self)
 	useEffect(() => {
-		if (props.markdown) {
-			setEditorLoaded(true);
-		} else {
-			setEditorLoaded(false);
+		let mounted = true;
+		(async () => {
+			try {
+				const mod = await import('@toast-ui/react-editor');
+				if (mounted) setViewerComponent(() => mod.Viewer);
+			} catch (err) {
+				console.error('Failed to load Toast Viewer', err);
+			}
+		})();
+		return () => {
+			mounted = false;
+		};
+	}, []);
+
+	// Push HTML into the viewer instance so Toast styles are applied (like nestar-next)
+	useEffect(() => {
+		if (!viewerRef.current || !ViewerComponent) return;
+		const instance = viewerRef.current.getInstance?.();
+		if (!instance) return;
+
+		// Prefer setHTML when available; fall back to markdown rendering
+		if (content) {
+			if (typeof instance.setHTML === 'function') {
+				instance.setHTML(content);
+			} else if (typeof instance.setMarkdown === 'function') {
+				instance.setMarkdown(content);
+			}
+		} else if (typeof instance.setMarkdown === 'function') {
+			instance.setMarkdown('');
 		}
-	}, [props.markdown]);
+	}, [content, ViewerComponent]);
 
 	return (
-		<Stack sx={{ background: 'white', mt: '30px', borderRadius: '10px' }}>
-			<Box component={'div'} sx={{ m: '40px' }}>
-				{editorLoaded ? (
-					<Viewer
-						initialValue={props.markdown}
+		<Stack
+			className={className}
+			sx={{ background: 'white', mt: 3, borderRadius: '12px', border: '1px solid #EFF1F6' }}
+		>
+			<Box component={'div'} sx={{ p: { xs: 3, md: 4 } }}>
+				{ViewerComponent ? (
+					<ViewerComponent
+						ref={viewerRef}
+						initialValue={content || ' '}
 						customHTMLRenderer={{
 							htmlBlock: {
 								iframe(node: any) {
