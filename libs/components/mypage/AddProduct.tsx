@@ -23,6 +23,8 @@ const AddProduct: React.FC<AddProductProps> = ({ onSuccess }) => {
   });
 
   const [createProduct] = useMutation(CREATE_PRODUCT);
+  const formatCollectionLabel = (collection: ProductCollection) =>
+    collection.replace(/_/g, " ");
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -127,7 +129,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onSuccess }) => {
               >
                 {Object.values(ProductCollection).map((collection) => (
                   <option key={collection} value={collection}>
-                    {collection}
+                    {formatCollectionLabel(collection)}
                   </option>
                 ))}
               </select>
@@ -244,4 +246,3 @@ const AddProduct: React.FC<AddProductProps> = ({ onSuccess }) => {
 };
 
 export default AddProduct;
-

@@ -27,7 +27,7 @@ const MyProducts: React.FC<MyProductsProps> = ({ onEdit }) => {
     sort: "createdAt",
     direction: "DESC",
     search: {
-      productStatus: ProductStatus.ACTIVE,
+      productStatus: ProductStatus.ACTIVE || ProductStatus.SOLD
     },
   };
 

@@ -17,6 +17,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useRouter } from "next/router";
 import { getImageUrl } from "@/libs/imageHelper";
 import { Product } from "@/libs/types/product/product";
+import { ProductStatus } from "@/libs/enums/product.enum";
 
 interface ProductCardProps {
   product: Product;
@@ -41,6 +42,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const fallbackImage = "/images/products/default.jpg";
   const imageSrc =
     product.productImages?.[0] ? getImageUrl(product.productImages[0]) : fallbackImage;
+  const status = product.productStatus || ProductStatus.ACTIVE;
+  const statusLabel = status.replace(/_/g, " ");
+  const statusColors: Record<ProductStatus, { bg: string; text: string }> = {
+    [ProductStatus.ACTIVE]: { bg: "#E8FAF0", text: "#22C55E" },
+    [ProductStatus.SOLD]: { bg: "#FFF4E5", text: "#F97316" },
+    [ProductStatus.DELETE]: { bg: "#FEE2E2", text: "#DC2626" },
+  };
+  const badge = statusColors[status] || { bg: "#EEF1F6", text: "#5A6A85" };
   const goToDetails = () => {
     if (!product?._id) return;
     router.push(`/products/${product._id}`);
@@ -49,9 +58,33 @@ const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <Card
       className="mypage-product-card"
-      sx={{ height: "100%", display: "flex", flexDirection: "column", cursor: "pointer" }}
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        cursor: "pointer",
+        position: "relative",
+      }}
       onClick={goToDetails}
     >
+      <Stack
+        sx={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          backgroundColor: badge.bg,
+          color: badge.text,
+          borderRadius: "999px",
+          px: 1.5,
+          py: 0.5,
+          fontSize: "12px",
+          fontWeight: 600,
+          textTransform: "capitalize",
+          zIndex: 2,
+        }}
+      >
+        {statusLabel}
+      </Stack>
       <CardMedia
         image={imageSrc}
         title={product.productTitle}
