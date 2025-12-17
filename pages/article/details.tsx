@@ -4,9 +4,18 @@ import withLayoutBasic from "@/libs/components/layout/LayoutBasic";
 import PageBanner from "@/libs/components/layout/PageBanner";
 import { GET_ARTICLE } from "@/apollo/user/query";
 import { Article } from "@/libs/types/article/article";
-import { NextPage } from "next";
+import { GetStaticProps, NextPage } from "next";
 import { useRouter } from "next/router";
 import { useQuery } from "@apollo/client";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale || "en", ["common"])),
+    },
+  };
+};
 
 
 const ArticleDetails: NextPage = () => {
