@@ -7005,8 +7005,26 @@ Back to Top CSS
   .articles-grid {
     margin-top: 20px;
   }
+  .products-grid {
+    margin-top: 20px;
+  }
 
   .mypage-article-card {
+    border: 1px solid #eef1f6;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+    border-radius: 10px;
+    overflow: hidden;
+
+    .MuiCardContent-root {
+      padding: 16px;
+    }
+
+    .MuiCardActions-root {
+      padding: 12px 16px 16px;
+      justify-content: space-between;
+    }
+  }
+  .mypage-product-card {
     border: 1px solid #eef1f6;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
     border-radius: 10px;

@@ -332,6 +332,11 @@ export const GET_VIEWED = gql`
         deletedAt
         createdAt
         updatedAt
+        meLiked {
+          memberId
+          likeRefId
+          myFavorite
+        }
       }
       metaCounter {
         total

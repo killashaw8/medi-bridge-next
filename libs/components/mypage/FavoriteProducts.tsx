@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { useQuery } from "@apollo/client";
-import { GET_FAVORITES } from "@/apollo/user/query";
+import { useQuery, useMutation } from "@apollo/client";
+import { GET_FAVORITES, LIKE_TARGET_PRODUCT } from "@/apollo/user/query";
 import { OrdinaryInquiry } from "@/libs/types/product/product.input";
 import { Product } from "@/libs/types/product/product";
-import { getImageUrl } from "@/libs/imageHelper";
-import { CircularProgress, Box, Typography, Grid } from "@mui/material";
+import { CircularProgress, Box, Typography, Grid, Stack } from "@mui/material";
+import ProductCard from "@/libs/components/common/ProductCard";
+import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
 
 const FavoriteProducts: React.FC = () => {
   const [page, setPage] = useState(1);
@@ -17,10 +17,11 @@ const FavoriteProducts: React.FC = () => {
     limit,
   };
 
-  const { data, loading, error } = useQuery(GET_FAVORITES, {
+  const { data, loading, error, refetch } = useQuery(GET_FAVORITES, {
     variables: { input },
     fetchPolicy: "cache-and-network",
   });
+  const [likeProduct] = useMutation(LIKE_TARGET_PRODUCT);
 
   const products: Product[] = data?.getFavorites?.list || [];
   const total = data?.getFavorites?.metaCounter?.[0]?.total || 0;
@@ -42,6 +43,17 @@ const FavoriteProducts: React.FC = () => {
     );
   }
 
+  const handleLike = async (productId: string) => {
+    try {
+      await likeProduct({ variables: { input: productId } });
+      await refetch();
+      await sweetMixinSuccessAlert("Updated favorites");
+    } catch (err: any) {
+      console.error("Favorite product like error:", err);
+      await sweetMixinErrorAlert(err.message || "Failed to update favorite");
+    }
+  };
+
   return (
     <div className="mypage-section">
       <div className="section-header">
@@ -58,41 +70,23 @@ const FavoriteProducts: React.FC = () => {
           </Link>
         </div>
       ) : (
-        <div className="products-grid">
-          <div className="row">
+        <Stack className="products-grid">
+          <Grid container spacing={3}>
             {products.map((product) => (
-              <div key={product._id} className="col-lg-3 col-md-4 col-sm-6">
-                <div className="product-card">
-                  <Link href={`/products/${product._id}`}>
-                    <div className="product-image">
-                      <Image
-                        src={
-                          product.productImages?.[0]
-                            ? getImageUrl(product.productImages[0])
-                            : "/images/products/default.jpg"
-                        }
-                        alt={product.productTitle}
-                        width={300}
-                        height={300}
-                        style={{ objectFit: "cover" }}
-                      />
-                    </div>
-                    <div className="product-info">
-                      <h3>{product.productTitle}</h3>
-                      <div className="product-price">
-                        ${product.productPrice?.toFixed(2)}
-                      </div>
-                    </div>
-                  </Link>
-                </div>
-              </div>
+              <Grid item key={product._id} xs={12} sm={6} md={4} lg={4}>
+                <ProductCard
+                  product={product}
+                  showActions="like"
+                  likeActive={product.meLiked?.some((like) => like.myFavorite)}
+                  onLike={handleLike}
+                />
+              </Grid>
             ))}
-          </div>
-        </div>
+          </Grid>
+        </Stack>
       )}
     </div>
   );
 };
 
 export default FavoriteProducts;
-

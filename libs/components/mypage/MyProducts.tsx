@@ -1,15 +1,16 @@
 import React, { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { useQuery } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { GET_CLINIC_PRODUCTS } from "@/apollo/user/query";
 import { useReactiveVar } from "@apollo/client";
 import { userVar } from "@/apollo/store";
 import { ClinicProductsInquiry } from "@/libs/types/product/product.input";
 import { Product } from "@/libs/types/product/product";
 import { ProductStatus } from "@/libs/enums/product.enum";
-import { getImageUrl } from "@/libs/imageHelper";
-import { CircularProgress, Box, Typography } from "@mui/material";
+import { CircularProgress, Box, Typography, Grid, Stack, Pagination, Button } from "@mui/material";
+import ProductCard from "@/libs/components/common/ProductCard";
+import { UPDATE_PRODUCT } from "@/apollo/user/mutation";
+import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
 
 interface MyProductsProps {
   onEdit?: (productId: string) => void;
@@ -18,7 +19,7 @@ interface MyProductsProps {
 const MyProducts: React.FC<MyProductsProps> = ({ onEdit }) => {
   const user = useReactiveVar(userVar);
   const [page, setPage] = useState(1);
-  const limit = 12;
+  const limit = 6;
 
   const input: ClinicProductsInquiry = {
     page,
@@ -35,9 +36,11 @@ const MyProducts: React.FC<MyProductsProps> = ({ onEdit }) => {
     skip: !user?._id,
     fetchPolicy: "cache-and-network",
   });
+  const [updateProduct] = useMutation(UPDATE_PRODUCT);
 
   const products: Product[] = data?.getClinicProducts?.list || [];
   const total = data?.getClinicProducts?.metaCounter?.[0]?.total || 0;
+  const pageCount = Math.ceil(total / limit);
 
   if (loading) {
     return (
@@ -64,8 +67,10 @@ const MyProducts: React.FC<MyProductsProps> = ({ onEdit }) => {
             <h2>My Products</h2>
             <p>Your products for sale ({total})</p>
           </div>
-          <Link href="/mypage?section=add-product" className="default-btn">
-            <i className="ri-add-line"></i> Add New Product
+          <Link href="/mypage?section=add-product">
+            <Button variant="contained" color="primary" startIcon={<i className="ri-add-line"></i>}>
+              Add New Product
+            </Button>
           </Link>
         </div>
       </div>
@@ -79,50 +84,48 @@ const MyProducts: React.FC<MyProductsProps> = ({ onEdit }) => {
           </Link>
         </div>
       ) : (
-        <div className="products-grid">
-          <div className="row">
+        <Stack className="products-grid" spacing={3}>
+          <Grid container spacing={3}>
             {products.map((product) => (
-              <div key={product._id} className="col-lg-3 col-md-4 col-sm-6">
-                <div className="product-card">
-                  <div className="product-image">
-                    <Image
-                      src={
-                        product.productImages?.[0]
-                          ? getImageUrl(product.productImages[0])
-                          : "/images/products/default.jpg"
-                      }
-                      alt={product.productTitle}
-                      width={300}
-                      height={300}
-                      style={{ objectFit: "cover" }}
-                    />
-                  </div>
-                  <div className="product-info">
-                    <h3>{product.productTitle}</h3>
-                    <div className="product-price">${product.productPrice?.toFixed(2)}</div>
-                    <div className="product-meta">
-                      <span>Stock: {product.productCount}</span>
-                      <span className="badge">{product.productStatus}</span>
-                    </div>
-                    {onEdit && (
-                      <button
-                        className="btn btn-sm btn-primary mt-2"
-                        onClick={() => onEdit(product._id)}
-                        style={{ width: "100%" }}
-                      >
-                        <i className="ri-edit-line"></i> Edit Product
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <Grid item key={product._id} xs={12} sm={6} md={4} lg={4}>
+                <ProductCard
+                  product={product}
+                  showActions="manage"
+                  canManage
+                  onEdit={onEdit}
+                  onDelete={async (id: string) => {
+                    try {
+                      await updateProduct({
+                        variables: { input: { _id: id, productStatus: ProductStatus.DELETE } },
+                      });
+                      await sweetMixinSuccessAlert("Product deleted");
+                      refetch();
+                    } catch (err: any) {
+                      console.error("Delete product error:", err);
+                      await sweetMixinErrorAlert(err.message || "Failed to delete product");
+                    }
+                  }}
+                />
+              </Grid>
             ))}
-          </div>
-        </div>
+          </Grid>
+          {pageCount > 0 && (
+            <Stack className="mypage-pagination" direction="row" justifyContent="center">
+              <Pagination
+                count={pageCount}
+                page={page}
+                shape="rounded"
+                variant="outlined"
+                size="large"
+                color="primary"
+                onChange={(_, value) => setPage(value)}
+              />
+            </Stack>
+          )}
+        </Stack>
       )}
     </div>
   );
 };
 
 export default MyProducts;
-

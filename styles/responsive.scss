@@ -58,7 +58,16 @@
         .articles-grid {
             margin-top: 15px;
         }
+        .products-grid {
+            margin-top: 15px;
+        }
         .mypage-article-card {
+            .MuiCardContent-root,
+            .MuiCardActions-root {
+                padding: 12px;
+            }
+        }
+        .mypage-product-card {
             .MuiCardContent-root,
             .MuiCardActions-root {
                 padding: 12px;
