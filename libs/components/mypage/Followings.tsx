@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { useQuery } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { GET_MEMBER_FOLLOWINGS } from "@/apollo/user/query";
 import { useReactiveVar } from "@apollo/client";
 import { userVar } from "@/apollo/store";
 import { FollowInquiry } from "@/libs/types/follow/follow.input";
 import { Following } from "@/libs/types/follow/follow";
-import { getImageUrl } from "@/libs/imageHelper";
 import { CircularProgress, Box, Typography } from "@mui/material";
+import MemberCard from "@/libs/components/member/MemberCard";
+import { UNSUBSCRIBE } from "@/apollo/user/mutation";
+import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
 
 const Followings: React.FC = () => {
   const user = useReactiveVar(userVar);
@@ -23,12 +24,13 @@ const Followings: React.FC = () => {
     },
   };
 
-  const { data, loading, error } = useQuery(GET_MEMBER_FOLLOWINGS, {
+  const { data, loading, error, refetch } = useQuery(GET_MEMBER_FOLLOWINGS, {
     variables: { input },
     skip: !user?._id,
     fetchPolicy: "cache-and-network",
     errorPolicy: "all",
   });
+  const [unsubscribe] = useMutation(UNSUBSCRIBE);
 
   const isNoDataError = error?.message?.includes("No data is found");
   const followings: Following[] = isNoDataError ? [] : (data?.getMemberFollowings?.list || []);
@@ -51,6 +53,17 @@ const Followings: React.FC = () => {
     );
   }
 
+  const handleUnfollow = async (memberId: string) => {
+    try {
+      await unsubscribe({ variables: { input: memberId } });
+      await refetch();
+      await sweetMixinSuccessAlert("Unfollowed member");
+    } catch (err: any) {
+      console.error("Unfollow error:", err);
+      await sweetMixinErrorAlert(err.message || "Failed to unfollow");
+    }
+  };
+
   return (
     <div className="mypage-section">
       <div className="section-header">
@@ -62,9 +75,6 @@ const Followings: React.FC = () => {
         <div className="empty-state">
           <i className="ri-user-add-line" style={{ fontSize: "48px", color: "#ccc" }}></i>
           <p>You're not following anyone yet</p>
-          <Link href="/doctors" className="default-btn">
-            Find Doctors
-          </Link>
         </div>
       ) : (
         <div className="members-list">
@@ -75,36 +85,11 @@ const Followings: React.FC = () => {
 
               return (
                 <div key={following._id} className="col-md-6 col-lg-4">
-                  <div className="member-card">
-                    <Link href={`/member/${member._id}`}>
-                      <div className="member-avatar">
-                        <Image
-                          src={getImageUrl(member.memberImage) || "/images/users/defaultUser.svg"}
-                          alt={member.memberFullName}
-                          width={80}
-                          height={80}
-                          style={{ borderRadius: "50%", objectFit: "cover" }}
-                        />
-                      </div>
-                      <div className="member-info">
-                        <h3>{member.memberFullName}</h3>
-                        <p className="member-nick">@{member.memberNick}</p>
-                        {member.memberDesc && (
-                          <p className="member-desc">{member.memberDesc.substring(0, 100)}...</p>
-                        )}
-                        <div className="member-stats">
-                          <span>
-                            <i className="ri-article-line"></i>
-                            {member.memberArticles}
-                          </span>
-                          <span>
-                            <i className="ri-user-follow-line"></i>
-                            {member.memberFollowers}
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
+                  <MemberCard
+                    member={member}
+                    isFollowing
+                    onUnfollow={handleUnfollow}
+                  />
                 </div>
               );
             })}

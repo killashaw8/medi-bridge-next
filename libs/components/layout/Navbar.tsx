@@ -20,6 +20,7 @@ const Navbar = () => {
   const logoutOpen = Boolean(logoutAnchor);
   const [isSticky, setIsSticky] = useState(false);
   const [colorChange, setColorChange] = useState(false);
+  const [imageRefreshKey, setImageRefreshKey] = useState(0);
 
   const DEFAULT_USER_IMAGE = '/images/users/defaultUser.svg'
 
@@ -52,6 +53,11 @@ const Navbar = () => {
       nick: user?.memberNick,
       image: user?.memberImage,
     });
+  }, [user]);
+
+  useEffect(() => {
+    if (!user?._id) return;
+    setImageRefreshKey(Date.now());
   }, [user]);
 
   // Sticky navbar effect
@@ -99,17 +105,19 @@ const userImageUrl = useMemo(() => {
   if (!user?.memberImage || user.memberImage === '') {
     return '/images/users/defaultUser.svg';
   }
-  
+
   const imageUrl = getImageUrl(user.memberImage);
-  
+  const cacheBust = imageRefreshKey ? `v=${imageRefreshKey}` : '';
+  const separator = imageUrl.includes('?') ? '&' : '?';
+
   // Debug logging (remove in production)
   if (process.env.NODE_ENV === 'development') {
     console.log('Navbar - User image path:', user.memberImage);
     console.log('Navbar - Generated image URL:', imageUrl);
   }
-  
-  return imageUrl;
-}, [user?.memberImage]);
+
+  return cacheBust ? `${imageUrl}${separator}${cacheBust}` : imageUrl;
+}, [user?.memberImage, imageRefreshKey]);
 
   // Check if user is logged in
   const isLoggedIn = user?._id && user._id !== '';
@@ -548,4 +556,3 @@ const userImageUrl = useMemo(() => {
 }
 
 export default withRouter(Navbar);
-

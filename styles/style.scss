@@ -7008,6 +7008,13 @@ Back to Top CSS
   .products-grid {
     margin-top: 20px;
   }
+  .members-list {
+    margin-top: 20px;
+
+    .row {
+      --bs-gutter-y: 24px;
+    }
+  }
 
   .mypage-article-card {
     border: 1px solid #eef1f6;
@@ -7037,6 +7044,41 @@ Back to Top CSS
     .MuiCardActions-root {
       padding: 12px 16px 16px;
       justify-content: space-between;
+    }
+  }
+  .mypage-member-card {
+    border: 1px solid #eef1f6;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .MuiCardContent-root {
+      padding: 18px;
+
+      > .MuiStack-root {
+        gap: 16px;
+      }
+    }
+
+    .MuiCardActions-root {
+      padding: 12px 16px 16px;
+      justify-content: space-between;
+    }
+
+    .MuiTypography-h6 {
+      color: #1f2937;
+      font-weight: 600;
+    }
+
+    .MuiTypography-body2 {
+      color: #6b7280;
     }
   }
 

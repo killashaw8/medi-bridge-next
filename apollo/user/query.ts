@@ -540,10 +540,13 @@ export const GET_MEMBER_FOLLOWINGS = gql`
         }
         followingData {
           _id
+          memberType
           memberNick
           memberFullName
           memberImage
           memberDesc
+          specialization
+          clinicId
           memberAppointments
           memberArticles
           memberFollowers
@@ -582,10 +585,13 @@ export const GET_MEMBER_FOLLOWERS = gql`
         }
         followerData {
           _id
+          memberType
           memberNick
           memberFullName
           memberImage
           memberDesc
+          specialization
+          clinicId
           memberAppointments
           memberArticles
           memberFollowers

@@ -73,6 +73,29 @@
                 padding: 12px;
             }
         }
+        .mypage-member-card {
+            .MuiCardContent-root {
+                padding: 12px;
+
+                > .MuiStack-root {
+                    gap: 12px;
+                }
+            }
+            .MuiCardActions-root {
+                padding: 10px 12px 12px;
+            }
+            .MuiAvatar-root {
+                width: 56px;
+                height: 56px;
+            }
+        }
+        .members-list {
+            margin-top: 15px;
+
+            .row {
+                --bs-gutter-y: 16px;
+            }
+        }
         .mypage-pagination {
             margin-top: 20px;
         }
