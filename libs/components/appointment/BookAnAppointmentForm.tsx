@@ -59,7 +59,7 @@ const BookAnAppointmentForm = () => {
 
   const [availableSlots, setAvailableSlots] = useState<Slot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
-  const [clinicData, setClinicData] = useState<Record<string, { name: string; address?: string }>>({});
+  const [clinicData, setClinicData] = useState<Record<string, { name: string; location?: Location }>>({});
   const apolloClient = useApolloClient();
   const fetchedClinicIdsRef = useRef<Set<string>>(new Set());
 
@@ -81,20 +81,20 @@ const BookAnAppointmentForm = () => {
 
   const allDoctors: Member[] = doctorsData?.getDoctors?.list || [];
 
-  const filteredDoctors = selectedSpecialization
+  const specializationFilteredDoctors = selectedSpecialization
     ? allDoctors.filter((doctor) => doctor.specialization === selectedSpecialization)
     : [];
 
   // Get unique clinic IDs from filtered doctors
   const uniqueClinicIds = useMemo(() => {
     const ids = new Set<string>();
-    filteredDoctors.forEach(doctor => {
+    specializationFilteredDoctors.forEach(doctor => {
       if (doctor.clinicId) {
         ids.add(doctor.clinicId);
       }
     });
     return Array.from(ids).sort(); // Sort for stable comparison
-  }, [filteredDoctors]);
+  }, [specializationFilteredDoctors]);
 
   // Create a stable string key for comparison
   const uniqueClinicIdsKey = useMemo(() => uniqueClinicIds.join(','), [uniqueClinicIds]);
@@ -116,7 +116,7 @@ const BookAnAppointmentForm = () => {
     let isMounted = true;
 
     const fetchClinicData = async () => {
-      const clinics: Record<string, { name: string; address?: string }> = {};
+      const clinics: Record<string, { name: string; location?: Location }> = {};
       
       const promises = missingClinicIds.map(async (clinicId) => {
         // Mark as being fetched to prevent duplicate requests
@@ -131,7 +131,7 @@ const BookAnAppointmentForm = () => {
           if (isMounted && data?.getMember) {
             clinics[clinicId] = {
               name: data.getMember.memberFullName || clinicId,
-              address: data.getMember.location,
+              location: data.getMember.location,
             };
           } else if (isMounted) {
             clinics[clinicId] = { name: clinicId };
@@ -312,6 +312,28 @@ const BookAnAppointmentForm = () => {
     }
   };
 
+  const locationFilteredDoctors = useMemo(() => {
+    if (!selectedLocation) {
+      return specializationFilteredDoctors;
+    }
+
+    return specializationFilteredDoctors.filter((doctor) => {
+      if (!doctor.clinicId) return false;
+      return clinicData[doctor.clinicId]?.location === selectedLocation;
+    });
+  }, [selectedLocation, specializationFilteredDoctors, clinicData]);
+
+  useEffect(() => {
+    if (!selectedDoctor?._id) return;
+    const stillVisible = locationFilteredDoctors.some(
+      (doctor) => doctor._id === selectedDoctor._id
+    );
+    if (!stillVisible) {
+      setSelectedDoctor(null);
+      setFormData(prev => ({ ...prev, date: "", time: "" as AppointmentTime | "" }));
+    }
+  }, [locationFilteredDoctors, selectedDoctor?._id]);
+
   // Location options
   const locationOptions = Object.values(Location);
   
@@ -378,7 +400,7 @@ const BookAnAppointmentForm = () => {
                     Loading doctors...
                   </Typography>
                 </Box>
-              ) : filteredDoctors.length === 0 ? (
+              ) : locationFilteredDoctors.length === 0 ? (
                 <Box sx={{ textAlign: 'center', padding: '40px' }}>
                   <Typography variant="h6" color="error">
                     No doctors available with {selectedSpecialization} specialization
@@ -386,7 +408,7 @@ const BookAnAppointmentForm = () => {
                 </Box>
               ) : (
                 <Grid container spacing={3} sx={{ marginBottom: 4 }}>
-                  {filteredDoctors.map((doctor) => (
+                  {locationFilteredDoctors.map((doctor) => (
                     <Grid item xs={12} sm={6} md={4} key={doctor._id}>
                       <Card 
                         sx={{ 
@@ -432,11 +454,11 @@ const BookAnAppointmentForm = () => {
                                   {clinicData[doctor.clinicId].name}
                                 </Typography>
                               </Box>
-                              {clinicData[doctor.clinicId].address && (
+                              {clinicData[doctor.clinicId].location && (
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                   <LocationOnIcon sx={{ fontSize: 16, color: '#5A6A85', marginRight: 0.5 }} />
                                   <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-                                    {clinicData[doctor.clinicId].address}
+                                    {clinicData[doctor.clinicId].location}
                                   </Typography>
                                 </Box>
                               )}
