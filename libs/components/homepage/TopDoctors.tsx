@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { DoctorsInquiry } from "@/libs/types/member/member.input";
 import { useQuery, useApolloClient } from "@apollo/client";
 import { GET_DOCTORS, GET_MEMBER } from "@/apollo/user/query";
 import { Member } from "@/libs/types/member/member";
 import { T } from "@/libs/types/common";
-import { useRouter } from "next/router";
-import { getImageUrl } from "@/libs/imageHelper";
+import DoctorCard from "@/libs/components/clinics-doctors/DoctorCard";
 
 
 interface TopDoctorsProps {
@@ -16,7 +14,6 @@ interface TopDoctorsProps {
 
 const TopDoctors = (props: TopDoctorsProps = {}) => {
   const { initialInput } = props;
-  const router = useRouter();
   const apolloClient = useApolloClient();
   const [topDoctors, setTopDoctors] = useState<Member[]>([]);
   const [clinicNames, setClinicNames] = useState<Record<string, string>>({});
@@ -91,32 +88,6 @@ const TopDoctors = (props: TopDoctorsProps = {}) => {
     fetchClinicNames();
   }, [uniqueClinicIds, apolloClient]);
 
-  // Function to render star ratings
-  const renderRatingStars = (rating: number) => {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-
-    return (
-      <>
-        {[...Array(fullStars)].map((_, i) => (
-          <li key={i}>
-            <i className="ri-star-fill"></i>
-          </li>
-        ))}
-        {hasHalfStar && (
-          <li>
-            <i className="ri-star-half-fill"></i>
-          </li>
-        )}
-        {[...Array(5 - fullStars - (hasHalfStar ? 1 : 0))].map((_, i) => (
-          <li key={i + fullStars}>
-            <i className="ri-star-line"></i>
-          </li>
-        ))}
-      </>
-    );
-  };
-
   return (
     <>
       <div className="doctors-area ptb-140">
@@ -158,76 +129,15 @@ const TopDoctors = (props: TopDoctorsProps = {}) => {
           <div className="row justify-content-center g-4">
             {topDoctors.map((doctor: Member) => (
               <div key={doctor._id} className="col-xl-3 col-md-6">
-                <div className="doctor-card">
-                  <div className="image">
-                    <Link href={doctor._id}>
-                      <Image
-                        src={getImageUrl(doctor.memberImage)}
-                        alt={doctor.memberNick}
-                        width={220}
-                        height={300}
-                        style={{ 
-                          borderRadius: "10%",
-                          objectFit: "cover",
-                          width: "100%",          
-                          height: "100%", 
-                        }}
-                      />
-                    </Link>
-                  </div>
-                  <div className="content">
-                    <h3>
-                      <Link href={doctor._id}>{doctor.memberFullName}</Link>
-                    </h3>
-                    <span className="sub">
-                      {doctor.clinicId ? (clinicNames[doctor.clinicId] || doctor.clinicId) : 'No Clinic'}
-                    </span>
-                    <span className="tag">{doctor.specialization}</span>
-
-                    <div className="rating-info">
-                      <ul className="list">
-                        {renderRatingStars(doctor.memberLikes)}
-                      </ul>
-
-                      <b>{doctor.memberLikes}</b>
-                      <span>({doctor.memberLikes.toLocaleString()} Reviews)</span>
-                    </div>
-
-                    <div className="doctor-btn">
-                      <Link href="/book-an-appointment" className="default-btn">
-                        <span className="left">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="12"
-                            height="12"
-                            viewBox="0 0 12 12"
-                            fill="none"
-                          >
-                            <path
-                              d="M11.5385 0H0.461538C0.206769 0 0 0.206769 0 0.461538C0 0.716308 0.206769 0.923077 0.461538 0.923077H10.4241L0.135231 11.2122C-0.045 11.3924 -0.045 11.6845 0.135231 11.8648C0.225462 11.955 0.343385 12 0.461538 12C0.579692 12 0.697846 11.955 0.787846 11.8648L11.0769 1.57569V11.5385C11.0769 11.7932 11.2837 12 11.5385 12C11.7932 12 12 11.7932 12 11.5385V0.461538C12 0.206769 11.7932 0 11.5385 0Z"
-                              fill="#336AEA"
-                            />
-                          </svg>
-                        </span>
-                        Book Now
-                        <span className="right">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="12"
-                            height="12"
-                            viewBox="0 0 12 12"
-                            fill="none"
-                          >
-                            <path
-                              d="M11.5385 0H0.461538C0.206769 0 0 0.206769 0 0.461538C0 0.716308 0.206769 0.923077 0.461538 0.923077H10.4241L0.135231 11.2122C-0.045 11.3924 -0.045 11.6845 0.135231 11.8648C0.225462 11.955 0.343385 12 0.461538 12C0.579692 12 0.697846 11.955 0.787846 11.8648L11.0769 1.57569V11.5385C11.0769 11.7932 11.2837 12 11.5385 12C11.7932 12 12 11.7932 12 11.5385V0.461538C12 0.206769 11.7932 0 11.5385 0Z"
-                              fill="#336AEA"
-                            />
-                          </svg>
-                        </span>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                <DoctorCard
+                  doctor={doctor}
+                  clinicName={
+                    doctor.clinicId
+                      ? clinicNames[doctor.clinicId] || doctor.clinicId
+                      : "No Clinic"
+                  }
+                  reviews={doctor.memberLikes ?? 0}
+                />
               </div>
             ))}
           </div>

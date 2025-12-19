@@ -265,6 +265,12 @@
     .doctor-card {
         padding: 25px;
 
+        .image {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            height: auto;
+        }
+
         .content {
             h3 {
                 font-size: 20px;
@@ -1452,6 +1458,12 @@
     }
     .doctor-card {
         padding: 25px;
+
+        .image {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            height: auto;
+        }
     }
 
     .work-image {
@@ -2286,6 +2298,12 @@
     }
     .doctor-card {
         padding: 17px;
+
+        .image {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            height: auto;
+        }
     }
 
     .work-image {

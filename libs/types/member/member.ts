@@ -50,7 +50,7 @@ export interface Member {
   /** Only for Doctors **/
   clinicId?: string;
   location?: Location;
-  specialization?: DoctorSpecialization;
+  specialization?: DoctorSpecialization | string;
 }
 
 export interface TotalCounter {
