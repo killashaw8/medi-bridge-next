@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "@apollo/client";
 import { GET_FAVORITES, LIKE_TARGET_PRODUCT } from "@/apollo/user/query";
 import { OrdinaryInquiry } from "@/libs/types/product/product.input";
 import { Product } from "@/libs/types/product/product";
-import { CircularProgress, Box, Typography, Grid, Stack } from "@mui/material";
+import { CircularProgress, Box, Typography, Grid, Stack, Button } from "@mui/material";
 import ProductCard from "@/libs/components/common/ProductCard";
 import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
 
@@ -65,9 +65,13 @@ const FavoriteProducts: React.FC = () => {
         <div className="empty-state">
           <i className="ri-heart-line" style={{ fontSize: "48px", color: "#ccc" }}></i>
           <p>No favorite products yet</p>
-          <Link href="/products" className="default-btn">
+          <Button
+            type="button" 
+            href="/products"
+            variant="contained"
+          >
             Browse Products
-          </Link>
+          </Button>
         </div>
       ) : (
         <Stack className="products-grid">

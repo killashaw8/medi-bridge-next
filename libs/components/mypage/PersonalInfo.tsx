@@ -811,8 +811,9 @@ const PersonalInfo: React.FC = () => {
                     }} />
                 </div>
                 <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
-                  <button
+                  <Button
                     type="button"
+                    variant="contained"
                     onClick={() => {
                       if (selectedImage) {
                         // Reopen cropper with current image
@@ -832,9 +833,11 @@ const PersonalInfo: React.FC = () => {
                     disabled={loading || uploadingImage}
                   >
                     Edit/Crop Image
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="contained"
+                    color="error"
                     onClick={() => {
                       setSelectedImage(null);
                       setImagePreview(null);
@@ -843,7 +846,7 @@ const PersonalInfo: React.FC = () => {
                     disabled={loading || uploadingImage}
                   >
                     Remove Image
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}

@@ -6,10 +6,11 @@ import { useQuery } from "@apollo/client";
 import { ArticlesInquiry } from "@/libs/types/article/article.input";
 import { GET_ARTICLES } from "@/apollo/user/query";
 import { Article } from "@/libs/types/article/article";
-import { IconButton, Stack, Tooltip } from "@mui/material";
+import { IconButton, Stack, Tooltip, } from "@mui/material";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import Moment from 'react-moment';
 import { getImageUrl } from "@/libs/imageHelper";
+import SearchIcon from '@mui/icons-material/Search';
 
 
 interface SidebarProps {
@@ -123,29 +124,12 @@ const Sidebar = ( props: SidebarProps ) => {
                 }
               }}
             />
-            <button type="submit">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <mask
-                  id="mask0_10040_10702"
-                  style={{ maskType: "luminance" }}
-                  maskUnits="userSpaceOnUse"
-                  x="1"
-                  y="1"
-                  width="22"
-                  height="22"
-                >
-                  <path
-                    d="M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"
-                    stroke="white"
-                    strokeWidth="1.5"
-                  />
-                  <path opacity="0.5" d="M20 20L22 22" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                </mask>
-                <g mask="url(#mask0_10040_10702)">
-                  <path d="M0 0H24V24H0V0Z" fill="#336AEA" />
-                </g>
-              </svg>
-            </button>
+            <IconButton 
+              aria-label="search"
+              type="submit"
+            >
+              <SearchIcon/>
+            </IconButton>
           </form>
           <Tooltip className={"refresh"} title="Reset">
             <IconButton onClick={refreshHandler}>
