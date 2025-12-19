@@ -18,8 +18,8 @@ export const menus = [
     title: "Clinics",
     isDropdown: true,
     dropdownItems: [
-      { title: "Clinics", href: "/getClinics/" },
-      { title: "Doctors", href: "/getDoctors/" },
+      { title: "Clinics", href: "/clinics/" },
+      { title: "Doctors", href: "/doctors/" },
     ],
   },
   {
@@ -27,7 +27,7 @@ export const menus = [
     title: "Shopping",
     isDropdown: true,
     dropdownItems: [
-      { title: "Products", href: "/getProducts/" },
+      { title: "Products", href: "/products/" },
       { title: "My Orders", href: "/myOrders/" },
     ],
   },
