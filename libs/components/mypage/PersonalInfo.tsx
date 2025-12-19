@@ -14,6 +14,7 @@ import { Location } from "@/libs/enums/appointment.enum";
 import { updateUserInfoFromResponse } from "@/libs/auth";
 import { initializeApollo } from "@/apollo/client";
 import { Button } from "@mui/material";
+import { Messages } from "@/libs/config";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from "@mui/material/IconButton";
@@ -36,6 +37,7 @@ const PersonalInfo: React.FC = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
+    memberNick: "",
     memberFullName: "",
     memberEmail: "",
     memberPhone: "",
@@ -50,6 +52,7 @@ const PersonalInfo: React.FC = () => {
   });
 
   const [initialData, setInitialData] = useState({
+    memberNick: "",
     memberFullName: "",
     memberEmail: "",
     memberPhone: "",
@@ -65,6 +68,7 @@ const PersonalInfo: React.FC = () => {
 
   const [removeImage, setRemoveImage] = useState(false);
   const emptyFormState = {
+    memberNick: "",
     memberFullName: "",
     memberEmail: "",
     memberPhone: "",
@@ -119,6 +123,7 @@ const PersonalInfo: React.FC = () => {
         : null;
       
       const initial = {
+        memberNick: member.memberNick || "",
         memberFullName: member.memberFullName || "",
         memberEmail: member.memberEmail || "",
         memberPhone: member.memberPhone || "",
@@ -138,6 +143,7 @@ const PersonalInfo: React.FC = () => {
   useEffect(() => {
     if (isEditing) {
       setFormData({
+        memberNick: initialData.memberNick || "",
         memberFullName: initialData.memberFullName || "",
         memberEmail: initialData.memberEmail || "",
         memberPhone: initialData.memberPhone || "",
@@ -166,6 +172,7 @@ const PersonalInfo: React.FC = () => {
     
     return (
       (formData.memberFullName.trim() && formData.memberFullName.trim() !== initialData.memberFullName) ||
+      (formData.memberNick.trim() && formData.memberNick.trim() !== initialData.memberNick) ||
       (formData.memberEmail.trim() && formData.memberEmail.trim() !== initialData.memberEmail) ||
       (formData.memberPhone.trim() && formData.memberPhone.trim() !== initialData.memberPhone) ||
       (formData.memberAddress.trim() && formData.memberAddress.trim() !== initialData.memberAddress) ||
@@ -242,12 +249,37 @@ const PersonalInfo: React.FC = () => {
       }
       return null;
     } catch (error: any) {
-      console.error('Image upload error:', error);
+      console.warn('Image upload error (handled):', error);
       await sweetMixinErrorAlert('Failed to upload image. Please try again.');
       return null;
     } finally {
       setUploadingImage(false);
     }
+  };
+
+  const passwordValidation = useMemo(() => {
+    const newPass = formData.newPassword.trim();
+    const confirm = formData.confirmPassword.trim();
+    const current = formData.currentPassword.trim();
+    const wantsChange = !!(newPass || confirm);
+    const newValid = newPass.length >= 6;
+    const confirmValid = confirm.length > 0 && confirm === newPass && newValid;
+    const currentValid = wantsChange ? current.length > 0 : true;
+    return { newValid, confirmValid, currentValid, wantsChange };
+  }, [formData.newPassword, formData.confirmPassword, formData.currentPassword]);
+
+  const getPasswordBorder = (field: "current" | "new" | "confirm") => {
+    const defaultBorder = "#e0e0e0";
+    if (field === "current") {
+      if (!passwordValidation.wantsChange) return defaultBorder;
+      return passwordValidation.currentValid ? "#4caf50" : "#f44336";
+    }
+    if (field === "new") {
+      if (formData.newPassword.trim().length === 0) return defaultBorder;
+      return passwordValidation.newValid ? "#4caf50" : "#f44336";
+    }
+    if (formData.confirmPassword.trim().length === 0) return defaultBorder;
+    return passwordValidation.confirmValid ? "#4caf50" : "#f44336";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -309,6 +341,7 @@ const PersonalInfo: React.FC = () => {
       // Use plain object type to avoid TypeScript including location from MemberUpdate type
       const finalUpdateInput: {
         memberFullName?: string;
+        memberNick?: string;
         memberEmail?: string;
         memberPhone?: string;
         memberAddress?: string;
@@ -324,6 +357,9 @@ const PersonalInfo: React.FC = () => {
       // If field is empty, it means user wants to keep current value, so don't include it
       if (formData.memberFullName.trim() && formData.memberFullName.trim() !== initialData.memberFullName) {
         finalUpdateInput.memberFullName = formData.memberFullName.trim();
+      }
+      if (formData.memberNick.trim() && formData.memberNick.trim() !== initialData.memberNick) {
+        finalUpdateInput.memberNick = formData.memberNick.trim();
       }
       if (formData.memberEmail.trim() && formData.memberEmail.trim() !== initialData.memberEmail) {
         finalUpdateInput.memberEmail = formData.memberEmail.trim();
@@ -384,7 +420,7 @@ const PersonalInfo: React.FC = () => {
       
       // Final safety check - if location is somehow still there for non-clinics, remove it
       if (!isClinic && 'location' in finalUpdateInput) {
-        console.error('ERROR: location found in finalUpdateInput for non-clinic! Removing it...');
+        console.warn('ERROR: location found in finalUpdateInput for non-clinic! Removing it...');
         delete (finalUpdateInput as any).location;
       }
 
@@ -395,6 +431,9 @@ const PersonalInfo: React.FC = () => {
       // Only add fields that are explicitly defined - one by one
       if (finalUpdateInput.memberFullName !== undefined) {
         cleanInput.memberFullName = finalUpdateInput.memberFullName;
+      }
+      if (finalUpdateInput.memberNick !== undefined) {
+        cleanInput.memberNick = finalUpdateInput.memberNick;
       }
       if (finalUpdateInput.memberEmail !== undefined) {
         cleanInput.memberEmail = finalUpdateInput.memberEmail;
@@ -430,7 +469,7 @@ const PersonalInfo: React.FC = () => {
 
       // CRITICAL: Verify location is NOT in cleanInput for non-clinics
       if (!isClinic && 'location' in cleanInput) {
-        console.error('CRITICAL ERROR: location found in cleanInput for non-clinic!', cleanInput);
+        console.warn('CRITICAL ERROR: location found in cleanInput for non-clinic!', cleanInput);
         delete cleanInput.location;
       }
 
@@ -444,7 +483,7 @@ const PersonalInfo: React.FC = () => {
       
       // Final check - location should NEVER be in sanitizedInput
       if ('location' in sanitizedInput) {
-        console.error('CRITICAL: location still in sanitizedInput after JSON serialization!');
+        console.warn('CRITICAL: location still in sanitizedInput after JSON serialization!');
         delete sanitizedInput.location;
       }
 
@@ -465,8 +504,10 @@ const PersonalInfo: React.FC = () => {
 
       // CRITICAL FIX: Create a completely new object with only the exact fields we want
       // This prevents Apollo Client from auto-including location based on the GraphQL schema
-      const mutationInput: any = {};
-      const allowedFields = ['memberFullName', 'memberEmail', 'memberPhone', 'memberAddress', 'memberDesc', 'specialization', 'clinicId', 'memberImage', 'memberPassword'];
+      const mutationInput: any = {
+        _id: currentMember?._id, // ensure backend can target the correct member
+      };
+      const allowedFields = ['memberFullName', 'memberNick', 'memberEmail', 'memberPhone', 'memberAddress', 'memberDesc', 'specialization', 'clinicId', 'memberImage', 'memberPassword'];
       
       // Only include location for CLINICS, and only if it's a valid enum value
       if (isClinic && finalUpdateInput.location !== undefined) {
@@ -490,17 +531,22 @@ const PersonalInfo: React.FC = () => {
         }
       });
 
+      // Drop _id if it's not available
+      if (!mutationInput._id) {
+        delete mutationInput._id;
+      }
+
       // CRITICAL: For USERS and DOCTORS, location should NEVER be in mutationInput
       // Even if it somehow got into sanitizedInput, remove it for non-clinics
       // This is the final safety check before sending to GraphQL
       if (!isClinic) {
         if ('location' in mutationInput) {
-          console.error('CRITICAL: location found in mutationInput for non-clinic! Removing it...');
+          console.warn('CRITICAL: location found in mutationInput for non-clinic! Removing it...');
           delete mutationInput.location;
         }
         // Double-check after deletion
         if ('location' in mutationInput) {
-          console.error('CRITICAL: location still in mutationInput after removal!');
+          console.warn('CRITICAL: location still in mutationInput after removal!');
           delete mutationInput.location;
         }
       }
@@ -510,7 +556,7 @@ const PersonalInfo: React.FC = () => {
       if (!isClinic) {
         const keys = Object.keys(mutationInput);
         if (keys.includes('location')) {
-          console.error('CRITICAL: location found in mutationInput keys for non-clinic!');
+          console.warn('CRITICAL: location found in mutationInput keys for non-clinic!');
           delete mutationInput.location;
         }
       }
@@ -548,6 +594,7 @@ const PersonalInfo: React.FC = () => {
             : null;
           
           setInitialData({
+            memberNick: member.memberNick || "",
             memberFullName: member.memberFullName || "",
             memberEmail: member.memberEmail || "",
             memberPhone: member.memberPhone || "",
@@ -574,6 +621,7 @@ const PersonalInfo: React.FC = () => {
             : null;
           
           setInitialData({
+            memberNick: member.memberNick || "",
             memberFullName: member.memberFullName || "",
             memberEmail: member.memberEmail || "",
             memberPhone: member.memberPhone || "",
@@ -591,10 +639,15 @@ const PersonalInfo: React.FC = () => {
       refetch();
       setIsEditing(false);
     } catch (error: any) {
-      console.error("Update error:", error);
-      await sweetMixinErrorAlert(
-        error.message || "Failed to update profile. Please try again."
-      );
+      console.warn("Update error (handled):", error);
+      const errorMessage = typeof error?.message === "string" ? error.message : "";
+      if (errorMessage.toLowerCase().includes("duplicate key") || errorMessage.toLowerCase().includes("existing username")) {
+        await sweetMixinErrorAlert(Messages.error6);
+      } else {
+        await sweetMixinErrorAlert(
+          errorMessage || "Failed to update profile. Please try again."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -672,6 +725,7 @@ const PersonalInfo: React.FC = () => {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px", marginBottom: "30px" }}>
               {renderViewField("Full Name", initialData.memberFullName)}
+              {renderViewField("Nickname", initialData.memberNick)}
               {renderViewField("Email Address", initialData.memberEmail)}
               {renderViewField("Phone Number", initialData.memberPhone)}
               {renderViewField("Address", initialData.memberAddress)}
@@ -812,6 +866,28 @@ const PersonalInfo: React.FC = () => {
                       value={formData.memberFullName}
                       onChange={handleChange}
                       placeholder={initialData.memberFullName || "Enter your full name"}
+                      disabled={loading || uploadingImage}
+                      style={{
+                        padding: "12px 15px",
+                        borderRadius: "5px",
+                        border: "1px solid #e0e0e0",
+                        width: "100%",
+                      }} />
+                  </div>
+                </div>
+
+                <div className="col-md-6" style={{ padding: "0 15px" }}>
+                  <div className="form-group" style={{ marginBottom: "25px" }}>
+                    <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                      Nickname
+                    </label>
+                    <input
+                      type="text"
+                      name="memberNick"
+                      className="form-control"
+                      value={formData.memberNick}
+                      onChange={handleChange}
+                      placeholder={initialData.memberNick || "Enter your nickname"}
                       disabled={loading || uploadingImage}
                       style={{
                         padding: "12px 15px",
@@ -1039,7 +1115,7 @@ const PersonalInfo: React.FC = () => {
                     style={{
                       padding: "12px 15px",
                       borderRadius: "5px",
-                      border: "1px solid #e0e0e0",
+                      border: `1px solid ${getPasswordBorder("current")}`,
                       width: "100%",
                       paddingRight: "45px",
                     }}
@@ -1088,7 +1164,7 @@ const PersonalInfo: React.FC = () => {
                     style={{
                       padding: "12px 15px",
                       borderRadius: "5px",
-                      border: "1px solid #e0e0e0",
+                      border: `1px solid ${getPasswordBorder("new")}`,
                       width: "100%",
                       paddingRight: "45px",
                     }}
@@ -1137,7 +1213,7 @@ const PersonalInfo: React.FC = () => {
                     style={{
                       padding: "12px 15px",
                       borderRadius: "5px",
-                      border: "1px solid #e0e0e0",
+                      border: `1px solid ${getPasswordBorder("confirm")}`,
                       width: "100%",
                       paddingRight: "45px",
                     }}

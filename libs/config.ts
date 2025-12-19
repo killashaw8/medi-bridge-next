@@ -6,6 +6,7 @@ export const Messages = {
 	error3: 'Please fulfill all inputs!',
 	error4: 'Message is empty!',
 	error5: 'Only images with jpeg, jpg, png, webp format allowed!',
+	error6: 'Existing username! Please choose another one'
 };
 
 export const topProductRank = 2;
