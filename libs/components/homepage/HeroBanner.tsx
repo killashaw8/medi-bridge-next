@@ -1,8 +1,13 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useReactiveVar } from "@apollo/client";
+import { userVar } from "@/apollo/store";
 
 function HeroBanner() {
+  const user = useReactiveVar(userVar);
+  const isLoggedIn = !!user?._id;
+
   return (
     <>
       <div className="main-banner-area">
@@ -77,7 +82,7 @@ function HeroBanner() {
                 </p>
 
                 <div className="banner-btn">
-                  <Link href="/register" className="default-btn">
+                  <Link href={isLoggedIn ? "/makeAppointment" : "/register"} className="default-btn">
                     <span className="left">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -92,7 +97,7 @@ function HeroBanner() {
                         />
                       </svg>
                     </span>
-                    <strong>Register Now</strong> - It&apos;s Free
+                    <strong>{isLoggedIn ? "Book Appointment" : "Register Now"}</strong> - It&apos;s Free
                     <span className="right">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
