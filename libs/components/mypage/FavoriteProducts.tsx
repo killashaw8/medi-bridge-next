@@ -77,7 +77,7 @@ const FavoriteProducts: React.FC = () => {
                 <ProductCard
                   product={product}
                   showActions="like"
-                  likeActive={product.meLiked?.some((like) => like.myFavorite)}
+                  likeActive={!!product.meLiked?.some((like) => like.myFavorite)}
                   onLike={handleLike}
                 />
               </Grid>

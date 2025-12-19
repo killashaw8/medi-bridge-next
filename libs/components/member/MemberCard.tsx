@@ -91,9 +91,35 @@ const MemberCard: React.FC<MemberCardProps> = ({
   return (
     <Card
       className="mypage-member-card"
-      sx={{ height: "100%", display: "flex", flexDirection: "column", cursor: "pointer" }}
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        cursor: "pointer",
+        position: "relative",
+      }}
       onClick={goToDetails}
     >
+      {isFollowing && (
+        <Stack
+          sx={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+            backgroundColor: "#E8F5E9",
+            color: "#2E7D32",
+            borderRadius: "999px",
+            px: 1.5,
+            py: 0.5,
+            fontSize: "12px",
+            fontWeight: 700,
+            textTransform: "uppercase",
+            zIndex: 2,
+          }}
+        >
+          Followed
+        </Stack>
+      )}
       <CardContent sx={{ flexGrow: 1 }}>
         <Stack direction="row" spacing={2} alignItems="center">
           <Avatar

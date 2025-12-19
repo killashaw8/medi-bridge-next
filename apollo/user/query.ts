@@ -366,6 +366,11 @@ export const GET_FAVORITES = gql`
         deletedAt
         createdAt
         updatedAt
+        meLiked {
+          memberId
+          likeRefId
+          myFavorite
+        }
       }
       metaCounter {
         total
