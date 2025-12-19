@@ -879,7 +879,7 @@ const PersonalInfo: React.FC = () => {
                 <div className="col-md-6" style={{ padding: "0 15px" }}>
                   <div className="form-group" style={{ marginBottom: "25px" }}>
                     <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
-                      Nickname
+                      Username
                     </label>
                     <input
                       type="text"

@@ -21,6 +21,7 @@ const Navbar = () => {
   const [isSticky, setIsSticky] = useState(false);
   const [colorChange, setColorChange] = useState(false);
   const [imageRefreshKey, setImageRefreshKey] = useState(0);
+  const [nickRefreshKey, setNickRefreshKey] = useState(0);
 
   const DEFAULT_USER_IMAGE = '/images/users/defaultUser.svg'
 
@@ -58,6 +59,7 @@ const Navbar = () => {
   useEffect(() => {
     if (!user?._id) return;
     setImageRefreshKey(Date.now());
+    setNickRefreshKey(Date.now());
   }, [user]);
 
   // Sticky navbar effect
@@ -118,6 +120,10 @@ const userImageUrl = useMemo(() => {
 
   return cacheBust ? `${imageUrl}${separator}${cacheBust}` : imageUrl;
 }, [user?.memberImage, imageRefreshKey]);
+
+  const displayNick = useMemo(() => {
+    return user?.memberNick || user?.memberFullName || 'User';
+  }, [user?.memberNick, user?.memberFullName, nickRefreshKey]);
 
   // Check if user is logged in
   const isLoggedIn = user?._id && user._id !== '';
@@ -258,8 +264,8 @@ const userImageUrl = useMemo(() => {
                       objectFit: 'cover',
                     }}
                   />
-                  <span>
-                    {user?.memberNick}
+                  <span key={nickRefreshKey}>
+                    @{displayNick}
                   </span>
                 </div>
                 
@@ -395,7 +401,7 @@ const userImageUrl = useMemo(() => {
                     />
                     <div>
                       <div style={{ fontSize: '14px', fontWeight: '500' }}>
-                        {user?.memberFullName || user?.memberNick || "User"}
+                        {displayNick}
                       </div>
                       <div style={{ fontSize: '12px', color: '#888' }}>
                         {user?.memberPhone || ""}
