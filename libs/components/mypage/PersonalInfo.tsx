@@ -725,7 +725,7 @@ const PersonalInfo: React.FC = () => {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px", marginBottom: "30px" }}>
               {renderViewField("Full Name", initialData.memberFullName)}
-              {renderViewField("Nickname", initialData.memberNick)}
+              {renderViewField("Username", initialData.memberNick)}
               {renderViewField("Email Address", initialData.memberEmail)}
               {renderViewField("Phone Number", initialData.memberPhone)}
               {renderViewField("Address", initialData.memberAddress)}
