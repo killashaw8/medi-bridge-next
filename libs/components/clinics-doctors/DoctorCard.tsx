@@ -55,7 +55,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
   return (
     <div className="doctor-card wrap2">
       <div className="image">
-        <Link href={`/member/${doctor._id || ""}`}>
+        <Link href={`/doctors/details?${doctor._id || ""}`}>
           <Image
             src={imageSrc}
             alt={doctor.memberFullName || doctor.memberNick || "Doctor"}
@@ -67,13 +67,13 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
       </div>
       <div className="content">
         <h3>
-          <Link href={`/member/${doctor._id || ""}`}>
+          <Link href={`/doctors/details?${doctor._id || ""}`}>
             {doctor.memberFullName || doctor.memberNick || "Doctor"}
           </Link>
         </h3>
         {clinicName && (
           <span className="sub">
-            <Link href={`/member/${doctor.clinicId || ""}`}>{clinicName}</Link>
+            <Link href={`/clinics/details?${doctor.clinicId || ""}`}>{clinicName}</Link>
           </span>
         )}
         {doctor.specialization && (
