@@ -3,6 +3,7 @@ import withLayoutBasic from "@/libs/components/layout/LayoutBasic";
 import PageBanner from "@/libs/components/layout/PageBanner";
 import Cta from "@/libs/components/homepage/Cta";
 import HowItWorks2 from "@/libs/components/common/HowItWorks2";
+import ClinicsList from "@/libs/components/clinics-doctors/ClinicsList";
 
 const Clinics: NextPage = () => {
   return (
@@ -16,6 +17,8 @@ const Clinics: NextPage = () => {
         activePageText="Clinics"
         image="/images/page-banner.png"
       />
+
+      <ClinicsList />
 
       <HowItWorks2 />
 
