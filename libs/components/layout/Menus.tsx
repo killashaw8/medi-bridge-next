@@ -2,6 +2,7 @@ export const menus = [
   {
     id: "home",
     title: "Home",
+    href: "/",
     isDropdown: true,
     dropdownItems: [
       { title: "About Us", href: "/about-us" },
