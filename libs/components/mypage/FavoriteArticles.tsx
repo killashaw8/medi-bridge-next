@@ -101,7 +101,7 @@ const FavoriteArticles: React.FC = () => {
               </Grid>
             ))}
           </Grid>
-          {pageCount > 1 && (
+          {pageCount > 0 && (
             <Stack className="mypage-pagination">
               <Stack direction="row" justifyContent="center">
                 <Pagination

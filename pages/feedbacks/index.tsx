@@ -1,7 +1,9 @@
-import FrequentlyAskedQuestions from "@/libs/components/homepage/FrequentlyAskedQuestions";
+import { NextPage } from "next";
 import withLayoutBasic from "@/libs/components/layout/LayoutBasic";
 import PageBanner from "@/libs/components/layout/PageBanner";
-import { NextPage } from "next";
+import FeedbackLists from "@/libs/components/common/FeedbackLists";
+import FrequentlyAskedQuestions from "@/libs/components/homepage/FrequentlyAskedQuestions";
+
 
 
 const Feedbacks: NextPage = () => {
@@ -17,10 +19,7 @@ const Feedbacks: NextPage = () => {
         image="/images/page-banner.png"
       />
 
-
-      <div className="linear-gradient-inner">
-        <FrequentlyAskedQuestions />
-      </div>
+      <FeedbackLists/>
     </>
   );
 }
