@@ -43,7 +43,7 @@ export const menus = [
       { title: "Feedbacks", href: "/feedbacks/" },
       { title: "FAQ's", href: "/faq/" },
       { title: "Privacy Policy", href: "/privacy-policy/" },
-      { title: "Terms & Conditions", href: "/terms-conditions/" },
+      { title: "Terms & Conditions", href: "/terms/" },
       { title: "Contact Us", href: "/contact-us/" },
     ],
   },
