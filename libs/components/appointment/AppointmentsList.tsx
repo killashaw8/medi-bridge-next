@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useQuery, useReactiveVar } from "@apollo/client";
 import AppointmentCard from "./AppointmentCard";
 import { Appointment } from "@/libs/types/appointment/appointment";
@@ -9,6 +9,7 @@ import { GET_APPOINTMENTS } from "@/apollo/user/query";
 import { userVar } from "@/apollo/store";
 import { MemberType } from "@/libs/enums/member.enum";
 import { Direction } from "@/libs/enums/common.enum";
+import { Pagination, Stack } from "@mui/material";
 
 interface AppointmentsListProps {
   appointments?: Appointment[];
@@ -22,6 +23,8 @@ const AppointmentsList: React.FC<AppointmentsListProps> = ({
   description = "Review your booked visits and upcoming sessions.",
 }) => {
   const user = useReactiveVar(userVar);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
   const shouldFetch = appointments.length === 0;
 
   const appointmentsInput = useMemo<AppointmentsInquiry | null>(() => {
@@ -29,8 +32,8 @@ const AppointmentsList: React.FC<AppointmentsListProps> = ({
       return null;
     }
     const baseInput: AppointmentsInquiry = {
-      page: 1,
-      limit: 10,
+      page: currentPage,
+      limit: itemsPerPage,
       sort: "createdAt",
       direction: "DESC",
     };
@@ -43,7 +46,7 @@ const AppointmentsList: React.FC<AppointmentsListProps> = ({
     }
 
     return { ...baseInput, patientId: user._id };
-  }, [user?._id, user?.memberType]);
+  }, [user?._id, user?.memberType, currentPage]);
 
   const { data, loading, refetch } = useQuery(GET_APPOINTMENTS, {
     variables: { input: appointmentsInput as AppointmentsInquiry },
@@ -53,7 +56,23 @@ const AppointmentsList: React.FC<AppointmentsListProps> = ({
 
   const appointmentItems: Appointment[] = shouldFetch
     ? (data?.getAppointments?.list ?? [])
-    : appointments;
+    : appointments.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      );
+
+  const totalItems = shouldFetch
+    ? data?.getAppointments?.total ?? 0
+    : appointments.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [appointments.length, shouldFetch]);
+
+  const handlePageChange = (_: React.ChangeEvent<unknown>, page: number) => {
+    setCurrentPage(page);
+  };
 
   return (
     <div className="appointment-area ptb-140">
@@ -78,6 +97,24 @@ const AppointmentsList: React.FC<AppointmentsListProps> = ({
                   <AppointmentCard appointment={appointment} onUpdated={refetch} />
                 </div>
               ))
+            )}
+            {totalPages > 0 && (
+              <div className="col-lg-12 col-md-12">
+                <Stack className="mypage-pagination">
+                  <Stack direction="row" justifyContent="center" sx={{ mt: 3 }}>
+                    <Pagination
+                      count={totalPages}
+                      page={currentPage}
+                      shape="rounded"
+                      variant="outlined"
+                      size="large"
+                      color="primary"
+                      onChange={handlePageChange}
+                      sx={{ "& .MuiPaginationItem-root": { marginX: "6px" } }}
+                    />
+                  </Stack>
+                </Stack>
+              </div>
             )}
           </div>
         </div>

@@ -213,7 +213,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
           <Link href={`/clinics/details?${clinicId || ""}`}>{clinicName}</Link>
         </span>
         <span className="tag">{specialization}</span>
-        <span className="experience">Location: {clinicLocationLabel}</span>
+        <span className="experience">{clinicLocationLabel}</span>
         <span className="experience">
           Date &amp; Time: <br/>
           {dateLabel} · {timeLabel}
