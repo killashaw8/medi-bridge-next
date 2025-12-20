@@ -2,16 +2,20 @@ export const menus = [
   {
     id: "home",
     title: "Home",
-    href: "/",
     isDropdown: true,
     dropdownItems: [
+      { title: "Home", href: "/" },
       { title: "About Us", href: "/about-us" },
     ],
   },
   {
     id: "services",
     title: "Services",
-    href: "/bookAppointment"
+    isDropdown: true,
+    dropdownItems: [
+      { title: "Book Appointment", href: "/bookAppointment" },
+      { title: "My Appointments", href: "/myAppointments" },
+    ],
   },
   {
     id: "doctors",

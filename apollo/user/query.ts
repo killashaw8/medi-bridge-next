@@ -508,6 +508,12 @@ export const GET_COMMENTS = gql`
         commentContent
         commentRefId
         memberId
+        memberData {
+          _id
+          memberNick
+          memberFullName
+          memberImage
+        }
         createdAt
         updatedAt
       }

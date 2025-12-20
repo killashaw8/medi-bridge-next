@@ -62,6 +62,9 @@ const BookAnAppointmentForm = () => {
   const [clinicData, setClinicData] = useState<Record<string, { name: string; location?: Location }>>({});
   const apolloClient = useApolloClient();
   const fetchedClinicIdsRef = useRef<Set<string>>(new Set());
+  const prefillRef = useRef(false);
+  const prefillSlotRef = useRef(false);
+  const prefillLocationRef = useRef(false);
 
   // Fetch all doctors (backend doesn't filter by specialization, we'll filter client-side)
   const doctorsInput: DoctorsInquiry = {
@@ -80,6 +83,84 @@ const BookAnAppointmentForm = () => {
   });
 
   const allDoctors: Member[] = doctorsData?.getDoctors?.list || [];
+
+  const doctorIdParam = useMemo(() => {
+    const rawId = router.query.doctorId;
+    if (Array.isArray(rawId)) {
+      return rawId[0] || "";
+    }
+    if (typeof rawId === "string") {
+      return rawId;
+    }
+    return "";
+  }, [router.query.doctorId]);
+
+  const dateParam = useMemo(() => {
+    const rawDate = router.query.date;
+    if (Array.isArray(rawDate)) {
+      return rawDate[0] || "";
+    }
+    if (typeof rawDate === "string") {
+      return rawDate;
+    }
+    return "";
+  }, [router.query.date]);
+
+  const timeParam = useMemo(() => {
+    const rawTime = router.query.time;
+    if (Array.isArray(rawTime)) {
+      return rawTime[0] || "";
+    }
+    if (typeof rawTime === "string") {
+      return rawTime;
+    }
+    return "";
+  }, [router.query.time]);
+
+  useEffect(() => {
+    if (!router.isReady || allDoctors.length === 0 || !doctorIdParam) {
+      return;
+    }
+
+    const preselectedDoctor = allDoctors.find(
+      (doctor) => doctor._id === doctorIdParam
+    );
+    if (!preselectedDoctor) {
+      return;
+    }
+
+    prefillRef.current = true;
+    if (preselectedDoctor.specialization) {
+      setSelectedSpecialization(preselectedDoctor.specialization as DoctorSpecialization);
+    }
+    setSelectedDoctor(preselectedDoctor);
+
+    prefillLocationRef.current = true;
+    if (timeParam) {
+      prefillSlotRef.current = true;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      date: dateParam || prev.date,
+      time: (timeParam || prev.time) as AppointmentTime | "",
+    }));
+  }, [router.isReady, allDoctors, doctorIdParam, dateParam, timeParam]);
+
+  useEffect(() => {
+    if (!selectedDoctor?.clinicId) {
+      return;
+    }
+    const clinicLocation = clinicData[selectedDoctor.clinicId]?.location;
+    if (!clinicLocation) {
+      return;
+    }
+    if (!prefillLocationRef.current && selectedLocation) {
+      return;
+    }
+    prefillLocationRef.current = false;
+    setSelectedLocation(clinicLocation);
+  }, [selectedDoctor?.clinicId, clinicData, selectedLocation]);
 
   const specializationFilteredDoctors = selectedSpecialization
     ? allDoctors.filter((doctor) => doctor.specialization === selectedSpecialization)
@@ -182,7 +263,11 @@ const BookAnAppointmentForm = () => {
   useEffect(() => {
     if (selectedDoctor?._id && formData.date) {
       setSlotsLoading(true);
-      setFormData(prev => ({ ...prev, time: "" as AppointmentTime | "" }));
+      if (prefillSlotRef.current) {
+        prefillSlotRef.current = false;
+      } else {
+        setFormData(prev => ({ ...prev, time: "" as AppointmentTime | "" }));
+      }
       refetchSlots();
     } else {
       setAvailableSlots([]);
@@ -194,6 +279,10 @@ const BookAnAppointmentForm = () => {
   useEffect(() => {
     if (selectedSpecialization) {
       refetchDoctors();
+      if (prefillRef.current) {
+        prefillRef.current = false;
+        return;
+      }
       setSelectedDoctor(null); // Reset doctor selection
       setFormData(prev => ({ ...prev, date: "", time: "" as AppointmentTime | "" })); // Reset date and time
     }
@@ -642,7 +731,9 @@ const BookAnAppointmentForm = () => {
                     <Button 
                       type="submit" 
                       variant="contained" 
+                      size="large"
                       disabled={loading || !formData.time}
+                      sx={{ borderRadius: "50px" }}
                     >
                       Book Appointment
                     </Button>

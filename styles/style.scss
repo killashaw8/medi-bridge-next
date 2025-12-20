@@ -5394,8 +5394,8 @@ Doctor Profile Area CSS
       align-items: center;
       justify-content: center;
       padding: 7px 35px;
-      background-color: #b0e9ff;
-      color: $blackColor;
+      background-color: $primary;
+      color: $white-smokeColor;
       border-radius: 30px;
       line-height: 1;
     }
@@ -5490,20 +5490,22 @@ Doctor Profile Area CSS
     }
   }
   .profile-tabs {
-    margin-top: 135px;
+    margin-top: 155px;
 
     .nav {
       display: flex;
-      justify-content: space-between;
+      justify-content:space-around;
+      gap: 24px;
       margin-bottom: 40px;
       border: none;
       border-bottom: 1px solid $dawn-pinkColor;
+      padding-top: 12px;
       padding: {
         left: 0;
         right: 0;
       }
       .nav-item {
-        margin-right: 85px;
+        margin-right: 0;
 
         .nav-link {
           padding: 0 0 15px 0;
