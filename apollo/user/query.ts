@@ -385,6 +385,83 @@ export const GET_FAVORITES = gql`
  ******************************/
 
 
+export const GET_APPOINTMENT = gql`
+  query GetAppointment($appointmentId: ID!) {
+    getAppointment(appointmentId: $appointmentId) {
+      _id
+      date
+      time
+      status
+      channel
+      note
+      doctorId
+      clinicId
+      patientId
+      createdAt
+      updatedAt
+      doctor {
+        _id
+        memberNick
+        memberFullName
+        memberImage
+        specialization
+      }
+      clinic {
+        _id
+        memberNick
+        memberFullName
+        location
+      }
+      patient {
+        _id
+        memberNick
+        memberFullName
+        memberImage
+      }
+    }
+  }
+`;
+
+export const GET_APPOINTMENTS = gql`
+  query GetAppointments($input: AppointmentsInquiry!) {
+    getAppointments(input: $input) {
+      list {
+        _id
+        date
+        time
+        status
+        channel
+        note
+        doctorId
+        clinicId
+        patientId
+        createdAt
+        updatedAt
+        doctor {
+          _id
+          memberNick
+          memberFullName
+          memberImage
+          specialization
+        }
+        clinic {
+          _id
+          memberNick
+          memberFullName
+          location
+        }
+        patient {
+          _id
+          memberNick
+          memberFullName
+          memberImage
+        }
+      }
+      total
+    }
+  }
+`;
+
 export const GET_AVAILABLE_SLOTS = gql`
   query GetAvailableSlots($input: DoctorSlotsInput!) {
     getAvailableSlots(input: $input) {

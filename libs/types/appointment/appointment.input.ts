@@ -26,11 +26,11 @@ export interface RescheduleAppointmentInput {
   reason?: string;
 }
 
-export interface AppointmentInquiry {
+export interface AppointmentsInquiry {
   page: number;
   limit: number;
   sort?: string;
-  direction?: Direction;
+  direction?: Direction | string;
   location?: Location;
   clinicId?: string;
   doctorId?: string;

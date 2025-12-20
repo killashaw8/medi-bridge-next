@@ -1,9 +1,8 @@
 import { NextPage } from "next";
-import BookAnAppointmentForm from "@/libs/components/appointment/BookAnAppointmentForm";
+import BookAppointment from "@/libs/components/appointment/BookAppointment";
 import FrequentlyAskedQuestions from "@/libs/components/homepage/FrequentlyAskedQuestions";
 import PageBanner from "@/libs/components/layout/PageBanner";
 import withLayoutBasic from "@/libs/components/layout/LayoutBasic";
-import AppointmentSidebar from "@/libs/components/appointment/AppointmentSidebar";
 
 
 const Appointment: NextPage = () => {
@@ -19,7 +18,7 @@ const Appointment: NextPage = () => {
         image="/images/page-banner.png"
       />
 
-      <BookAnAppointmentForm />
+      <BookAppointment />
 
       <div className="linear-gradient-inner">
         <FrequentlyAskedQuestions />

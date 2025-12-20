@@ -4,8 +4,8 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { useMutation, useQuery } from "@apollo/client";
 import { BOOK_APPOINTMENT } from "@/apollo/user/mutation";
-import { GET_DOCTORS, GET_AVAILABLE_SLOTS, GET_MEMBER } from "@/apollo/user/query";
-import { AppointmentTime, AppointmentType, Location } from "@/libs/enums/appointment.enum";
+import { GET_APPOINTMENTS, GET_DOCTORS, GET_AVAILABLE_SLOTS, GET_MEMBER } from "@/apollo/user/query";
+import { AppointmentStatus, AppointmentTime, AppointmentType, Location } from "@/libs/enums/appointment.enum";
 import { DoctorSpecialization } from "@/libs/enums/member.enum";
 import { Member } from "@/libs/types/member/member";
 import { DoctorSlotsInput } from "@/libs/types/appointment/appointment.input";
@@ -30,13 +30,16 @@ import { useApolloClient } from "@apollo/client";
 import { useMemo } from "react";
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BusinessIcon from '@mui/icons-material/Business';
+import { AppointmentsInquiry } from "@/libs/types/appointment/appointment.input";
+import { Direction } from "@/libs/enums/common.enum";
+import { Appointment } from "@/libs/types/appointment/appointment";
 
 interface Slot {
   time: AppointmentTime;
   free: boolean;
 }
 
-const BookAnAppointmentForm = () => {
+const BookAppointment = () => {
   const router = useRouter();
   const user = useReactiveVar(userVar);
   const [loading, setLoading] = useState(false);
@@ -83,6 +86,29 @@ const BookAnAppointmentForm = () => {
   });
 
   const allDoctors: Member[] = doctorsData?.getDoctors?.list || [];
+
+  const appointmentsInput = useMemo<AppointmentsInquiry | null>(() => {
+    if (!user?._id) {
+      return null;
+    }
+
+    return {
+      page: 1,
+      limit: 100,
+      sort: "createdAt",
+      direction: Direction.DESC,
+      patientId: user._id,
+    };
+  }, [user?._id]);
+
+  const { data: appointmentsData, loading: appointmentsLoading } = useQuery(
+    GET_APPOINTMENTS,
+    {
+      variables: { input: appointmentsInput as AppointmentsInquiry },
+      skip: !appointmentsInput,
+      fetchPolicy: "cache-and-network",
+    }
+  );
 
   const doctorIdParam = useMemo(() => {
     const rawId = router.query.doctorId;
@@ -358,6 +384,16 @@ const BookAnAppointmentForm = () => {
       return;
     }
 
+    const derivedLocation =
+      selectedLocation ||
+      (selectedDoctor?.clinicId
+        ? clinicData[selectedDoctor.clinicId]?.location
+        : undefined);
+    if (!derivedLocation) {
+      await sweetMixinErrorAlert("Please select a location");
+      return;
+    }
+
     if (!formData.agree) {
       await sweetMixinErrorAlert("Please agree to the Privacy Policy");
       return;
@@ -370,6 +406,26 @@ const BookAnAppointmentForm = () => {
       return;
     }
 
+    if (appointmentsLoading) {
+      await sweetMixinErrorAlert("Checking your existing appointments...");
+      return;
+    }
+
+    const existingAppointments = (appointmentsData?.getAppointments?.list ??
+      []) as Appointment[];
+    const hasConflict = existingAppointments.some(
+      (appointment) =>
+        appointment.date === formData.date &&
+        appointment.time === formData.time &&
+        appointment.status !== AppointmentStatus.CANCELLED
+    );
+    if (hasConflict) {
+      await sweetMixinErrorAlert(
+        "You already have an appointment for this date and time."
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -378,7 +434,7 @@ const BookAnAppointmentForm = () => {
           input: {
             doctorId: selectedDoctor._id,
             clinicId: selectedDoctor.clinicId || "", // Use doctor's clinic
-            location: selectedLocation as Location,
+            location: derivedLocation,
             date: formData.date,
             time: formData.time as AppointmentTime,
             channel: formData.channel,
@@ -732,8 +788,10 @@ const BookAnAppointmentForm = () => {
                       type="submit" 
                       variant="contained" 
                       size="large"
+                      sx={{
+                        borderRadius: '50px'
+                      }}
                       disabled={loading || !formData.time}
-                      sx={{ borderRadius: "50px" }}
                     >
                       Book Appointment
                     </Button>
@@ -748,4 +806,4 @@ const BookAnAppointmentForm = () => {
   );
 };
 
-export default BookAnAppointmentForm;
+export default BookAppointment;

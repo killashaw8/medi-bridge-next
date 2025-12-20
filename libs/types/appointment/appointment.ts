@@ -9,7 +9,7 @@ export interface Appointment {
   status: AppointmentStatus;
   channel: AppointmentType;
   note: string;
-  location: Location;
+  location?: Location;
   doctorId: string;
   clinicId: string;
   patientId: string;
