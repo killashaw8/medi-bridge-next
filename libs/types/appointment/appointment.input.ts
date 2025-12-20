@@ -20,10 +20,11 @@ export interface CancelAppointmentInput {
 
 export interface RescheduleAppointmentInput {
   appointmentId: string;
-  newDate: string;
-  newTime: AppointmentTime;
-  newLocation: Location;
-  reason?: string;
+  newDate?: string;
+  newTime?: AppointmentTime;
+  newLocation?: Location;
+  newChannel?: AppointmentType;
+  newReason?: string;
 }
 
 export interface AppointmentsInquiry {

@@ -3,10 +3,11 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useMutation } from "@apollo/client";
+import { useRouter } from "next/router";
 import { Appointment } from "@/libs/types/appointment/appointment";
-import { AppointmentStatus, AppointmentTime, Location } from "@/libs/enums/appointment.enum";
+import { AppointmentStatus, AppointmentTime } from "@/libs/enums/appointment.enum";
 import { getImageUrl } from "@/libs/imageHelper";
-import { CANCEL_APPOINTMENT, RESCHEDULE_APPOINTMENT } from "@/apollo/user/mutation";
+import { CANCEL_APPOINTMENT } from "@/apollo/user/mutation";
 import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
 import { Box, Button } from "@mui/material";
 import Link from "next/link";
@@ -23,7 +24,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   const [isCanceling, setIsCanceling] = useState(false);
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [cancelAppointment] = useMutation(CANCEL_APPOINTMENT);
-  const [rescheduleAppointment] = useMutation(RESCHEDULE_APPOINTMENT);
+  const router = useRouter();
 
   const doctorName =
     appointment.doctor?.memberFullName ||
@@ -62,33 +63,6 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   const doctorId = appointment.doctor?._id || appointment.doctorId || "";
   const isCancelled = appointment.status === AppointmentStatus.CANCELLED;
 
-  const normalizeTime = (value: string): AppointmentTime | null => {
-    if (!value) {
-      return null;
-    }
-    if (Object.values(AppointmentTime).includes(value as AppointmentTime)) {
-      return value as AppointmentTime;
-    }
-    if (Object.keys(AppointmentTime).includes(value)) {
-      return AppointmentTime[value as keyof typeof AppointmentTime];
-    }
-    return null;
-  };
-
-  const normalizeLocation = (value: string): Location | null => {
-    if (!value) {
-      return null;
-    }
-    const normalized = value.trim().toUpperCase();
-    if (Object.values(Location).includes(normalized as Location)) {
-      return normalized as Location;
-    }
-    if (Object.keys(Location).includes(normalized)) {
-      return Location[normalized as keyof typeof Location];
-    }
-    return null;
-  };
-
   const handleCancel = async () => {
     if (isCancelled || isCanceling) {
       return;
@@ -124,65 +98,12 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
     if (isCancelled || isRescheduling) {
       return;
     }
-
-    const newDate = window.prompt(
-      "Enter new date (YYYY-MM-DD)",
-      appointment.date
-    );
-    if (!newDate) {
-      return;
-    }
-
-    const timeInput = window.prompt(
-      "Enter new time (e.g., 09.00 - 09.25 or T01)",
-      timeLabel
-    );
-    if (!timeInput) {
-      return;
-    }
-    const newTime = normalizeTime(timeInput);
-    if (!newTime) {
-      await sweetMixinErrorAlert("Invalid time slot.");
-      return;
-    }
-
-    const locationDefault =
-      appointment.clinic?.location || appointment.location || "";
-    const locationInput = window.prompt(
-      "Enter location (e.g., SEOUL)",
-      locationDefault ? String(locationDefault) : ""
-    );
-    if (locationInput === null) {
-      return;
-    }
-    const newLocation = normalizeLocation(locationInput || locationDefault);
-    if (!newLocation) {
-      await sweetMixinErrorAlert("Invalid location.");
-      return;
-    }
-
     setIsRescheduling(true);
     try {
-      await rescheduleAppointment({
-        variables: {
-          input: {
-            appointmentId: appointment._id,
-            newDate,
-            newTime,
-            newLocation,
-          },
-        },
+      await router.push({
+        pathname: "/bookAppointment",
+        query: { appointmentId: appointment._id },
       });
-      await sweetMixinSuccessAlert("Appointment rescheduled.");
-      if (onUpdated) {
-        onUpdated();
-      }
-    } catch (error: any) {
-      const message =
-        error?.graphQLErrors?.[0]?.message ||
-        error?.message ||
-        "Failed to reschedule appointment.";
-      await sweetMixinErrorAlert(message);
     } finally {
       setIsRescheduling(false);
     }
@@ -214,6 +135,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
         </span>
         <span className="tag">{specialization}</span>
         <span className="experience">{clinicLocationLabel}</span>
+        <span className="experience">{appointment.channel}</span>
         <span className="experience">
           Date &amp; Time: <br/>
           {dateLabel} · {timeLabel}

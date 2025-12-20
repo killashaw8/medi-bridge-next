@@ -1,10 +1,10 @@
-import React, { useState, FormEvent, useEffect, useRef } from "react";
+import React, { useState, FormEvent, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useMutation, useQuery } from "@apollo/client";
-import { BOOK_APPOINTMENT } from "@/apollo/user/mutation";
-import { GET_APPOINTMENTS, GET_DOCTORS, GET_AVAILABLE_SLOTS, GET_MEMBER } from "@/apollo/user/query";
+import { BOOK_APPOINTMENT, RESCHEDULE_APPOINTMENT } from "@/apollo/user/mutation";
+import { GET_APPOINTMENT, GET_APPOINTMENTS, GET_DOCTORS, GET_AVAILABLE_SLOTS, GET_MEMBER } from "@/apollo/user/query";
 import { AppointmentStatus, AppointmentTime, AppointmentType, Location } from "@/libs/enums/appointment.enum";
 import { DoctorSpecialization } from "@/libs/enums/member.enum";
 import { Member } from "@/libs/types/member/member";
@@ -27,7 +27,6 @@ import {
 } from "@mui/material";
 import { getImageUrl } from "@/libs/imageHelper";
 import { useApolloClient } from "@apollo/client";
-import { useMemo } from "react";
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BusinessIcon from '@mui/icons-material/Business';
 import { AppointmentsInquiry } from "@/libs/types/appointment/appointment.input";
@@ -68,6 +67,15 @@ const BookAppointment = () => {
   const prefillRef = useRef(false);
   const prefillSlotRef = useRef(false);
   const prefillLocationRef = useRef(false);
+  const prefillAppointmentRef = useRef(false);
+  const initialAppointmentRef = useRef<{
+    doctorId: string;
+    date: string;
+    time: AppointmentTime | "";
+    channel: AppointmentType;
+    note: string;
+    location: Location | "";
+  } | null>(null);
 
   // Fetch all doctors (backend doesn't filter by specialization, we'll filter client-side)
   const doctorsInput: DoctorsInquiry = {
@@ -121,6 +129,48 @@ const BookAppointment = () => {
     return "";
   }, [router.query.doctorId]);
 
+  const appointmentIdParam = useMemo(() => {
+    const rawId = router.query.appointmentId;
+    if (Array.isArray(rawId)) {
+      return rawId[0] || "";
+    }
+    if (typeof rawId === "string") {
+      return rawId;
+    }
+    return "";
+  }, [router.query.appointmentId]);
+
+  const normalizeDateInput = (value: string) => {
+    if (!value) {
+      return "";
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return value;
+    }
+    if (value.includes("T")) {
+      return value.split("T")[0];
+    }
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString().split("T")[0];
+    }
+    return value.slice(0, 10);
+  };
+
+  const normalizeTimeInput = (value: AppointmentTime | string | null | undefined) => {
+    if (!value) {
+      return "";
+    }
+    const stringValue = String(value);
+    if (Object.values(AppointmentTime).includes(stringValue as AppointmentTime)) {
+      return stringValue as AppointmentTime;
+    }
+    if (Object.keys(AppointmentTime).includes(stringValue)) {
+      return AppointmentTime[stringValue as keyof typeof AppointmentTime];
+    }
+    return stringValue as AppointmentTime;
+  };
+
   const dateParam = useMemo(() => {
     const rawDate = router.query.date;
     if (Array.isArray(rawDate)) {
@@ -142,6 +192,12 @@ const BookAppointment = () => {
     }
     return "";
   }, [router.query.time]);
+
+  const { data: appointmentData } = useQuery(GET_APPOINTMENT, {
+    variables: { appointmentId: appointmentIdParam },
+    skip: !appointmentIdParam,
+    fetchPolicy: "cache-and-network",
+  });
 
   useEffect(() => {
     if (!router.isReady || allDoctors.length === 0 || !doctorIdParam) {
@@ -172,6 +228,87 @@ const BookAppointment = () => {
       time: (timeParam || prev.time) as AppointmentTime | "",
     }));
   }, [router.isReady, allDoctors, doctorIdParam, dateParam, timeParam]);
+
+  useEffect(() => {
+    if (!appointmentIdParam || !appointmentData?.getAppointment || !allDoctors.length) {
+      return;
+    }
+    if (prefillAppointmentRef.current) {
+      return;
+    }
+
+    const appointment = appointmentData.getAppointment;
+    const appointmentDoctorId = appointment.doctor?._id || appointment.doctorId;
+    const preselectedDoctor = allDoctors.find(
+      (doctor) => doctor._id === appointmentDoctorId
+    );
+    if (preselectedDoctor) {
+      prefillRef.current = true;
+      setSelectedDoctor(preselectedDoctor);
+      if (preselectedDoctor.specialization) {
+        setSelectedSpecialization(preselectedDoctor.specialization as DoctorSpecialization);
+      }
+    }
+
+    const appointmentLocation =
+      appointment.location || appointment.clinic?.location || "";
+    const normalizedDate = normalizeDateInput(appointment.date || "");
+    const normalizedTime = normalizeTimeInput(appointment.time);
+    const resolvedLocation = appointmentLocation as Location;
+    if (resolvedLocation) {
+      prefillLocationRef.current = true;
+      setSelectedLocation(resolvedLocation);
+    }
+
+    prefillSlotRef.current = true;
+    prefillAppointmentRef.current = true;
+    setFormData((prev) => ({
+      ...prev,
+      date: normalizedDate || prev.date,
+      time: normalizedTime || prev.time,
+      channel: appointment.channel || prev.channel,
+      note: appointment.note || prev.note,
+    }));
+    initialAppointmentRef.current = {
+      doctorId: appointmentDoctorId || "",
+      date: normalizedDate || "",
+      time: normalizedTime || "",
+      channel: appointment.channel || AppointmentType.ONLINE,
+      note: appointment.note || "",
+      location: resolvedLocation || "",
+    };
+  }, [appointmentIdParam, appointmentData, allDoctors]);
+
+  const isRescheduleMode = Boolean(appointmentIdParam);
+  const hasRescheduleChanges = useMemo(() => {
+    if (!isRescheduleMode || !initialAppointmentRef.current) {
+      return true;
+    }
+    const currentDoctorId = selectedDoctor?._id || "";
+    const currentLocation =
+      selectedLocation ||
+      (selectedDoctor?.clinicId
+        ? clinicData[selectedDoctor.clinicId]?.location || ""
+        : "");
+    return !(
+      currentDoctorId === initialAppointmentRef.current.doctorId &&
+      formData.date === initialAppointmentRef.current.date &&
+      formData.time === initialAppointmentRef.current.time &&
+      formData.channel === initialAppointmentRef.current.channel &&
+      formData.note === initialAppointmentRef.current.note &&
+      currentLocation === initialAppointmentRef.current.location
+    );
+  }, [
+    isRescheduleMode,
+    selectedDoctor?._id,
+    selectedDoctor?.clinicId,
+    clinicData,
+    selectedLocation,
+    formData.date,
+    formData.time,
+    formData.channel,
+    formData.note,
+  ]);
 
   useEffect(() => {
     if (!selectedDoctor?.clinicId) {
@@ -316,6 +453,7 @@ const BookAppointment = () => {
 
   // Book appointment mutation
   const [bookAppointment] = useMutation(BOOK_APPOINTMENT);
+  const [rescheduleAppointment] = useMutation(RESCHEDULE_APPOINTMENT);
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedLocation(e.target.value as Location | "");
@@ -415,6 +553,7 @@ const BookAppointment = () => {
       []) as Appointment[];
     const hasConflict = existingAppointments.some(
       (appointment) =>
+        appointment._id !== appointmentIdParam &&
         appointment.date === formData.date &&
         appointment.time === formData.time &&
         appointment.status !== AppointmentStatus.CANCELLED
@@ -429,24 +568,43 @@ const BookAppointment = () => {
     setLoading(true);
 
     try {
-      const result = await bookAppointment({
-        variables: {
-          input: {
-            doctorId: selectedDoctor._id,
-            clinicId: selectedDoctor.clinicId || "", // Use doctor's clinic
-            location: derivedLocation,
-            date: formData.date,
-            time: formData.time as AppointmentTime,
-            channel: formData.channel,
-            note: formData.note.trim(),
-            patientId: user._id,
+      if (appointmentIdParam) {
+        const result = await rescheduleAppointment({
+          variables: {
+            input: {
+              appointmentId: appointmentIdParam,
+              newDate: formData.date,
+              newTime: formData.time as AppointmentTime,
+              newLocation: derivedLocation,
+              newChannel: formData.channel,
+              newReason: formData.note.trim() || undefined,
+            },
           },
-        },
-      });
+        });
+        if (result.data?.rescheduleAppointment) {
+          await sweetMixinSuccessAlert("Appointment rescheduled successfully!");
+          router.push("/bookAppointment/thank-you");
+        }
+      } else {
+        const result = await bookAppointment({
+          variables: {
+            input: {
+              doctorId: selectedDoctor._id,
+              clinicId: selectedDoctor.clinicId || "", // Use doctor's clinic
+              location: derivedLocation,
+              date: formData.date,
+              time: formData.time as AppointmentTime,
+              channel: formData.channel,
+              note: formData.note.trim(),
+              patientId: user._id,
+            },
+          },
+        });
 
-      if (result.data?.bookAppointment) {
-        await sweetMixinSuccessAlert("Appointment booked successfully!");
-        router.push("/bookAppointment/thank-you");
+        if (result.data?.bookAppointment) {
+          await sweetMixinSuccessAlert("Appointment booked successfully!");
+          router.push("/bookAppointment/thank-you");
+        }
       }
     } catch (error: any) {
       console.error("Appointment booking error:", error);
@@ -470,6 +628,9 @@ const BookAppointment = () => {
 
   useEffect(() => {
     if (!selectedDoctor?._id) return;
+    if (selectedDoctor.clinicId && !clinicData[selectedDoctor.clinicId]) {
+      return;
+    }
     const stillVisible = locationFilteredDoctors.some(
       (doctor) => doctor._id === selectedDoctor._id
     );
@@ -791,9 +952,13 @@ const BookAppointment = () => {
                       sx={{
                         borderRadius: '50px'
                       }}
-                      disabled={loading || !formData.time}
+                      disabled={
+                        loading ||
+                        !formData.time ||
+                        (isRescheduleMode && !hasRescheduleChanges)
+                      }
                     >
-                      Book Appointment
+                      {isRescheduleMode ? "Update Appointment" : "Book Appointment"}
                     </Button>
                   </form>
                 </div>

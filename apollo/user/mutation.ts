@@ -283,6 +283,25 @@ export const RESCHEDULE_APPOINTMENT = gql`
       patientId
       createdAt
       updatedAt
+      doctor {
+        _id
+        memberNick
+        memberFullName
+        memberImage
+        specialization
+      }
+      clinic {
+        _id
+        memberNick
+        memberFullName
+        location
+      }
+      patient {
+        _id
+        memberNick
+        memberFullName
+        memberImage
+      }
     }
   }
 `;
