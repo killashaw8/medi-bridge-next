@@ -1,8 +1,7 @@
 import { NextPage } from "next";
-import BookAppointment from "@/libs/components/appointment/BookAppointment";
-import FrequentlyAskedQuestions from "@/libs/components/homepage/FrequentlyAskedQuestions";
 import PageBanner from "@/libs/components/layout/PageBanner";
 import withLayoutBasic from "@/libs/components/layout/LayoutBasic";
+import Shopping from "@/libs/components/product/Shopping";
 
 
 const Products: NextPage = () => {
@@ -19,6 +18,8 @@ const Products: NextPage = () => {
       />
 
 
+
+      <Shopping />
 
     </>
   );
