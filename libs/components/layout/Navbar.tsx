@@ -7,11 +7,14 @@ import { menus } from "./Menus";
 import { useReactiveVar } from "@apollo/client";
 import { cartVar, userVar } from "@/apollo/store";
 import { logOut, getJwtToken, updateUserInfo } from "@/libs/auth";
-import { Badge, Box, IconButton, Menu, MenuItem, Typography } from "@mui/material";
+import { Badge, Box, Button, IconButton, Menu, MenuItem, Typography } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 import { getImageUrl } from "@/libs/imageHelper";
 import { useMemo } from 'react';
+import CheckoutPopover from "@/libs/components/order/CheckoutPopover";
 
 const Navbar = () => {
   const router = useRouter();
@@ -22,6 +25,7 @@ const Navbar = () => {
   const logoutOpen = Boolean(logoutAnchor);
   const [cartAnchor, setCartAnchor] = useState<null | HTMLElement>(null);
   const cartOpen = Boolean(cartAnchor);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const [colorChange, setColorChange] = useState(false);
   const [imageRefreshKey, setImageRefreshKey] = useState(0);
@@ -136,6 +140,18 @@ const userImageUrl = useMemo(() => {
     (sum, item) => sum + item.product.productPrice * item.quantity,
     0
   );
+
+  const handleCartQuantityChange = (productId: string, delta: number) => {
+    const currentCart = cartVar();
+    const nextCart = currentCart
+      .map((item) => {
+        if (item.product._id !== productId) return item;
+        const nextQuantity = item.quantity + delta;
+        return { ...item, quantity: nextQuantity };
+      })
+      .filter((item) => item.quantity > 0);
+    cartVar(nextCart);
+  };
 
   return (
     <>
@@ -260,7 +276,9 @@ const userImageUrl = useMemo(() => {
                   ) : (
                     <>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                        {cartItems.map((item) => (
+                        {cartItems.map((item) => {
+                          const isMaxed = item.product.productCount <= item.quantity;
+                          return (
                           <Box
                             key={item.product._id}
                             sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}
@@ -283,12 +301,36 @@ const userImageUrl = useMemo(() => {
                               <Typography variant="caption" color="text.secondary">
                                 Qty {item.quantity} · ${item.product.productPrice.toFixed(2)}
                               </Typography>
+                              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleCartQuantityChange(item.product._id, -1)}
+                                  aria-label="Decrease quantity"
+                                >
+                                  <RemoveIcon fontSize="small" />
+                                </IconButton>
+                                <Typography
+                                  variant="caption"
+                                  sx={{ minWidth: 18, textAlign: "center" }}
+                                >
+                                  {item.quantity}
+                                </Typography>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleCartQuantityChange(item.product._id, 1)}
+                                  disabled={isMaxed}
+                                  aria-label="Increase quantity"
+                                >
+                                  <AddIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
                             </Box>
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>
                               ${(item.product.productPrice * item.quantity).toFixed(2)}
                             </Typography>
                           </Box>
-                        ))}
+                        );
+                        })}
                       </Box>
                       <Box
                         sx={{
@@ -306,6 +348,17 @@ const userImageUrl = useMemo(() => {
                           ${cartTotal.toFixed(2)}
                         </Typography>
                       </Box>
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        onClick={() => {
+                          setCartAnchor(null);
+                          setCheckoutOpen(true);
+                        }}
+                      >
+                        Proceed to checkout
+                      </Button>
                     </>
                   )}
                 </Box>
@@ -434,6 +487,12 @@ const userImageUrl = useMemo(() => {
           </div>
         </div>
       </nav>
+
+      <CheckoutPopover
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        cartItems={cartItems}
+      />
 
       {/* ✅ MODIFIED: For Mobile Menu */}
       <Offcanvas
