@@ -1,16 +1,19 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import { Box, CircularProgress, Pagination, Stack, Typography } from "@mui/material";
 import ShoppingSidebar from "./ShoppingSidebar";
 import ShoppingCard from "./ShoppingCard";
 import { GET_PRODUCTS } from "@/apollo/user/query";
-import { LIKE_TARGET_PRODUCT } from "@/apollo/user/mutation";
+import { CREATE_ORDER, LIKE_TARGET_PRODUCT, UPDATE_ORDER } from "@/apollo/user/mutation";
 import { ProductsInquiry } from "@/libs/types/product/product.input";
 import { Direction } from "@/libs/enums/common.enum";
 import { ProductCollection, ProductType } from "@/libs/enums/product.enum";
 import { Product } from "@/libs/types/product/product";
+import { OrderStatus } from "@/libs/enums/order.enum";
+import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
+import { userVar } from "@/apollo/store";
 
 const Shopping = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -18,6 +21,7 @@ const Shopping = () => {
   const [selectedCollection, setSelectedCollection] = useState<ProductCollection | "">("");
   const [selectedType, setSelectedType] = useState<ProductType | "">("");
   const limit = 9;
+  const user = useReactiveVar(userVar);
 
   const productsInput = useMemo<ProductsInquiry>(() => {
     return {
@@ -38,6 +42,8 @@ const Shopping = () => {
     fetchPolicy: "cache-and-network",
   });
   const [likeTargetProduct] = useMutation(LIKE_TARGET_PRODUCT);
+  const [createOrder] = useMutation(CREATE_ORDER);
+  const [updateOrder] = useMutation(UPDATE_ORDER);
 
   const products: Product[] = data?.getProducts?.list || [];
   const total = data?.getProducts?.metaCounter?.[0]?.total || 0;
@@ -45,6 +51,75 @@ const Shopping = () => {
 
   const handlePageChange = (_: React.ChangeEvent<unknown>, page: number) => {
     setCurrentPage(page);
+  };
+
+  const handleAddToCart = async (product: Product) => {
+    if (!user?._id) {
+      await sweetMixinErrorAlert("Please log in to add items to your cart.");
+      return;
+    }
+    if (product.productCount <= 0) {
+      await sweetMixinErrorAlert("This product is sold out.");
+      return;
+    }
+    try {
+      await createOrder({
+        variables: {
+          input: {
+            productId: product._id,
+            itemPrice: product.productPrice,
+            itemQuantity: 1,
+          },
+        },
+      });
+      await sweetMixinSuccessAlert("Added to cart.");
+    } catch (error: any) {
+      const message =
+        error?.graphQLErrors?.[0]?.message ||
+        error?.message ||
+        "Failed to add to cart.";
+      await sweetMixinErrorAlert(message);
+    }
+  };
+
+  const handleBuy = async (product: Product) => {
+    if (!user?._id) {
+      await sweetMixinErrorAlert("Please log in to place an order.");
+      return;
+    }
+    if (product.productCount <= 0) {
+      await sweetMixinErrorAlert("This product is sold out.");
+      return;
+    }
+    try {
+      const { data: orderData } = await createOrder({
+        variables: {
+          input: {
+            productId: product._id,
+            itemPrice: product.productPrice,
+            itemQuantity: 1,
+          },
+        },
+      });
+      const orderId = orderData?.createOrder?._id;
+      if (orderId) {
+        await updateOrder({
+          variables: {
+            input: {
+              orderId,
+              orderStatus: OrderStatus.PROCESS,
+            },
+          },
+        });
+      }
+      await sweetMixinSuccessAlert("Order placed.");
+    } catch (error: any) {
+      const message =
+        error?.graphQLErrors?.[0]?.message ||
+        error?.message ||
+        "Failed to place order.";
+      await sweetMixinErrorAlert(message);
+    }
   };
 
   return (
@@ -94,6 +169,8 @@ const Shopping = () => {
                           console.error("Like product error:", error);
                         }
                       }}
+                      onAddToCart={handleAddToCart}
+                      onBuy={handleBuy}
                     />
                   </div>
                 ))}

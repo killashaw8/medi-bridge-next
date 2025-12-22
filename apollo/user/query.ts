@@ -380,6 +380,57 @@ export const GET_FAVORITES = gql`
 `;
 
 
+/**************************
+ *          ORDER         *
+ *************************/
+
+
+export const GET_MY_ORDERS = gql`
+  query GetMyOrders($input: OrderInquiry!) {
+    getMyOrders(input: $input) {
+      list {
+        _id
+        orderTotal
+        orderDelivery
+        orderStatus
+        memberId
+        createdAt
+        updatedAt
+        orderItems {
+          _id
+          itemQuantity
+          itemPrice
+          orderId
+          productId
+          createdAt
+          updatedAt
+        }
+        productData {
+          _id
+          productType
+          productCollection
+          productStatus
+          productTitle
+          productPrice
+          productCount
+          productViews
+          productLikes
+          productComments
+          productImages
+          productDesc
+          memberId
+          soldAt
+          deletedAt
+          createdAt
+          updatedAt
+        }
+      }
+      total
+    }
+  }
+`;
+
+
 /******************************
  *         APPOINTMENT        *
  ******************************/

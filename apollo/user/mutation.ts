@@ -229,6 +229,96 @@ export const LIKE_TARGET_PRODUCT = gql`
 `;
 
 
+/**************************
+ *          ORDER         *
+ *************************/
+
+
+export const CREATE_ORDER = gql`
+  mutation CreateOrder($input: OrderItemInput!) {
+    createOrder(input: $input) {
+      _id
+      orderTotal
+      orderDelivery
+      orderStatus
+      memberId
+      createdAt
+      updatedAt
+      orderItems {
+        _id
+        itemQuantity
+        itemPrice
+        orderId
+        productId
+        createdAt
+        updatedAt
+      }
+      productData {
+        _id
+        productType
+        productCollection
+        productStatus
+        productTitle
+        productPrice
+        productCount
+        productViews
+        productLikes
+        productComments
+        productImages
+        productDesc
+        memberId
+        soldAt
+        deletedAt
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+export const UPDATE_ORDER = gql`
+  mutation UpdateOrder($input: OrderUpdateInput!) {
+    updateOrder(input: $input) {
+      _id
+      orderTotal
+      orderDelivery
+      orderStatus
+      memberId
+      createdAt
+      updatedAt
+      orderItems {
+        _id
+        itemQuantity
+        itemPrice
+        orderId
+        productId
+        createdAt
+        updatedAt
+      }
+      productData {
+        _id
+        productType
+        productCollection
+        productStatus
+        productTitle
+        productPrice
+        productCount
+        productViews
+        productLikes
+        productComments
+        productImages
+        productDesc
+        memberId
+        soldAt
+        deletedAt
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+
 /******************************
  *         APPOINTMENT        *
  ******************************/

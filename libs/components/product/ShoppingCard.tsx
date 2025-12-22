@@ -18,13 +18,16 @@ import { Box, IconButton } from "@mui/material";
 interface ShoppingCardProps {
   product: Product;
   onLike?: (id: string) => void;
+  onAddToCart?: (product: Product) => void;
+  onBuy?: (product: Product) => void;
 }
 
-const ShoppingCard: React.FC<ShoppingCardProps> = ({ product, onLike }) => {
+const ShoppingCard: React.FC<ShoppingCardProps> = ({ product, onLike, onAddToCart, onBuy }) => {
   const imageSrc = product.productImages?.[0]
     ? getImageUrl(product.productImages[0])
     : "/images/thumbnail.png";
   const isLiked = product.meLiked?.some((like) => like.myFavorite) ?? false;
+  const isSoldOut = product.productCount <= 0;
 
   return (
     <Card sx={{ width: 320, maxWidth: "100%", boxShadow: "lg" }}>
@@ -83,10 +86,21 @@ const ShoppingCard: React.FC<ShoppingCardProps> = ({ product, onLike }) => {
           padding: 2
         }}
       >
-        <Button variant="solid" color="danger" size="lg">
+        <Button
+          variant="solid"
+          color="danger"
+          size="lg"
+          disabled={isSoldOut}
+          onClick={() => onAddToCart?.(product)}
+        >
           Add to cart
         </Button>
-        <Button variant="solid" size="lg">
+        <Button
+          variant="solid"
+          size="lg"
+          disabled={isSoldOut}
+          onClick={() => onBuy?.(product)}
+        >
           Buy
         </Button>
       </CardOverflow>
