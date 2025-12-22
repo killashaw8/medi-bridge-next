@@ -13,7 +13,7 @@ import { ProductCollection, ProductType } from "@/libs/enums/product.enum";
 import { Product } from "@/libs/types/product/product";
 import { OrderStatus } from "@/libs/enums/order.enum";
 import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
-import { userVar } from "@/apollo/store";
+import { cartVar, userVar } from "@/apollo/store";
 
 const Shopping = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -63,7 +63,7 @@ const Shopping = () => {
       return;
     }
     try {
-      await createOrder({
+      const { data: orderData } = await createOrder({
         variables: {
           input: {
             productId: product._id,
@@ -72,6 +72,21 @@ const Shopping = () => {
           },
         },
       });
+      const orderId = orderData?.createOrder?._id as string | undefined;
+      const currentCart = cartVar();
+      const existingIndex = currentCart.findIndex(
+        (item) => item.product._id === product._id
+      );
+      if (existingIndex >= 0) {
+        const nextCart = currentCart.map((item, index) =>
+          index === existingIndex
+            ? { ...item, quantity: item.quantity + 1, orderId: orderId ?? item.orderId }
+            : item
+        );
+        cartVar(nextCart);
+      } else {
+        cartVar([...currentCart, { product, quantity: 1, orderId }]);
+      }
       await sweetMixinSuccessAlert("Added to cart.");
     } catch (error: any) {
       const message =

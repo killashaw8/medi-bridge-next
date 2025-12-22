@@ -5,10 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { menus } from "./Menus";
 import { useReactiveVar } from "@apollo/client";
-import { userVar } from "@/apollo/store";
+import { cartVar, userVar } from "@/apollo/store";
 import { logOut, getJwtToken, updateUserInfo } from "@/libs/auth";
-import { Menu, MenuItem } from "@mui/material";
+import { Badge, Box, IconButton, Menu, MenuItem, Typography } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { getImageUrl } from "@/libs/imageHelper";
 import { useMemo } from 'react';
 
@@ -16,8 +17,11 @@ const Navbar = () => {
   const router = useRouter();
   const pathname = router.pathname;
   const user = useReactiveVar(userVar);
+  const cartItems = useReactiveVar(cartVar);
   const [logoutAnchor, setLogoutAnchor] = useState<null | HTMLElement>(null);
   const logoutOpen = Boolean(logoutAnchor);
+  const [cartAnchor, setCartAnchor] = useState<null | HTMLElement>(null);
+  const cartOpen = Boolean(cartAnchor);
   const [isSticky, setIsSticky] = useState(false);
   const [colorChange, setColorChange] = useState(false);
   const [imageRefreshKey, setImageRefreshKey] = useState(0);
@@ -127,6 +131,11 @@ const userImageUrl = useMemo(() => {
 
   // Check if user is logged in
   const isLoggedIn = user?._id && user._id !== '';
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const cartTotal = cartItems.reduce(
+    (sum, item) => sum + item.product.productPrice * item.quantity,
+    0
+  );
 
   return (
     <>
@@ -221,6 +230,87 @@ const userImageUrl = useMemo(() => {
 
           {/* Conditional rendering based on login status */}
           <div className="others-option align-items-center overflow-hidden d-none d-sm-flex">
+            <div className="option-item">
+              <IconButton
+                size="small"
+                onClick={(event) => setCartAnchor(event.currentTarget)}
+                aria-label="Cart"
+              >
+                <Badge badgeContent={cartCount} color="error">
+                  <ShoppingCartIcon />
+                </Badge>
+              </IconButton>
+              <Menu
+                id="cart-menu"
+                anchorEl={cartAnchor}
+                open={cartOpen}
+                onClose={() => setCartAnchor(null)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                sx={{ mt: '5px' }}
+              >
+                <Box sx={{ p: 2, width: 320 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                    Cart
+                  </Typography>
+                  {cartItems.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Your cart is empty.
+                    </Typography>
+                  ) : (
+                    <>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                        {cartItems.map((item) => (
+                          <Box
+                            key={item.product._id}
+                            sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}
+                          >
+                            <img
+                              src={
+                                item.product.productImages?.[0]
+                                  ? getImageUrl(item.product.productImages[0])
+                                  : "/images/thumbnail.png"
+                              }
+                              alt={item.product.productTitle}
+                              width={44}
+                              height={44}
+                              style={{ borderRadius: 6, objectFit: "cover" }}
+                            />
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Typography variant="body2" noWrap>
+                                {item.product.productTitle}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Qty {item.quantity} · ${item.product.productPrice.toFixed(2)}
+                              </Typography>
+                            </Box>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              ${(item.product.productPrice * item.quantity).toFixed(2)}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          mt: 2,
+                          pt: 1,
+                          borderTop: '1px solid #eee',
+                        }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          Total
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          ${cartTotal.toFixed(2)}
+                        </Typography>
+                      </Box>
+                    </>
+                  )}
+                </Box>
+              </Menu>
+            </div>
             {isLoggedIn ? (
               // ✅ User is logged in - show profile image with menu
               <div className="option-item">

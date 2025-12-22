@@ -1,6 +1,7 @@
 import { makeVar } from '@apollo/client';
 
 import { CustomJwtPayload } from '../libs/types/customJwtPayload';
+import { CartItem } from '../libs/types/order/cart';
 export const themeVar = makeVar({});
 
 export const userVar = makeVar<CustomJwtPayload>({
@@ -28,6 +29,8 @@ export const userVar = makeVar<CustomJwtPayload>({
 	clinicId: '',
 	specialization: '',
 });
+
+export const cartVar = makeVar<CartItem[]>([]);
 
 // @ts-ignore
 export const socketVar = makeVar<WebSocket>();
