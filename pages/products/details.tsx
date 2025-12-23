@@ -61,7 +61,11 @@ const ProductDetails: NextPage = () => {
     return "";
   }, [router.asPath, router.query]);
 
-  const { data: productData, loading: productLoading } = useQuery(GET_PRODUCT, {
+  const {
+    data: productData,
+    loading: productLoading,
+    refetch: refetchProduct,
+  } = useQuery(GET_PRODUCT, {
     variables: { productId },
     skip: !router.isReady || !productId,
     fetchPolicy: "cache-and-network",
@@ -124,7 +128,7 @@ const ProductDetails: NextPage = () => {
         },
       });
       setCommentText("");
-      await refetchComments();
+      await Promise.all([refetchComments(), refetchProduct()]);
       await sweetMixinSuccessAlert("Review submitted.");
     } catch (error: any) {
       const message =
