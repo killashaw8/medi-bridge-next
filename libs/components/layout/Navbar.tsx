@@ -180,7 +180,7 @@ const userImageUrl = useMemo(() => {
                 <li key={item.id} className="nav-item">
                   {item.isDropdown ? (
                     <>
-                      <Link
+                      <a
                         href="#"
                         onClick={(e) => e.preventDefault()}
                         className="dropdown-toggle nav-link"
@@ -201,7 +201,7 @@ const userImageUrl = useMemo(() => {
                             strokeLinejoin="round"
                           />
                         </svg>
-                      </Link>
+                      </a>
                       <ul className="dropdown-menu">
                         {item.dropdownItems?.map((dropdownItem, index) => (
                           <li key={index} className="nav-item">

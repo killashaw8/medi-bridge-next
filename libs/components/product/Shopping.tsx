@@ -22,7 +22,7 @@ const Shopping = () => {
   const [selectedType, setSelectedType] = useState<ProductType | "">("");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutProduct, setCheckoutProduct] = useState<Product | null>(null);
-  const limit = 9;
+  const limit = 6;
   const user = useReactiveVar(userVar);
 
   const productsInput = useMemo<ProductsInquiry>(() => {
@@ -158,7 +158,7 @@ const Shopping = () => {
               </div>
             )}
 
-            {totalPages > 1 && (
+            {totalPages > 0 && (
               <div className="col-lg-12 col-md-12">
                 <Stack className="mypage-pagination">
                   <Stack direction="row" justifyContent="center" sx={{ mt: 3 }}>

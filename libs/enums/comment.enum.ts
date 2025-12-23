@@ -8,5 +8,5 @@ export enum CommentStatus {
 export enum CommentGroup {
 	MEMBER = 'FEEDBACK',
 	ARTICLE = 'COMMENT',
-	PRODUCT = 'REVIEW',
+	PRODUCT = 'PRODUCT',
 }
