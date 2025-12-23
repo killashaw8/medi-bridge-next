@@ -49,7 +49,7 @@ const ClinicCard: React.FC<ClinicCardProps> = ({ clinic, location, reviews = 0 }
   return (
     <div className="doctor-card wrap2">
       <div className="image">
-        <Link href={`/member/${clinic._id || ""}`}>
+        <Link href={`/clinics/details?${clinic._id || ""}`}>
           <Image
             src={imageSrc}
             alt={clinic.memberFullName || clinic.memberNick || "Clinic"}
@@ -61,7 +61,7 @@ const ClinicCard: React.FC<ClinicCardProps> = ({ clinic, location, reviews = 0 }
       </div>
       <div className="content">
         <h3>
-          <Link href={`/member/${clinic._id || ""}`}>
+          <Link href={`/clinics/details?${clinic._id || ""}`}>
             {clinic.memberFullName || clinic.memberNick || "Clinic"}
           </Link>
         </h3>
@@ -77,7 +77,7 @@ const ClinicCard: React.FC<ClinicCardProps> = ({ clinic, location, reviews = 0 }
           <Button 
             variant="contained"
             size="large"
-            href={`/member/${clinic._id || ""}`}
+            href={`/clinics/details?${clinic._id || ""}`}
             sx={{
               borderRadius: '50px'
             }}
