@@ -123,6 +123,7 @@ const CheckoutPopover: React.FC<CheckoutPopoverProps> = ({
                 productId: item.product._id,
                 itemPrice: item.product.productPrice,
                 itemQuantity: item.quantity,
+                orderAddress: address.trim(),
               },
             },
           });
@@ -141,6 +142,9 @@ const CheckoutPopover: React.FC<CheckoutPopoverProps> = ({
       );
 
       await sweetMixinSuccessAlert("Order placed.");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("orders:updated"));
+      }
       if (cartItems && cartItems.length > 0) {
         cartVar([]);
       }

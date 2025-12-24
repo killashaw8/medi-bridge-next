@@ -1,10 +1,10 @@
 import { NextPage } from "next";
-import FrequentlyAskedQuestions from "@/libs/components/homepage/FrequentlyAskedQuestions";
+import MyOrders from "@/libs/components/order/MyOrders";
 import PageBanner from "@/libs/components/layout/PageBanner";
 import withLayoutBasic from "@/libs/components/layout/LayoutBasic";
 
 
-const MyOrders: NextPage = () => {
+const Orders: NextPage = () => {
   return (
     <>
 
@@ -17,13 +17,10 @@ const MyOrders: NextPage = () => {
         image="/images/page-banner.png"
       />
 
-
-
-      <div className="linear-gradient-inner">
-        <FrequentlyAskedQuestions />
-      </div>
+      <MyOrders />
+      
     </>
   );
 }
 
-export default withLayoutBasic(MyOrders);
+export default withLayoutBasic(Orders);

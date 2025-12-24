@@ -15,6 +15,7 @@ export interface Order {
   _id: string;
   orderTotal: number;
   orderDelivery: number;
+  orderAddress: string;
   orderStatus: OrderStatus;
   memberId: string;
   createdAt: Date;

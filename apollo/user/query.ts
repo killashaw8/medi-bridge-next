@@ -392,6 +392,7 @@ export const GET_MY_ORDERS = gql`
         _id
         orderTotal
         orderDelivery
+        orderAddress
         orderStatus
         memberId
         createdAt

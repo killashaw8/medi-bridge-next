@@ -240,6 +240,7 @@ export const CREATE_ORDER = gql`
       _id
       orderTotal
       orderDelivery
+      orderAddress
       orderStatus
       memberId
       createdAt
@@ -282,6 +283,50 @@ export const UPDATE_ORDER = gql`
       _id
       orderTotal
       orderDelivery
+      orderAddress
+      orderStatus
+      memberId
+      createdAt
+      updatedAt
+      orderItems {
+        _id
+        itemQuantity
+        itemPrice
+        orderId
+        productId
+        createdAt
+        updatedAt
+      }
+      productData {
+        _id
+        productType
+        productCollection
+        productStatus
+        productTitle
+        productPrice
+        productCount
+        productViews
+        productLikes
+        productComments
+        productImages
+        productDesc
+        memberId
+        soldAt
+        deletedAt
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+export const UPDATE_ORDER_ITEM = gql`
+  mutation UpdateOrderItem($input: OrderItemUpdateInput!) {
+    updateOrderItem(input: $input) {
+      _id
+      orderTotal
+      orderDelivery
+      orderAddress
       orderStatus
       memberId
       createdAt

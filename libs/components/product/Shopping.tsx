@@ -70,6 +70,7 @@ const Shopping = () => {
             productId: product._id,
             itemPrice: product.productPrice,
             itemQuantity: 1,
+            orderAddress: "Pending address",
           },
         },
       });
