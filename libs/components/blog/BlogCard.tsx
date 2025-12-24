@@ -12,6 +12,7 @@ import IconButton from '@mui/material/IconButton';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import { Stack, Typography } from "@mui/material";
 
 interface BlogCardProps {
@@ -134,6 +135,18 @@ const BlogDetailsContent = (props: BlogCardProps) => {
             </IconButton>
             <Typography variant="body2" sx={{ fontSize: '14px', color: '#666', minWidth: '30px' }}>
               {article?.articleLikes || 0}
+            </Typography>
+
+            <IconButton 
+              color="default" 
+              size="small"
+              onClick={(e: any) => e.stopPropagation()}
+              sx={{ padding: '4px' }}
+            >
+              <ChatBubbleOutlineIcon fontSize="small" />
+            </IconButton>
+            <Typography variant="body2" sx={{ fontSize: '14px', color: '#666', minWidth: '30px' }}>
+              {article?.articleComments || 0}
             </Typography>
             
             {article?.memberData && (

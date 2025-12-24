@@ -11,7 +11,7 @@ import { ProductsInquiry } from "@/libs/types/product/product.input";
 import { Direction } from "@/libs/enums/common.enum";
 import { ProductCollection, ProductType } from "@/libs/enums/product.enum";
 import { Product } from "@/libs/types/product/product";
-import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
+import { sweetMixinErrorAlert, sweetMixinSuccessAlert, sweetTopSmallSuccessAlert } from "@/libs/sweetAlert";
 import { cartVar, userVar } from "@/apollo/store";
 import CheckoutPopover from "@/libs/components/order/CheckoutPopover";
 
@@ -146,8 +146,13 @@ const Shopping = () => {
                         try {
                           await likeTargetProduct({ variables: { input: id } });
                           await refetch();
-                        } catch (error) {
-                          console.error("Like product error:", error);
+                          await sweetTopSmallSuccessAlert("success", 800);
+                        } catch (error: any) {
+                          const message =
+                            error?.graphQLErrors?.[0]?.message ||
+                            error?.message ||
+                            "Failed to like product.";
+                          await sweetMixinErrorAlert(message);
                         }
                       }}
                       onAddToCart={handleAddToCart}

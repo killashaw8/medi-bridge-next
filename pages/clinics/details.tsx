@@ -3,7 +3,7 @@ import { GetStaticProps, NextPage } from "next";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import Moment from "react-moment";
-import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
+import { useApolloClient, useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import {
   Avatar,
   Box,
@@ -34,6 +34,7 @@ import { userVar } from "@/apollo/store";
 
 const ClinicDetails: NextPage = () => {
   const router = useRouter();
+  const apolloClient = useApolloClient();
   const user = useReactiveVar(userVar);
   const [commentText, setCommentText] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
@@ -114,6 +115,25 @@ const ClinicDetails: NextPage = () => {
   const clinicPhone = clinic?.memberPhone || "Phone unavailable";
   const bannerTitle = clinicName || "Clinic Details";
 
+  const updateClinicComments = (delta: number) => {
+    if (!clinicId) return;
+    const cacheId = apolloClient.cache.identify({
+      __typename: "Member",
+      _id: clinicId,
+    });
+    if (!cacheId) return;
+    apolloClient.cache.modify({
+      id: cacheId,
+      fields: {
+        memberComments(existing = 0) {
+          const next = Number(existing) + delta;
+          return next < 0 ? 0 : next;
+        },
+      },
+    });
+  };
+
+
   const handleSubmitComment = async () => {
     const trimmed = commentText.trim();
     if (!user?._id) {
@@ -150,6 +170,7 @@ const ClinicDetails: NextPage = () => {
             },
           },
         });
+        updateClinicComments(1);
         await sweetMixinSuccessAlert("Review submitted.");
       }
       setCommentText("");
@@ -181,6 +202,7 @@ const ClinicDetails: NextPage = () => {
           },
         },
       });
+      updateClinicComments(-1);
       if (editingCommentId === commentId) {
         setEditingCommentId(null);
         setCommentText("");
@@ -266,7 +288,7 @@ const ClinicDetails: NextPage = () => {
                 <Stack spacing={2}>
                   <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                      Reviews ({commentsTotal})
+                      Reviews ({activeComments.length})
                     </Typography>
                     {commentsTotal > 3 && !showAllComments && (
                       <Button

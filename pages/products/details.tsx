@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { GetStaticProps, NextPage } from "next";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import Moment from "react-moment";
-import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
+import { useApolloClient, useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import {
   Avatar,
   Box,
@@ -36,6 +36,7 @@ import { userVar } from "@/apollo/store";
 
 const ProductDetails: NextPage = () => {
   const router = useRouter();
+  const apolloClient = useApolloClient();
   const user = useReactiveVar(userVar);
   const [commentText, setCommentText] = useState("");
   const [activeImage, setActiveImage] = useState<string | null>(null);
@@ -104,7 +105,8 @@ const ProductDetails: NextPage = () => {
   const activeComments = comments.filter(
     (comment) => comment.commentStatus !== CommentStatus.DELETE
   );
-  const commentsTotal = commentsData?.getComments?.metaCounter?.[0]?.total ?? 0;
+  const commentsTotal =
+    product?.productComments ?? commentsData?.getComments?.metaCounter?.[0]?.total ?? 0;
   const commentsLimit = showAllComments ? 6 : 3;
   const commentsTotalPages = Math.max(1, Math.ceil(commentsTotal / commentsLimit));
   const sellerName =
@@ -115,6 +117,43 @@ const ProductDetails: NextPage = () => {
     ? getImageUrl(product.memberData.memberImage)
     : "/images/users/defaultUser.svg";
   const bannerTitle = product?.productTitle || "Product Details";
+
+  const updateProductComments = (delta: number) => {
+    if (!productId) return;
+    const cacheId = apolloClient.cache.identify({
+      __typename: "Product",
+      _id: productId,
+    });
+    if (!cacheId) return;
+    apolloClient.cache.modify({
+      id: cacheId,
+      fields: {
+        productComments(existing = 0) {
+          const next = Number(existing) + delta;
+          return next < 0 ? 0 : next;
+        },
+      },
+    });
+  };
+
+  useEffect(() => {
+    if (!productId) return;
+    if (activeComments.length !== 0) return;
+    const cacheId = apolloClient.cache.identify({
+      __typename: "Product",
+      _id: productId,
+    });
+    if (!cacheId) return;
+    apolloClient.cache.modify({
+      id: cacheId,
+      fields: {
+        productComments() {
+          return 0;
+        },
+      },
+    });
+  }, [activeComments.length, apolloClient, productId]);
+
 
   const handleSubmitComment = async () => {
     const trimmed = commentText.trim();
@@ -152,11 +191,12 @@ const ProductDetails: NextPage = () => {
             },
           },
         });
+        updateProductComments(1);
         await sweetMixinSuccessAlert("Review submitted.");
       }
       setCommentText("");
       setEditingCommentId(null);
-      await Promise.all([refetchComments(), refetchProduct()]);
+      await refetchComments();
     } catch (error: any) {
       const message =
         error?.graphQLErrors?.[0]?.message ||
@@ -183,11 +223,12 @@ const ProductDetails: NextPage = () => {
           },
         },
       });
+      updateProductComments(-1);
       if (editingCommentId === commentId) {
         setEditingCommentId(null);
         setCommentText("");
       }
-      await Promise.all([refetchComments(), refetchProduct()]);
+      await refetchComments();
       await sweetMixinSuccessAlert("Review deleted.");
     } catch (error: any) {
       const message =
@@ -335,7 +376,7 @@ const ProductDetails: NextPage = () => {
                 <Stack spacing={2}>
                   <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                      Reviews ({commentsTotal})
+                      Reviews ({activeComments.length})
                     </Typography>
                     {commentsTotal > 3 && !showAllComments && (
                       <Button

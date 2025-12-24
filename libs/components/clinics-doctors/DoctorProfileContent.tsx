@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo, useState } from "react";
-import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
+import { useApolloClient, useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -12,7 +12,7 @@ import { Member } from "@/libs/types/member/member";
 import { Comment } from "@/libs/types/comment/comment";
 import { CommentGroup, CommentStatus } from "@/libs/enums/comment.enum";
 import { getImageUrl } from "@/libs/imageHelper";
-import { Box, Button, IconButton, Stack, TextField, Pagination } from "@mui/material";
+import { Avatar, Box, Button, IconButton, Stack, TextField, Pagination, Typography } from "@mui/material";
 import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
@@ -25,6 +25,7 @@ import { userVar } from "@/apollo/store";
 
 
 const DoctorProfileContent = () => {
+  const apolloClient = useApolloClient();
   const [activeTab, setActiveTab] = useState(0);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedSlot, setSelectedSlot] = useState("");
@@ -108,7 +109,7 @@ const DoctorProfileContent = () => {
   const doctorTitle = doctor?.specialization ? `MD, ${doctor.specialization}` : "";
   const doctorSpecialty = doctor?.specialization || "";
   const ratingValue = Math.min(5, Math.max(0, doctor?.memberLikes ?? 0));
-  const reviewsCount = commentsTotal;
+  const reviewsCount = activeComments.length;
   const reviewsTotalCount = reviewsCount.toLocaleString();
   const profileImage = doctor?.memberImage
     ? getImageUrl(doctor.memberImage)
@@ -142,6 +143,25 @@ const DoctorProfileContent = () => {
       },
     });
   };
+
+  const updateDoctorComments = (delta: number) => {
+    if (!doctorId) return;
+    const cacheId = apolloClient.cache.identify({
+      __typename: "Member",
+      _id: doctorId,
+    });
+    if (!cacheId) return;
+    apolloClient.cache.modify({
+      id: cacheId,
+      fields: {
+        memberComments(existing = 0) {
+          const next = Number(existing) + delta;
+          return next < 0 ? 0 : next;
+        },
+      },
+    });
+  };
+
 
   const handleSubmitComment = async () => {
     const trimmed = commentText.trim();
@@ -179,6 +199,7 @@ const DoctorProfileContent = () => {
             },
           },
         });
+        updateDoctorComments(1);
         await sweetMixinSuccessAlert("Review submitted.");
       }
       setCommentText("");
@@ -210,6 +231,7 @@ const DoctorProfileContent = () => {
           },
         },
       });
+      updateDoctorComments(-1);
       if (editingCommentId === commentId) {
         setEditingCommentId(null);
         setCommentText("");
@@ -377,87 +399,94 @@ const DoctorProfileContent = () => {
                                 patient reviews)
                               </span>
                             </h3>
-                            {commentsTotal > 3 && !showAllComments && (
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                onClick={() => {
-                                  setShowAllComments(true);
-                                  setCommentsPage(1);
-                                }}
-                              >
-                                Show all
-                              </Button>
-                            )}
-                            {showAllComments && (
-                              <Button
-                                variant="text"
-                                size="small"
-                                onClick={() => {
-                                  setShowAllComments(false);
-                                  setCommentsPage(1);
-                                }}
-                              >
-                                Show less
-                              </Button>
-                            )}
+                            <Stack direction="row" spacing={1}>
+                              {commentsTotal > 3 && !showAllComments && (
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  onClick={() => {
+                                    setShowAllComments(true);
+                                    setCommentsPage(1);
+                                  }}
+                                >
+                                  Show all
+                                </Button>
+                              )}
+                              {showAllComments && (
+                                <Button
+                                  variant="text"
+                                  size="small"
+                                  onClick={() => {
+                                    setShowAllComments(false);
+                                    setCommentsPage(1);
+                                  }}
+                                >
+                                  Show less
+                                </Button>
+                              )}
+                            </Stack>
                           </div>
-                          <div className="row justify-content-center g-4">
+                          <Stack spacing={2} sx={{ mt: 2 }}>
                             {activeComments.map((comment) => {
                               const reviewerName =
                                 comment.memberData?.memberFullName ||
                                 comment.memberData?.memberNick ||
                                 "Patient";
-                              const initial = reviewerName.charAt(0).toUpperCase() || "P";
+                              const reviewerImage = comment.memberData?.memberImage
+                                ? getImageUrl(comment.memberData.memberImage)
+                                : "/images/users/defaultUser.svg";
 
                               return (
-                                <div className="col-lg-6 col-md-6" key={comment._id}>
-                                  <div className="review-item">
-                                    <div className="top" style={{ justifyContent: "space-between" }}>
-                                      <div className="title">
-                                        <h2>{initial}</h2>
-                                      </div>
-                                      <div className="content">
-                                        <h4>{reviewerName}</h4>
-                                        <p style={{ margin: 0, color: "#5A6A85", fontSize: "13px" }}>
+                                <Box
+                                  key={comment._id}
+                                  sx={{
+                                    p: 2,
+                                    borderRadius: 2,
+                                    border: "1px solid #eee",
+                                    backgroundColor: "#fff",
+                                  }}
+                                >
+                                  <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
+                                    <Stack direction="row" spacing={2} alignItems="center">
+                                      <Avatar src={reviewerImage} alt={reviewerName} />
+                                      <Box>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                          {reviewerName}
+                                        </Typography>
+                                        <Typography variant="caption" color="text.secondary">
                                           <Moment format="YYYY.MM.DD hh:mm A">{comment.createdAt}</Moment>
-                                        </p>
-                                        <ul className="list">
-                                          {renderStars(ratingValue).map((star, i) => (
-                                            <li key={i}>{star}</li>
-                                          ))}
-                                        </ul>
-                                      </div>
-                                      {user?._id && comment.memberId === user._id && (
-                                        <Stack direction="row" spacing={1}>
-                                          <IconButton
-                                            size="small"
-                                            aria-label="Edit review"
-                                            onClick={() => handleEditComment(comment)}
-                                          >
-                                            <EditIcon fontSize="small" />
-                                          </IconButton>
-                                          <IconButton
-                                            size="small"
-                                            aria-label="Delete review"
-                                            onClick={() => handleDeleteComment(comment._id)}
-                                          >
-                                            <DeleteIcon fontSize="small" />
-                                          </IconButton>
-                                        </Stack>
-                                      )}
-                                    </div>
-                                    <p>{comment.commentContent}</p>
-                                  </div>
-                                </div>
+                                        </Typography>
+                                      </Box>
+                                    </Stack>
+                                    {user?._id && comment.memberId === user._id && (
+                                      <Stack direction="row" spacing={1}>
+                                        <IconButton
+                                          size="small"
+                                          aria-label="Edit review"
+                                          onClick={() => handleEditComment(comment)}
+                                        >
+                                          <EditIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton
+                                          size="small"
+                                          aria-label="Delete review"
+                                          onClick={() => handleDeleteComment(comment._id)}
+                                        >
+                                          <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                      </Stack>
+                                    )}
+                                  </Stack>
+                                  <Typography variant="body2" sx={{ mt: 1 }}>
+                                    {comment.commentContent}
+                                  </Typography>
+                                </Box>
                               );
                             })}
                             {activeComments.length === 0 && (
-                              <div className="col-lg-12">
-                                <p>No reviews available yet.</p>
-                              </div>
+                              <Typography color="text.secondary">No reviews available yet.</Typography>
                             )}
-                          </div>
+                          </Stack>
                           {showAllComments && commentsTotalPages > 1 && (
                             <Stack direction="row" justifyContent="center" sx={{ mt: 2 }}>
                               <Pagination

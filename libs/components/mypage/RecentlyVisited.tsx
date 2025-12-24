@@ -63,7 +63,7 @@ const RecentlyVisited: React.FC = () => {
             {products.map((product) => (
               <div key={product._id} className="col-lg-3 col-md-4 col-sm-6">
                 <div className="product-card">
-                  <Link href={`/products/${product._id}`}>
+                  <Link href={`/products/details?${product._id}`}>
                     <div className="product-image">
                       <Image
                         src={

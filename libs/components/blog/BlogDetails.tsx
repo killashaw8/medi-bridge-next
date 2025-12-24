@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Moment from "react-moment";
-import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
-import { IconButton, Stack, TextField, Button, Pagination } from "@mui/material";
+import { useApolloClient, useMutation, useQuery, useReactiveVar } from "@apollo/client";
+import { Avatar, Box, IconButton, Stack, TextField, Button, Pagination, Paper, Typography } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Article } from "@/libs/types/article/article";
@@ -29,6 +29,7 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ article, loading }) => {
   const coverImage = getImageUrl(article?.articleImage) || "/images/blog-details.jpg";
   const category =
     article?.articleCategory === ArticleCategory.NEWS ? "News" : "Blog";
+  const apolloClient = useApolloClient();
   const user = useReactiveVar(userVar);
   const [commentText, setCommentText] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
@@ -84,6 +85,25 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ article, loading }) => {
     );
   }
 
+  const updateArticleComments = (delta: number) => {
+    if (!articleId) return;
+    const cacheId = apolloClient.cache.identify({
+      __typename: "Article",
+      _id: articleId,
+    });
+    if (!cacheId) return;
+    apolloClient.cache.modify({
+      id: cacheId,
+      fields: {
+        articleComments(existing = 0) {
+          const next = Number(existing) + delta;
+          return next < 0 ? 0 : next;
+        },
+      },
+    });
+  };
+
+
   const handleSubmitComment = async () => {
     const trimmed = commentText.trim();
     if (!user?._id) {
@@ -120,6 +140,7 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ article, loading }) => {
             },
           },
         });
+        updateArticleComments(1);
         await sweetMixinSuccessAlert("Review submitted.");
       }
       setCommentText("");
@@ -151,6 +172,7 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ article, loading }) => {
           },
         },
       });
+      updateArticleComments(-1);
       if (editingCommentId === commentId) {
         setEditingCommentId(null);
         setCommentText("");
@@ -216,156 +238,176 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ article, loading }) => {
                   </div>
                 </div>
 
-                <div className="article-comment">
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                    <h3 className="title">Reviews ({commentsTotal})</h3>
-                    {commentsTotal > 3 && !showAllComments && (
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => {
-                          setShowAllComments(true);
-                          setCommentsPage(1);
-                        }}
-                      >
-                        Show all
-                      </Button>
-                    )}
-                    {showAllComments && (
-                      <Button
-                        variant="text"
-                        size="small"
-                        onClick={() => {
-                          setShowAllComments(false);
-                          setCommentsPage(1);
-                        }}
-                      >
-                        Show less
-                      </Button>
-                    )}
-                  </div>
-                  {commentsLoading ? (
-                    <p style={{ color: "#5A6A85" }}>Loading reviews...</p>
-                  ) : activeComments.length === 0 ? (
-                    <p>No reviews yet. Be the first to leave one.</p>
-                  ) : (
-                    activeComments.map((comment) => {
-                      const reviewerName =
-                        comment.memberData?.memberFullName ||
-                        comment.memberData?.memberNick ||
-                        "Reader";
-                      const reviewerImage = comment.memberData?.memberImage
-                        ? getImageUrl(comment.memberData.memberImage)
-                        : "/images/users/defaultUser.svg";
-
-                      return (
-                        <div className="comment-list" key={comment._id}>
-                          <div className="comment-author">
-                            <Image
-                              src={reviewerImage}
-                              alt={reviewerName}
-                              width={50}
-                              height={50}
-                            />
-                            <div style={{ flex: 1 }}>
-                              <h5>{reviewerName}</h5>
-                              <p>
-                                <Moment format="YYYY.MM.DD hh:mm A">{comment.createdAt}</Moment>
-                              </p>
-                            </div>
-                            {user?._id && comment.memberId === user._id && (
-                              <Stack direction="row" spacing={1}>
-                                <IconButton
-                                  size="small"
-                                  aria-label="Edit review"
-                                  onClick={() => handleEditComment(comment)}
-                                >
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                                <IconButton
-                                  size="small"
-                                  aria-label="Delete review"
-                                  onClick={() => handleDeleteComment(comment._id)}
-                                >
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </Stack>
-                            )}
-                          </div>
-                          <p>{comment.commentContent}</p>
-                        </div>
-                      );
-                    })
-                  )}
-                  {showAllComments && commentsTotalPages > 1 && (
-                    <Stack direction="row" justifyContent="center" sx={{ pt: 1 }}>
-                      <Pagination
-                        count={commentsTotalPages}
-                        page={commentsPage}
-                        onChange={(_, page) => setCommentsPage(page)}
-                        shape="rounded"
-                        variant="outlined"
-                      />
+                <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, border: "1px solid #eef1f6", mt: 4 }}>
+                  <Stack spacing={2}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                      <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                        Reviews ({activeComments.length})
+                      </Typography>
+                      <Stack direction="row" spacing={1}>
+                        {commentsTotal > 3 && !showAllComments && (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => {
+                              setShowAllComments(true);
+                              setCommentsPage(1);
+                            }}
+                          >
+                            Show all
+                          </Button>
+                        )}
+                        {showAllComments && (
+                          <Button
+                            variant="text"
+                            size="small"
+                            onClick={() => {
+                              setShowAllComments(false);
+                              setCommentsPage(1);
+                            }}
+                          >
+                            Show less
+                          </Button>
+                        )}
+                      </Stack>
                     </Stack>
-                  )}
-                </div>
+                    {commentsLoading ? (
+                      <Typography color="text.secondary">Loading reviews...</Typography>
+                    ) : activeComments.length === 0 ? (
+                      <Typography color="text.secondary">No reviews yet. Be the first to leave one.</Typography>
+                    ) : (
+                      <Stack spacing={2}>
+                        {activeComments.map((comment) => {
+                          const reviewerName =
+                            comment.memberData?.memberFullName ||
+                            comment.memberData?.memberNick ||
+                            "Reader";
+                          const reviewerImage = comment.memberData?.memberImage
+                            ? getImageUrl(comment.memberData.memberImage)
+                            : "/images/users/defaultUser.svg";
 
-                <div className="leave-form">
-                  <div className="content">
-                    <h2>{editingCommentId ? "Edit your review" : "Write a review"}</h2>
-                    <p>
+                          return (
+                            <Box
+                              key={comment._id}
+                              sx={{
+                                p: 2,
+                                borderRadius: 2,
+                                border: "1px solid #eee",
+                                backgroundColor: "#fff",
+                              }}
+                            >
+                              <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
+                                <Stack direction="row" spacing={2} alignItems="center">
+                                  <Avatar src={reviewerImage} alt={reviewerName} />
+                                  <Box>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                      {reviewerName}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      <Moment format="YYYY.MM.DD hh:mm A">{comment.createdAt}</Moment>
+                                    </Typography>
+                                  </Box>
+                                </Stack>
+                                {user?._id && comment.memberId === user._id && (
+                                  <Stack direction="row" spacing={1}>
+                                    <IconButton
+                                      size="small"
+                                      aria-label="Edit review"
+                                      onClick={() => handleEditComment(comment)}
+                                    >
+                                      <EditIcon fontSize="small" />
+                                    </IconButton>
+                                    <IconButton
+                                      size="small"
+                                      aria-label="Delete review"
+                                      onClick={() => handleDeleteComment(comment._id)}
+                                    >
+                                      <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                  </Stack>
+                                )}
+                              </Stack>
+                              <Typography variant="body2" sx={{ mt: 1 }}>
+                                {comment.commentContent}
+                              </Typography>
+                            </Box>
+                          );
+                        })}
+                      </Stack>
+                    )}
+                    {showAllComments && commentsTotalPages > 1 && (
+                      <Stack direction="row" justifyContent="center" sx={{ pt: 1 }}>
+                        <Pagination
+                          count={commentsTotalPages}
+                          page={commentsPage}
+                          onChange={(_, page) => setCommentsPage(page)}
+                          shape="rounded"
+                          variant="outlined"
+                        />
+                      </Stack>
+                    )}
+                  </Stack>
+                </Paper>
+
+                <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, border: "1px solid #eef1f6", mt: 3 }}>
+                  <Stack spacing={2}>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                      {editingCommentId ? "Edit your review" : "Write a review"}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
                       {editingCommentId
                         ? "Update your review for this article."
                         : "Share your thoughts about this article."}
-                    </p>
-                  </div>
-                  <form
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      handleSubmitComment();
-                    }}
-                  >
-                    <div className="form-group">
-                      <label htmlFor="article-review">Your review</label>
-                      <TextField
-                        id="article-review"
-                        placeholder="Write your comment..."
-                        multiline
-                        rows={5}
-                        fullWidth
-                        value={commentText}
-                        onChange={(event) => setCommentText(event.target.value)}
-                      />
-                    </div>
-                    <Stack direction="row" spacing={2}>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        disabled={commentSubmitting || commentUpdating}
-                      >
-                        {editingCommentId
-                          ? commentUpdating
-                            ? "Updating..."
-                            : "Update Review"
-                          : commentSubmitting
-                            ? "Submitting..."
-                            : "Post Review"}
-                      </Button>
-                      {editingCommentId && (
-                        <Button
-                          type="button"
-                          variant="outlined"
-                          onClick={() => {
-                            setEditingCommentId(null);
-                            setCommentText("");
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                      )}
-                    </Stack>
-                  </form>
-                </div>
+                    </Typography>
+                    <Box
+                      component="form"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        handleSubmitComment();
+                      }}
+                    >
+                      <Stack spacing={2}>
+                        <TextField
+                          id="article-review"
+                          label="Your review"
+                          placeholder="Write your comment..."
+                          multiline
+                          rows={5}
+                          fullWidth
+                          value={commentText}
+                          onChange={(event) => setCommentText(event.target.value)}
+                        />
+                        <Stack direction="row" spacing={2}>
+                          <Button
+                            type="submit"
+                            variant="contained"
+                            disabled={commentSubmitting || commentUpdating}
+                          >
+                            {editingCommentId
+                              ? commentUpdating
+                                ? "Updating..."
+                                : "Update Review"
+                              : commentSubmitting
+                                ? "Submitting..."
+                                : "Post Review"}
+                          </Button>
+                          {editingCommentId && (
+                            <Button
+                              type="button"
+                              variant="outlined"
+                              onClick={() => {
+                                setEditingCommentId(null);
+                                setCommentText("");
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                        </Stack>
+                      </Stack>
+                    </Box>
+                  </Stack>
+                </Paper>
               </div>
             </div>
           </div>
