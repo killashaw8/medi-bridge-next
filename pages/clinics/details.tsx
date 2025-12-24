@@ -10,28 +10,35 @@ import {
   Button,
   Chip,
   Divider,
+  IconButton,
+  Pagination,
   Paper,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import PageBanner from "@/libs/components/layout/PageBanner";
 import withLayoutBasic from "@/libs/components/layout/LayoutBasic";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { GET_COMMENTS, GET_MEMBER } from "@/apollo/user/query";
-import { CREATE_COMMENT } from "@/apollo/user/mutation";
+import { CREATE_COMMENT, UPDATE_COMMENT } from "@/apollo/user/mutation";
 import { Member } from "@/libs/types/member/member";
 import { Comment } from "@/libs/types/comment/comment";
-import { CommentGroup } from "@/libs/enums/comment.enum";
+import { CommentGroup, CommentStatus } from "@/libs/enums/comment.enum";
 import { Direction } from "@/libs/enums/common.enum";
 import { getImageUrl } from "@/libs/imageHelper";
-import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
+import { sweetConfirmAlert, sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
 import { userVar } from "@/apollo/store";
 
 const ClinicDetails: NextPage = () => {
   const router = useRouter();
   const user = useReactiveVar(userVar);
   const [commentText, setCommentText] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [showAllComments, setShowAllComments] = useState(false);
+  const [commentsPage, setCommentsPage] = useState(1);
 
   const clinicId = useMemo(() => {
     const rawId = router.query?.id || router.query?.clinicId;
@@ -75,8 +82,8 @@ const ClinicDetails: NextPage = () => {
   } = useQuery(GET_COMMENTS, {
     variables: {
       input: {
-        page: 1,
-        limit: 12,
+        page: showAllComments ? commentsPage : 1,
+        limit: showAllComments ? 6 : 3,
         sort: "createdAt",
         direction: "DESC",
         search: { commentRefId: clinicId },
@@ -87,9 +94,16 @@ const ClinicDetails: NextPage = () => {
   });
 
   const [createComment, { loading: commentSubmitting }] = useMutation(CREATE_COMMENT);
+  const [updateComment, { loading: commentUpdating }] = useMutation(UPDATE_COMMENT);
 
   const clinic = clinicData?.getMember as Member | undefined;
   const comments = (commentsData?.getComments?.list ?? []) as Comment[];
+  const activeComments = comments.filter(
+    (comment) => comment.commentStatus !== CommentStatus.DELETE
+  );
+  const commentsTotal = commentsData?.getComments?.metaCounter?.[0]?.total ?? 0;
+  const commentsLimit = showAllComments ? 6 : 3;
+  const commentsTotalPages = Math.max(1, Math.ceil(commentsTotal / commentsLimit));
   const clinicName = clinic?.memberFullName || clinic?.memberNick || "Clinic";
   const clinicImage = clinic?.memberImage
     ? getImageUrl(clinic.memberImage)
@@ -116,23 +130,68 @@ const ClinicDetails: NextPage = () => {
     }
 
     try {
-      await createComment({
-        variables: {
-          input: {
-            commentGroup: CommentGroup.MEMBER,
-            commentContent: trimmed,
-            commentRefId: clinicId,
+      if (editingCommentId) {
+        await updateComment({
+          variables: {
+            input: {
+              _id: editingCommentId,
+              commentContent: trimmed,
+            },
           },
-        },
-      });
+        });
+        await sweetMixinSuccessAlert("Review updated.");
+      } else {
+        await createComment({
+          variables: {
+            input: {
+              commentGroup: CommentGroup.MEMBER,
+              commentContent: trimmed,
+              commentRefId: clinicId,
+            },
+          },
+        });
+        await sweetMixinSuccessAlert("Review submitted.");
+      }
       setCommentText("");
+      setEditingCommentId(null);
       await Promise.all([refetchComments(), refetchClinic()]);
-      await sweetMixinSuccessAlert("Review submitted.");
     } catch (error: any) {
       const message =
         error?.graphQLErrors?.[0]?.message ||
         error?.message ||
         "Failed to submit review.";
+      await sweetMixinErrorAlert(message);
+    }
+  };
+
+  const handleEditComment = (comment: Comment) => {
+    setEditingCommentId(comment._id);
+    setCommentText(comment.commentContent);
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      const confirmed = await sweetConfirmAlert("Delete this review?");
+      if (!confirmed) return;
+      await updateComment({
+        variables: {
+          input: {
+            _id: commentId,
+            commentStatus: CommentStatus.DELETE,
+          },
+        },
+      });
+      if (editingCommentId === commentId) {
+        setEditingCommentId(null);
+        setCommentText("");
+      }
+      await Promise.all([refetchComments(), refetchClinic()]);
+      await sweetMixinSuccessAlert("Review deleted.");
+    } catch (error: any) {
+      const message =
+        error?.graphQLErrors?.[0]?.message ||
+        error?.message ||
+        "Failed to delete review.";
       await sweetMixinErrorAlert(message);
     }
   };
@@ -205,16 +264,42 @@ const ClinicDetails: NextPage = () => {
 
               <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, border: "1px solid #eef1f6" }}>
                 <Stack spacing={2}>
-                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                    Reviews ({clinic.memberComments ?? comments.length})
-                  </Typography>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                      Reviews ({commentsTotal})
+                    </Typography>
+                    {commentsTotal > 3 && !showAllComments && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => {
+                          setShowAllComments(true);
+                          setCommentsPage(1);
+                        }}
+                      >
+                        Show all
+                      </Button>
+                    )}
+                    {showAllComments && (
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => {
+                          setShowAllComments(false);
+                          setCommentsPage(1);
+                        }}
+                      >
+                        Show less
+                      </Button>
+                    )}
+                  </Stack>
                   {commentsLoading ? (
                     <Typography color="text.secondary">Loading reviews...</Typography>
-                  ) : comments.length === 0 ? (
+                  ) : activeComments.length === 0 ? (
                     <Typography color="text.secondary">No reviews yet. Be the first to leave one.</Typography>
                   ) : (
                     <Stack spacing={2}>
-                      {comments.map((comment) => {
+                      {activeComments.map((comment) => {
                         const reviewerName =
                           comment.memberData?.memberFullName ||
                           comment.memberData?.memberNick ||
@@ -233,16 +318,36 @@ const ClinicDetails: NextPage = () => {
                               backgroundColor: "#fff",
                             }}
                           >
-                            <Stack direction="row" spacing={2} alignItems="center">
-                              <Avatar src={reviewerImage} alt={reviewerName} />
-                              <Box>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                  {reviewerName}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  <Moment format="MMM DD, YYYY">{comment.createdAt}</Moment>
-                                </Typography>
-                              </Box>
+                            <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
+                              <Stack direction="row" spacing={2} alignItems="center">
+                                <Avatar src={reviewerImage} alt={reviewerName} />
+                                <Box>
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                    {reviewerName}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    <Moment format="YYYY.MM.DD hh:mm A">{comment.createdAt}</Moment>
+                                  </Typography>
+                                </Box>
+                              </Stack>
+                              {user?._id && comment.memberId === user._id && (
+                                <Stack direction="row" spacing={1}>
+                                  <IconButton
+                                    size="small"
+                                    aria-label="Edit review"
+                                    onClick={() => handleEditComment(comment)}
+                                  >
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                  <IconButton
+                                    size="small"
+                                    aria-label="Delete review"
+                                    onClick={() => handleDeleteComment(comment._id)}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </Stack>
+                              )}
                             </Stack>
                             <Typography variant="body2" sx={{ mt: 1 }}>
                               {comment.commentContent}
@@ -252,16 +357,29 @@ const ClinicDetails: NextPage = () => {
                       })}
                     </Stack>
                   )}
+                  {showAllComments && commentsTotalPages > 1 && (
+                    <Stack direction="row" justifyContent="center" sx={{ pt: 1 }}>
+                      <Pagination
+                        count={commentsTotalPages}
+                        page={commentsPage}
+                        onChange={(_, page) => setCommentsPage(page)}
+                        shape="rounded"
+                        variant="outlined"
+                      />
+                    </Stack>
+                  )}
                 </Stack>
               </Paper>
 
               <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, border: "1px solid #eef1f6" }}>
                 <Stack spacing={2}>
                   <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                    Write a review
+                    {editingCommentId ? "Edit your review" : "Write a review"}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Share your experience with this clinic.
+                    {editingCommentId
+                      ? "Update your review for this clinic."
+                      : "Share your experience with this clinic."}
                   </Typography>
                   <Box
                     component="form"
@@ -280,14 +398,33 @@ const ClinicDetails: NextPage = () => {
                         value={commentText}
                         onChange={(event) => setCommentText(event.target.value)}
                       />
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        disabled={commentSubmitting}
-                        sx={{ alignSelf: "flex-start" }}
-                      >
-                        {commentSubmitting ? "Submitting..." : "Post Review"}
-                      </Button>
+                      <Stack direction="row" spacing={2}>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          disabled={commentSubmitting || commentUpdating}
+                        >
+                          {editingCommentId
+                            ? commentUpdating
+                              ? "Updating..."
+                              : "Update Review"
+                            : commentSubmitting
+                              ? "Submitting..."
+                              : "Post Review"}
+                        </Button>
+                        {editingCommentId && (
+                          <Button
+                            type="button"
+                            variant="outlined"
+                            onClick={() => {
+                              setEditingCommentId(null);
+                              setCommentText("");
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        )}
+                      </Stack>
                     </Stack>
                   </Box>
                 </Stack>

@@ -1,34 +1,39 @@
 "use client";
 
 import React, { useCallback, useMemo, useState } from "react";
-import { useQuery } from "@apollo/client";
+import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import CalendarContent from "./CalendarContent";
 import { GET_COMMENTS, GET_MEMBER } from "@/apollo/user/query";
+import { CREATE_COMMENT, UPDATE_COMMENT } from "@/apollo/user/mutation";
 import { Member } from "@/libs/types/member/member";
 import { Comment } from "@/libs/types/comment/comment";
+import { CommentGroup, CommentStatus } from "@/libs/enums/comment.enum";
 import { getImageUrl } from "@/libs/imageHelper";
-import { Box, Button } from "@mui/material";
+import { Box, Button, IconButton, Stack, TextField, Pagination } from "@mui/material";
 import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import XIcon from '@mui/icons-material/X';
+import Moment from "react-moment";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { sweetConfirmAlert, sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
+import { userVar } from "@/apollo/store";
 
-
-interface Review {
-  name: string;
-  initial: string;
-  rating: number;
-  comment: string;
-}
 
 const DoctorProfileContent = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedSlot, setSelectedSlot] = useState("");
+  const [commentText, setCommentText] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [showAllComments, setShowAllComments] = useState(false);
+  const [commentsPage, setCommentsPage] = useState(1);
   const router = useRouter();
+  const user = useReactiveVar(userVar);
 
   const doctorId = useMemo(() => {
     const rawId = router.query?.id;
@@ -55,7 +60,7 @@ const DoctorProfileContent = () => {
     return "";
   }, [router.asPath, router.query]);
 
-  const { data: memberData } = useQuery(GET_MEMBER, {
+  const { data: memberData, refetch: refetchDoctor } = useQuery(GET_MEMBER, {
     variables: { targetId: doctorId },
     skip: !doctorId,
     fetchPolicy: "cache-and-network",
@@ -72,11 +77,11 @@ const DoctorProfileContent = () => {
 
   const clinic = clinicData?.getMember as Member | undefined;
 
-  const { data: commentsData } = useQuery(GET_COMMENTS, {
+  const { data: commentsData, refetch: refetchComments } = useQuery(GET_COMMENTS, {
     variables: {
       input: {
-        page: 1,
-        limit: 8,
+        page: showAllComments ? commentsPage : 1,
+        limit: showAllComments ? 6 : 3,
         sort: "createdAt",
         direction: "DESC",
         search: {
@@ -88,11 +93,22 @@ const DoctorProfileContent = () => {
     fetchPolicy: "cache-and-network",
   });
 
+  const [createComment, { loading: commentSubmitting }] = useMutation(CREATE_COMMENT);
+  const [updateComment, { loading: commentUpdating }] = useMutation(UPDATE_COMMENT);
+
+  const activeComments = useMemo(() => {
+    const comments = (commentsData?.getComments?.list ?? []) as Comment[];
+    return comments.filter((comment) => comment.commentStatus !== CommentStatus.DELETE);
+  }, [commentsData]);
+  const commentsTotal = commentsData?.getComments?.metaCounter?.[0]?.total ?? 0;
+  const commentsLimit = showAllComments ? 6 : 3;
+  const commentsTotalPages = Math.max(1, Math.ceil(commentsTotal / commentsLimit));
+
   const doctorName = doctor?.memberFullName || doctor?.memberNick || "";
   const doctorTitle = doctor?.specialization ? `MD, ${doctor.specialization}` : "";
   const doctorSpecialty = doctor?.specialization || "";
   const ratingValue = Math.min(5, Math.max(0, doctor?.memberLikes ?? 0));
-  const reviewsCount = doctor?.memberComments ?? 0;
+  const reviewsCount = commentsTotal;
   const reviewsTotalCount = reviewsCount.toLocaleString();
   const profileImage = doctor?.memberImage
     ? getImageUrl(doctor.memberImage)
@@ -102,24 +118,6 @@ const DoctorProfileContent = () => {
   const clinicLocation = clinic?.location
     ? clinic.location.replace(/_/g, " ")
     : "";
-
-  const reviewsList = useMemo<Review[]>(() => {
-    const comments = (commentsData?.getComments?.list ?? []) as Comment[];
-    return comments.map((comment) => {
-      const reviewerName =
-        comment.memberData?.memberFullName ||
-        comment.memberData?.memberNick ||
-        "Patient";
-      const initial = reviewerName.charAt(0).toUpperCase() || "P";
-
-      return {
-        name: reviewerName,
-        initial,
-        rating: ratingValue,
-        comment: comment.commentContent,
-      };
-    });
-  }, [commentsData, ratingValue]);
 
   const handleTabClick = (index: number) => {
     setActiveTab(index);
@@ -143,6 +141,88 @@ const DoctorProfileContent = () => {
         time: selectedSlot,
       },
     });
+  };
+
+  const handleSubmitComment = async () => {
+    const trimmed = commentText.trim();
+    if (!user?._id) {
+      await sweetMixinErrorAlert("Please log in to leave a review.");
+      return;
+    }
+    if (!trimmed) {
+      await sweetMixinErrorAlert("Please enter your review.");
+      return;
+    }
+    if (!doctorId) {
+      await sweetMixinErrorAlert("Doctor not found.");
+      return;
+    }
+
+    try {
+      if (editingCommentId) {
+        await updateComment({
+          variables: {
+            input: {
+              _id: editingCommentId,
+              commentContent: trimmed,
+            },
+          },
+        });
+        await sweetMixinSuccessAlert("Review updated.");
+      } else {
+        await createComment({
+          variables: {
+            input: {
+              commentGroup: CommentGroup.MEMBER,
+              commentContent: trimmed,
+              commentRefId: doctorId,
+            },
+          },
+        });
+        await sweetMixinSuccessAlert("Review submitted.");
+      }
+      setCommentText("");
+      setEditingCommentId(null);
+      await Promise.all([refetchComments(), refetchDoctor()]);
+    } catch (error: any) {
+      const message =
+        error?.graphQLErrors?.[0]?.message ||
+        error?.message ||
+        "Failed to submit review.";
+      await sweetMixinErrorAlert(message);
+    }
+  };
+
+  const handleEditComment = (comment: Comment) => {
+    setEditingCommentId(comment._id);
+    setCommentText(comment.commentContent);
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      const confirmed = await sweetConfirmAlert("Delete this review?");
+      if (!confirmed) return;
+      await updateComment({
+        variables: {
+          input: {
+            _id: commentId,
+            commentStatus: CommentStatus.DELETE,
+          },
+        },
+      });
+      if (editingCommentId === commentId) {
+        setEditingCommentId(null);
+        setCommentText("");
+      }
+      await Promise.all([refetchComments(), refetchDoctor()]);
+      await sweetMixinSuccessAlert("Review deleted.");
+    } catch (error: any) {
+      const message =
+        error?.graphQLErrors?.[0]?.message ||
+        error?.message ||
+        "Failed to delete review.";
+      await sweetMixinErrorAlert(message);
+    }
   };
 
   // Function to render star ratings
@@ -288,42 +368,146 @@ const DoctorProfileContent = () => {
                           onSelectionChange={handleSelectionChange}
                         />
                         <div className="availability-reviews">
-                          <h3>
-                            Reviews{" "}
-                            <span>
-                              ⭐{" "}
-                              <strong>{ratingValue}</strong> ({reviewsTotalCount}{" "}
-                              patient reviews)
-                            </span>
-                          </h3>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                            <h3>
+                              Reviews{" "}
+                              <span>
+                                ⭐{" "}
+                                <strong>{ratingValue}</strong> ({reviewsTotalCount}{" "}
+                                patient reviews)
+                              </span>
+                            </h3>
+                            {commentsTotal > 3 && !showAllComments && (
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => {
+                                  setShowAllComments(true);
+                                  setCommentsPage(1);
+                                }}
+                              >
+                                Show all
+                              </Button>
+                            )}
+                            {showAllComments && (
+                              <Button
+                                variant="text"
+                                size="small"
+                                onClick={() => {
+                                  setShowAllComments(false);
+                                  setCommentsPage(1);
+                                }}
+                              >
+                                Show less
+                              </Button>
+                            )}
+                          </div>
                           <div className="row justify-content-center g-4">
-                            {reviewsList.map((review, index) => (
-                              <div className="col-lg-6 col-md-6" key={index}>
-                                <div className="review-item">
-                                  <div className="top">
-                                    <div className="title">
-                                      <h2>{review.initial}</h2>
-                                    </div>
-                                    <div className="content">
-                                      <h4>{review.name}</h4>
-                                      <ul className="list">
-                                        {renderStars(review.rating).map(
-                                          (star, i) => (
+                            {activeComments.map((comment) => {
+                              const reviewerName =
+                                comment.memberData?.memberFullName ||
+                                comment.memberData?.memberNick ||
+                                "Patient";
+                              const initial = reviewerName.charAt(0).toUpperCase() || "P";
+
+                              return (
+                                <div className="col-lg-6 col-md-6" key={comment._id}>
+                                  <div className="review-item">
+                                    <div className="top" style={{ justifyContent: "space-between" }}>
+                                      <div className="title">
+                                        <h2>{initial}</h2>
+                                      </div>
+                                      <div className="content">
+                                        <h4>{reviewerName}</h4>
+                                        <p style={{ margin: 0, color: "#5A6A85", fontSize: "13px" }}>
+                                          <Moment format="YYYY.MM.DD hh:mm A">{comment.createdAt}</Moment>
+                                        </p>
+                                        <ul className="list">
+                                          {renderStars(ratingValue).map((star, i) => (
                                             <li key={i}>{star}</li>
-                                          )
-                                        )}
-                                      </ul>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                      {user?._id && comment.memberId === user._id && (
+                                        <Stack direction="row" spacing={1}>
+                                          <IconButton
+                                            size="small"
+                                            aria-label="Edit review"
+                                            onClick={() => handleEditComment(comment)}
+                                          >
+                                            <EditIcon fontSize="small" />
+                                          </IconButton>
+                                          <IconButton
+                                            size="small"
+                                            aria-label="Delete review"
+                                            onClick={() => handleDeleteComment(comment._id)}
+                                          >
+                                            <DeleteIcon fontSize="small" />
+                                          </IconButton>
+                                        </Stack>
+                                      )}
                                     </div>
+                                    <p>{comment.commentContent}</p>
                                   </div>
-                                  <p>{review.comment}</p>
                                 </div>
-                              </div>
-                            ))}
-                            {reviewsList.length === 0 && (
+                              );
+                            })}
+                            {activeComments.length === 0 && (
                               <div className="col-lg-12">
                                 <p>No reviews available yet.</p>
                               </div>
                             )}
+                          </div>
+                          {showAllComments && commentsTotalPages > 1 && (
+                            <Stack direction="row" justifyContent="center" sx={{ mt: 2 }}>
+                              <Pagination
+                                count={commentsTotalPages}
+                                page={commentsPage}
+                                onChange={(_, page) => setCommentsPage(page)}
+                                shape="rounded"
+                                variant="outlined"
+                              />
+                            </Stack>
+                          )}
+
+                          <div style={{ marginTop: "24px" }}>
+                            <h4 style={{ marginBottom: "12px" }}>
+                              {editingCommentId ? "Edit your review" : "Write a review"}
+                            </h4>
+                            <TextField
+                              fullWidth
+                              multiline
+                              rows={4}
+                              placeholder="Write your review..."
+                              value={commentText}
+                              onChange={(event) => setCommentText(event.target.value)}
+                            />
+                            <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                              <Button
+                                variant="contained"
+                                onClick={handleSubmitComment}
+                                disabled={commentSubmitting || commentUpdating}
+                              >
+                                {editingCommentId
+                                  ? commentUpdating
+                                    ? "Updating..."
+                                    : "Update Review"
+                                  : commentSubmitting
+                                    ? "Submitting..."
+                                    : "Post Review"}
+                              </Button>
+                              {editingCommentId && (
+                                <Button
+                                  variant="outlined"
+                                  onClick={() => {
+                                    setEditingCommentId(null);
+                                    setCommentText("");
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                              )}
+                            </Stack>
                           </div>
                         </div>
                       </div>
