@@ -72,10 +72,6 @@ const BlogClassic = (props: BlogClassicProps) => {
     fetchPolicy: "cache-and-network",
     variables: { input: searchArticles },
     notifyOnNetworkStatusChange: true,
-		onCompleted: (data: T) => {
-			setArticles(data?.getArticles?.list);
-			setTotalCount(data?.getArticles?.metaCounter[0]?.total)
-		}
   });
 
 	/** LIFECYCLES **/
@@ -103,6 +99,11 @@ const BlogClassic = (props: BlogClassicProps) => {
       }));
     }
   }, [articleCategory]);
+
+  useEffect(() => {
+    setArticles(getArticlesData?.getArticles?.list || []);
+    setTotalCount(getArticlesData?.getArticles?.metaCounter?.[0]?.total || 0);
+  }, [getArticlesData]);
 
 
   /** HANDLERS **/

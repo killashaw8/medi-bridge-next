@@ -2,6 +2,9 @@
 const nextConfig = {
 	reactStrictMode: true,
 	devIndicators: false,
+	turbopack: {
+		root: __dirname,
+	},
 	images: {
 		remotePatterns: [
 			{

@@ -39,10 +39,11 @@ const TopDoctors = (props: TopDoctorsProps = {}) => {
     fetchPolicy: "cache-and-network",
     variables: { input: queryInput },
     notifyOnNetworkStatusChange: true,
-    onCompleted: (data: T) => {
-      setTopDoctors(data?.getDoctors?.list || []);
-    },
   });
+
+  useEffect(() => {
+    setTopDoctors(getDoctorsData?.getDoctors?.list || []);
+  }, [getDoctorsData]);
 
   // Fetch clinic names for all unique clinic IDs
   const uniqueClinicIds = useMemo(() => {

@@ -1,32 +1,5 @@
-// Required
-@import "bootstrap/scss/functions";
-
-// Default variable overrides
-@import "./variables";
-
-@import "bootstrap/scss/variables";
-@import "bootstrap/scss/variables-dark";
-@import "bootstrap/scss/mixins";
-
-// Create your own map
-$custom-colors: (
-  "paragraph": $bodyTextColor,
-  "primary": $primary,
-);
-
-// Merge the maps
-$theme-colors: map-merge($theme-colors, $custom-colors);
-
-// Required
-@import "bootstrap/scss/maps";
-@import "bootstrap/scss/root";
-
-// Optional Bootstrap components here
-@import "bootstrap/scss/reboot";
-@import "bootstrap/scss/type";
-
-// Required
-@import "bootstrap/scss/bootstrap";
+@use "sass:color";
+@use "./variables" as *;
 
 
 /*
@@ -1793,7 +1766,7 @@ Services Area CSS
 Doctors Area CSS
 =================================================*/
 .doctors-area {
-  background-color: $white;
+  background-color: $whiteColor;
   margin: 0 20px;
   overflow: hidden;
   border-radius: 40px;
@@ -2098,7 +2071,7 @@ Work Area CSS
 Feedback Area CSS
 =================================================*/
 .feedback-area {
-  background-color: $white;
+  background-color: $whiteColor;
   margin: 0 20px;
   overflow: hidden;
   border-radius: 40px;
@@ -4125,7 +4098,7 @@ Insurance Information Area CSS
 Appointment Area CSS
 =================================================*/
 .appointment-form-inner {
-  background-color: $white;
+  background-color: $whiteColor;
   padding: 60px;
   max-width: 855px;
   margin: auto;
@@ -6512,7 +6485,7 @@ Chatting Area Area CSS
       justify-content: center;
       align-items: center;
       border-bottom: 1px solid $dawn-pinkColor;
-      background: linear-gradient(135deg, $primary 0%, lighten($primary, 10%) 100%);
+      background: linear-gradient(135deg, $primary 0%, color.adjust($primary, $lightness: 10%) 100%);
       color: $whiteColor;
       font-size: 18px;
       font-weight: 600;
@@ -6543,7 +6516,7 @@ Chatting Area Area CSS
         border-radius: 3px;
 
         &:hover {
-          background: darken($dawn-pinkColor, 10%);
+          background: color.adjust($dawn-pinkColor, $lightness: -10%);
         }
       }
 
@@ -6656,7 +6629,7 @@ Chatting Area Area CSS
         flex-shrink: 0;
 
         &:hover:not(:disabled) {
-          background: darken($primary, 5%);
+          background: color.adjust($primary, $lightness: -5%);
           transform: scale(1.05);
           box-shadow: 0px 4px 8px 0px rgba(51, 106, 234, 0.3);
         }

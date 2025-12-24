@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { NextPage } from "next";
+import { GetStaticProps, NextPage } from "next";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import Moment from "react-moment";
@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import PageBanner from "@/libs/components/layout/PageBanner";
 import withLayoutBasic from "@/libs/components/layout/LayoutBasic";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { GET_COMMENTS, GET_MEMBER } from "@/apollo/user/query";
 import { CREATE_COMMENT } from "@/apollo/user/mutation";
 import { Member } from "@/libs/types/member/member";
@@ -300,3 +301,11 @@ const ClinicDetails: NextPage = () => {
 };
 
 export default withLayoutBasic(ClinicDetails);
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale || "en", ["common"])),
+    },
+  };
+};
