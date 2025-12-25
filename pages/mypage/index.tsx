@@ -114,6 +114,10 @@ const MyPage: NextPage = () => {
               setEditingArticleId(null);
               handleSectionChange("my-articles");
             }}
+            onCancel={() => {
+              setEditingArticleId(null);
+              handleSectionChange("my-articles");
+            }}
           />
         );
       case "my-products":

@@ -108,6 +108,7 @@ const Navbar = () => {
   const handleLogout = () => {
     setLogoutAnchor(null);
     logOut();
+    router.push("/");
   };
 
   // Get user image URL

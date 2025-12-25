@@ -24,18 +24,22 @@ if (typeof window !== 'undefined') {
 interface WriteArticleProps {
   articleId?: string;
   onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => {
+const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const editorRef = useRef<any>(null); // Direct ref to Editor (like nestar-next)
   const router = useRouter();
+  const pendingBlobUrlsRef = useRef<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     articleCategory: ArticleCategory.BLOG,
     articleTitle: "",
     articleContent: "",
     articleImage: "",
   });
+  const [pendingImages, setPendingImages] = useState<{ file: File; blobUrl: string }[]>([]);
+  const pendingUploadCount = pendingImages.length;
 
   const isEditing = !!articleId;
 
@@ -66,6 +70,35 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
       }
     }
   }, [articleData]);
+
+  const resetFormState = () => {
+    pendingBlobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    pendingBlobUrlsRef.current.clear();
+    setPendingImages([]);
+    setFormData({
+      articleCategory: ArticleCategory.BLOG,
+      articleTitle: "",
+      articleContent: "",
+      articleImage: "",
+    });
+    const instance = editorRef.current?.getInstance?.();
+    if (instance) {
+      instance.setHTML("");
+    }
+  };
+
+  useEffect(() => {
+    if (!articleId && !articleLoading) {
+      resetFormState();
+    }
+  }, [articleId, articleLoading]);
+
+  useEffect(() => {
+    return () => {
+      pendingBlobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      pendingBlobUrlsRef.current.clear();
+    };
+  }, []);
 
   const [createArticle] = useMutation(CREATE_ARTICLE);
   const [updateArticle] = useMutation(UPDATE_ARTICLE);
@@ -115,13 +148,7 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
 
       const responseImage = response.data.data.imageUploader;
       const fullUrl = `${REACT_APP_API_URL}${responseImage}`;
-      
-      // Update article image in formData (for preview)
-      setFormData((prev) => ({
-        ...prev,
-        articleImage: fullUrl,
-      }));
-      
+
       return fullUrl;
     } catch (err) {
       console.log('Error, uploadImage:', err);
@@ -157,10 +184,33 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
         return;
       }
 
+      let updatedContent = articleContent;
+      const pendingUploads = pendingImages.filter((image) =>
+        updatedContent.includes(image.blobUrl),
+      );
+
+      for (const image of pendingUploads) {
+        const uploadedUrl = await uploadImage(image.file);
+        updatedContent = updatedContent.split(image.blobUrl).join(uploadedUrl);
+        if (pendingBlobUrlsRef.current.has(image.blobUrl)) {
+          URL.revokeObjectURL(image.blobUrl);
+          pendingBlobUrlsRef.current.delete(image.blobUrl);
+        }
+      }
+
+      if (pendingUploads.length) {
+        setPendingImages((prev) =>
+          prev.filter((entry) => !pendingUploads.some((upload) => upload.blobUrl === entry.blobUrl)),
+        );
+      }
+
       // Extract first image from content if articleImage is not set
       let articleImage = formData.articleImage || "";
-      if (!articleImage) {
-        articleImage = extractFirstImageFromContent(articleContent);
+      const firstImage = extractFirstImageFromContent(updatedContent);
+      if (firstImage) {
+        articleImage = firstImage;
+      } else if (articleImage.startsWith("blob:") || articleImage.startsWith("data:")) {
+        articleImage = "";
       }
 
       if (isEditing) {
@@ -168,7 +218,7 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
           _id: articleId!,
           articleCategory: formData.articleCategory as ArticleCategory,
           articleTitle: formData.articleTitle.trim(),
-          articleContent: articleContent.trim(),
+          articleContent: updatedContent.trim(),
           articleImage: articleImage || undefined,
         };
         await updateArticle({
@@ -179,7 +229,7 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
         const createInput: ArticleInput = {
           articleCategory: formData.articleCategory as ArticleCategory,
           articleTitle: formData.articleTitle.trim(),
-          articleContent: articleContent.trim(),
+          articleContent: updatedContent.trim(),
           articleImage: articleImage || undefined,
         };
         await createArticle({
@@ -199,6 +249,15 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    resetFormState();
+    if (onCancel) {
+      onCancel();
+      return;
+    }
+    router.back();
   };
 
   if (articleLoading) {
@@ -301,7 +360,9 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
                   {formData.articleImage ? (
                     <img
                       src={
-                        formData.articleImage.startsWith("http")
+                        formData.articleImage.startsWith("http") ||
+                        formData.articleImage.startsWith("blob:") ||
+                        formData.articleImage.startsWith("data:")
                           ? formData.articleImage
                           : getImageUrl(formData.articleImage)
                       }
@@ -346,24 +407,20 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
                       hooks={{
                         addImageBlobHook: async (image: any, callback: any) => {
                           try {
-                            const uploadedImageURL = await uploadImage(image);
-                            callback(uploadedImageURL);
+                            const blobUrl = URL.createObjectURL(image);
+                            pendingBlobUrlsRef.current.add(blobUrl);
+                            setPendingImages((prev) => [...prev, { file: image, blobUrl }]);
+                            callback(blobUrl);
 
-                            // Normalize preview URL (api already returns full URL, but guard just in case)
-                            const previewUrl = uploadedImageURL.startsWith('http')
-                              ? uploadedImageURL
-                              : `${REACT_APP_API_URL}/${uploadedImageURL}`;
-
-                            // Update preview immediately when image is uploaded
                             setFormData((prev) => ({
                               ...prev,
-                              articleImage: previewUrl,
+                              articleImage: prev.articleImage || blobUrl,
                             }));
-                            
+
                             return false;
                           } catch (error) {
                             console.error('Image upload failed:', error);
-                            await sweetMixinErrorAlert('Failed to upload image. Please try again.');
+                            await sweetMixinErrorAlert('Failed to add image preview. Please try again.');
                           }
                         },
                       }}
@@ -387,7 +444,31 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
             </div>
           </div>
 
-          <div className="form-actions" style={{ marginTop: "30px", display: "flex", justifyContent: "flex-end", gap: "15px" }}>
+          <div
+            className="form-actions"
+            style={{ marginTop: "30px", display: "flex", justifyContent: "flex-end", gap: "15px" }}
+          >
+            {pendingUploadCount > 0 && (
+              <Box
+                sx={{
+                  alignSelf: "center",
+                  color: "text.secondary",
+                  fontSize: "0.9rem",
+                  mr: "auto",
+                }}
+              >
+                Pending image uploads: {pendingUploadCount}
+              </Box>
+            )}
+            <Button
+              type="button"
+              variant="contained"
+              disabled={loading}
+              onClick={handleCancel}
+              color="error"
+            >
+              Cancel
+            </Button>
             <Button
               type="submit"
               variant="contained"
@@ -405,7 +486,7 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess }) => 
                 minWidth: '150px',
               }}
             >
-              {loading ? (isEditing ? "Updating..." : "Publishing...") : (isEditing ? "Update Article" : "Publish Article")}
+              {loading ? (isEditing ? "UPDATING..." : "PUBLISHING...") : (isEditing ? "UPDATE ARTICLE" : "PUBLISH ARTICLE")}
             </Button>
           </div>
         </form>
