@@ -43,3 +43,9 @@ export interface DoctorSlotsInput {
   doctorId: string;
   date: string;
 }
+
+export interface HoldSlotInput {
+  doctorId: string;
+  date: string;
+  time: AppointmentTime;
+}

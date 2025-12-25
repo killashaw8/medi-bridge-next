@@ -90,16 +90,6 @@ const footerData: FooterData = {
       ],
     },
     {
-      title: "Services",
-      links: [
-        { text: "General Medical", url: "/services/details" },
-        { text: "Mental Health", url: "/services/details" },
-        { text: "Dermatology", url: "/services/details" },
-        { text: "Pediatrics", url: "/services/details" },
-        { text: "Chronic Care", url: "/services/details" },
-      ],
-    },
-    {
       title: "Support",
       links: [
         { text: "FAQs", url: "/faq" },

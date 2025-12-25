@@ -441,6 +441,18 @@ export const RESCHEDULE_APPOINTMENT = gql`
   }
 `;
 
+export const HOLD_APPOINTMENT_SLOT = gql`
+  mutation HoldAppointmentSlot($input: HoldSlotInput!) {
+    holdAppointmentSlot(input: $input)
+  }
+`;
+
+export const RELEASE_APPOINTMENT_SLOT = gql`
+  mutation ReleaseAppointmentSlot($input: HoldSlotInput!) {
+    releaseAppointmentSlot(input: $input)
+  }
+`;
+
 
 /**************************
  *         ARTICLE        *

@@ -24,7 +24,7 @@ const CalendarContent: React.FC<CalendarContentProps> = ({
   const [selectedSlot, setSelectedSlot] = useState("");
   const [isMounted, setIsMounted] = useState(false);
 
-  const { data: slotsData, loading: slotsLoading } = useQuery(
+  const { data: slotsData, loading: slotsLoading, refetch: refetchSlots } = useQuery(
     GET_AVAILABLE_SLOTS,
     {
       variables: {
@@ -245,7 +245,24 @@ const CalendarContent: React.FC<CalendarContentProps> = ({
         </div>
 
         <div className="time-slots">
-          <h4 id="time-title">{timeTitle}</h4>
+          <div className="time-title-row" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <h4 id="time-title" style={{ margin: 0 }}>{timeTitle}</h4>
+            <button
+              type="button"
+              onClick={() => refetchSlots()}
+              disabled={!doctorId || !selectedDate || slotsLoading}
+              style={{
+                border: "1px solid #cfd7e3",
+                borderRadius: 6,
+                padding: "4px 10px",
+                background: "white",
+                cursor: "pointer",
+                fontSize: "0.85rem",
+              }}
+            >
+              Refresh
+            </button>
+          </div>
           <div className="slots" id="slots">
             {!isMounted && <div className="slot" />}
             {isMounted && !doctorId && (

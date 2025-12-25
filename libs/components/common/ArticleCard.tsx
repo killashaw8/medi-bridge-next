@@ -107,6 +107,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       {showActions === "manage" && canManage && (
         <CardActions>
           <Button
+            variant="contained"
             startIcon={<EditIcon />}
             onClick={(e) => {
               e.stopPropagation();
@@ -116,6 +117,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             Edit
           </Button>
           <Button
+            variant="contained"
             endIcon={<DeleteIcon />}
             color="error"
             onClick={(e) => {

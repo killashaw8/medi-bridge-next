@@ -3,7 +3,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useMutation, useQuery } from "@apollo/client";
-import { BOOK_APPOINTMENT, RESCHEDULE_APPOINTMENT } from "@/apollo/user/mutation";
+import {
+  BOOK_APPOINTMENT,
+  HOLD_APPOINTMENT_SLOT,
+  RELEASE_APPOINTMENT_SLOT,
+  RESCHEDULE_APPOINTMENT,
+} from "@/apollo/user/mutation";
 import { GET_APPOINTMENT, GET_APPOINTMENTS, GET_DOCTORS, GET_AVAILABLE_SLOTS, GET_MEMBER } from "@/apollo/user/query";
 import { AppointmentStatus, AppointmentTime, AppointmentType, Location } from "@/libs/enums/appointment.enum";
 import { DoctorSpecialization } from "@/libs/enums/member.enum";
@@ -21,7 +26,6 @@ import {
   Grid, 
   Typography, 
   Box, 
-  Stack,
   Chip,
   CircularProgress
 } from "@mui/material";
@@ -29,8 +33,7 @@ import { getImageUrl } from "@/libs/imageHelper";
 import { useApolloClient } from "@apollo/client";
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BusinessIcon from '@mui/icons-material/Business';
-import { AppointmentsInquiry } from "@/libs/types/appointment/appointment.input";
-import { Direction } from "@/libs/enums/common.enum";
+import { AppointmentsInquiry, HoldSlotInput } from "@/libs/types/appointment/appointment.input";
 import { Appointment } from "@/libs/types/appointment/appointment";
 
 interface Slot {
@@ -102,9 +105,9 @@ const BookAppointment = () => {
 
     return {
       page: 1,
-      limit: 100,
+      limit: 6,
       sort: "createdAt",
-      direction: Direction.DESC,
+      direction: "DESC",
       patientId: user._id,
     };
   }, [user?._id]);
@@ -454,6 +457,9 @@ const BookAppointment = () => {
   // Book appointment mutation
   const [bookAppointment] = useMutation(BOOK_APPOINTMENT);
   const [rescheduleAppointment] = useMutation(RESCHEDULE_APPOINTMENT);
+  const [holdSlot] = useMutation(HOLD_APPOINTMENT_SLOT);
+  const [releaseSlot] = useMutation(RELEASE_APPOINTMENT_SLOT);
+  const heldSlotRef = useRef<HoldSlotInput | null>(null);
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedLocation(e.target.value as Location | "");
@@ -464,6 +470,10 @@ const BookAppointment = () => {
   };
 
   const handleDoctorSelect = (doctor: Member) => {
+    if (heldSlotRef.current) {
+      void releaseSlot({ variables: { input: heldSlotRef.current } });
+      heldSlotRef.current = null;
+    }
     // If clicking the same doctor, unselect them
     if (selectedDoctor?._id === doctor._id) {
       setSelectedDoctor(null);
@@ -475,19 +485,102 @@ const BookAppointment = () => {
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nextDate = e.target.value;
+    if (nextDate) {
+      const [year, month, day] = nextDate.split("-").map((value) => Number(value));
+      const nextDateObj = new Date(year, month - 1, day);
+      const dayOfWeek = nextDateObj.getDay();
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        void sweetMixinErrorAlert("Weekends are non-working days. Please select a weekday.");
+        return;
+      }
+    }
+    if (heldSlotRef.current) {
+      void releaseSlot({ variables: { input: heldSlotRef.current } });
+      heldSlotRef.current = null;
+    }
     setFormData(prev => ({
       ...prev,
-      date: e.target.value,
+      date: nextDate,
       time: "" as AppointmentTime | "", // Reset time when date changes
     }));
   };
 
-  const handleTimeSlotSelect = (time: AppointmentTime) => {
-    setFormData(prev => ({
-      ...prev,
-      time: time,
-    }));
+  const handleTimeSlotSelect = async (time: AppointmentTime) => {
+    if (isWeekendDate) {
+      await sweetMixinErrorAlert("Weekends are non-working days. Please select a weekday.");
+      return;
+    }
+    if (!user?._id) {
+      await sweetMixinErrorAlert("Please login to reserve a slot.");
+      router.push("/login");
+      return;
+    }
+    if (!selectedDoctor?._id || !formData.date) {
+      await sweetMixinErrorAlert("Please select a doctor and date first.");
+      return;
+    }
+
+    const nextHold: HoldSlotInput = {
+      doctorId: selectedDoctor._id,
+      date: formData.date,
+      time,
+    };
+
+    if (
+      heldSlotRef.current &&
+      heldSlotRef.current.doctorId === nextHold.doctorId &&
+      heldSlotRef.current.date === nextHold.date &&
+      heldSlotRef.current.time === nextHold.time
+    ) {
+      setFormData(prev => ({ ...prev, time }));
+      return;
+    }
+
+    try {
+      if (heldSlotRef.current) {
+        await releaseSlot({ variables: { input: heldSlotRef.current } });
+        heldSlotRef.current = null;
+      }
+      await holdSlot({ variables: { input: nextHold } });
+      heldSlotRef.current = nextHold;
+      setFormData(prev => ({ ...prev, time }));
+    } catch (error) {
+      console.error("Hold slot error:", error);
+      await sweetMixinErrorAlert("This slot is temporarily unavailable. Please choose another.");
+      await refetchSlots();
+    }
   };
+
+  useEffect(() => {
+    if (!user?._id || !selectedDoctor?._id || !formData.date || !formData.time) {
+      return;
+    }
+    const nextHold: HoldSlotInput = {
+      doctorId: selectedDoctor._id,
+      date: formData.date,
+      time: formData.time as AppointmentTime,
+    };
+    if (
+      heldSlotRef.current &&
+      heldSlotRef.current.doctorId === nextHold.doctorId &&
+      heldSlotRef.current.date === nextHold.date &&
+      heldSlotRef.current.time === nextHold.time
+    ) {
+      return;
+    }
+    (async () => {
+      try {
+        await holdSlot({ variables: { input: nextHold } });
+        heldSlotRef.current = nextHold;
+      } catch (error) {
+        console.error("Auto-hold slot error:", error);
+        setFormData(prev => ({ ...prev, time: "" as AppointmentTime | "" }));
+        await sweetMixinErrorAlert("This slot is temporarily unavailable. Please choose another.");
+        await refetchSlots();
+      }
+    })();
+  }, [user?._id, selectedDoctor?._id, formData.date, formData.time, holdSlot, refetchSlots]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -582,6 +675,7 @@ const BookAppointment = () => {
           },
         });
         if (result.data?.rescheduleAppointment) {
+          heldSlotRef.current = null;
           await sweetMixinSuccessAlert("Appointment rescheduled successfully!");
           router.push("/bookAppointment/thank-you");
         }
@@ -602,6 +696,7 @@ const BookAppointment = () => {
         });
 
         if (result.data?.bookAppointment) {
+          heldSlotRef.current = null;
           await sweetMixinSuccessAlert("Appointment booked successfully!");
           router.push("/bookAppointment/thank-you");
         }
@@ -635,6 +730,10 @@ const BookAppointment = () => {
       (doctor) => doctor._id === selectedDoctor._id
     );
     if (!stillVisible) {
+      if (heldSlotRef.current) {
+        void releaseSlot({ variables: { input: heldSlotRef.current } });
+        heldSlotRef.current = null;
+      }
       setSelectedDoctor(null);
       setFormData(prev => ({ ...prev, date: "", time: "" as AppointmentTime | "" }));
     }
@@ -645,6 +744,21 @@ const BookAppointment = () => {
   
   // Specialization options
   const specializationOptions = Object.values(DoctorSpecialization);
+
+  const formattedDateLabel = useMemo(() => {
+    if (!formData.date) return "";
+    const [year, month, day] = formData.date.split("-");
+    if (!year || !month || !day) return "";
+    return `${year}.${month}.${day}`;
+  }, [formData.date]);
+
+  const isWeekendDate = useMemo(() => {
+    if (!formData.date) return false;
+    const [year, month, day] = formData.date.split("-").map((value) => Number(value));
+    const dateObj = new Date(year, month - 1, day);
+    const dayOfWeek = dateObj.getDay();
+    return dayOfWeek === 0 || dayOfWeek === 6;
+  }, [formData.date]);
 
   return (
     <>
@@ -661,6 +775,7 @@ const BookAppointment = () => {
                     className="form-control form-select"
                     value={selectedLocation}
                     onChange={handleLocationChange}
+                    style={{ border: "1px solid #d0d5dd" }}
                   >
                     <option value="">All Locations</option>
                     {locationOptions.map((location) => (
@@ -678,6 +793,7 @@ const BookAppointment = () => {
                     className="form-control form-select"
                     value={selectedSpecialization}
                     onChange={handleSpecializationChange}
+                    style={{ border: "1px solid #d0d5dd" }}
                   >
                     <option value="">Select Specialization</option>
                     {specializationOptions.map((spec) => (
@@ -829,15 +945,41 @@ const BookAppointment = () => {
                         min={new Date().toISOString().split('T')[0]}
                         disabled={loading}
                         required
-                        style={{ height: '57px' }}
+                        style={{ height: '57px', border: "1px solid #d0d5dd" }}
                       />
+                      {formattedDateLabel && (
+                        <Typography variant="caption" sx={{ display: "block", mt: 0.5, color: "#6b7280" }}>
+                          Selected date: {formattedDateLabel}
+                        </Typography>
+                      )}
                     </div>
 
                     {/* Time Slots - Button Style */}
                     {formData.date && (
                       <div className="form-group">
-                        <label>Select Time Slot <span>(required)</span></label>
-                        {slotsQueryLoading ? (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <label>Select Time Slot <span>(required)</span></label>
+                          <Button
+                            size="small"
+                            variant="text"
+                            disabled={!slotsInput || slotsQueryLoading || isWeekendDate}
+                            onClick={() => refetchSlots()}
+                            sx={{ textTransform: "none" }}
+                          >
+                            Refresh
+                          </Button>
+                        </Box>
+                        {isWeekendDate ? (
+                          <Typography variant="body2" color="error" sx={{ padding: '10px' }}>
+                            Weekends are non-working days.
+                          </Typography>
+                        ) : slotsQueryLoading ? (
                           <Box sx={{ textAlign: 'center', padding: '20px' }}>
                             <CircularProgress size={24} />
                             <Typography variant="body2" sx={{ marginTop: 1 }}>
@@ -904,6 +1046,7 @@ const BookAppointment = () => {
                         onChange={handleChange}
                         disabled={loading}
                         required
+                        style={{ border: "1px solid #d0d5dd" }}
                       >
                         <option value={AppointmentType.ONLINE}>Online Consultation</option>
                         <option value={AppointmentType.OFFLINE}>In-Person Visit</option>
@@ -921,6 +1064,7 @@ const BookAppointment = () => {
                         onChange={handleChange}
                         disabled={loading}
                         rows={4}
+                        style={{ border: "1px solid #d0d5dd" }}
                       ></textarea>
                     </div>
 

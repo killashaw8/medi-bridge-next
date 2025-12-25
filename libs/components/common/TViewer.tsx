@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import { Box, Stack, CircularProgress } from '@mui/material';
+import DOMPurify from 'dompurify';
 
 interface TViewerProps {
 	content?: string;
@@ -35,10 +36,11 @@ const TViewer: React.FC<TViewerProps> = ({ content = '', className }) => {
 
 		// Prefer setHTML when available; fall back to markdown rendering
 		if (content) {
+			const sanitized = DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
 			if (typeof instance.setHTML === 'function') {
-				instance.setHTML(content);
+				instance.setHTML(sanitized);
 			} else if (typeof instance.setMarkdown === 'function') {
-				instance.setMarkdown(content);
+				instance.setMarkdown(sanitized);
 			}
 		} else if (typeof instance.setMarkdown === 'function') {
 			instance.setMarkdown('');
