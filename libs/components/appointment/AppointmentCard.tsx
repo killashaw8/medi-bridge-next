@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import { Appointment } from "@/libs/types/appointment/appointment";
 import { AppointmentStatus, AppointmentTime } from "@/libs/enums/appointment.enum";
 import { getImageUrl } from "@/libs/imageHelper";
-import { CANCEL_APPOINTMENT } from "@/apollo/user/mutation";
+import { CANCEL_APPOINTMENT, OPEN_CONVERSATION } from "@/apollo/user/mutation";
 import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
 import { Box, Button } from "@mui/material";
 import Link from "next/link";
@@ -24,6 +24,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   const [isCanceling, setIsCanceling] = useState(false);
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [cancelAppointment] = useMutation(CANCEL_APPOINTMENT);
+  const [openConversation] = useMutation(OPEN_CONVERSATION);
   const router = useRouter();
 
   const doctorName =
@@ -109,6 +110,25 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
     }
   };
 
+  const handleOpenChat = async () => {
+    if (!appointment?._id) return;
+    try {
+      const result = await openConversation({
+        variables: { input: { appointmentId: appointment._id } },
+      });
+      const conversationId = result.data?.openConversation?._id;
+      if (conversationId) {
+        await router.push(`/chat/${conversationId}`);
+      }
+    } catch (error: any) {
+      const message =
+        error?.graphQLErrors?.[0]?.message ||
+        error?.message ||
+        "Failed to open chat.";
+      await sweetMixinErrorAlert(message);
+    }
+  };
+
   return (
     <div className="doctor-card wrap2">
       <div className="image">
@@ -146,7 +166,8 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-around'
+            justifyContent: 'space-around',
+            gap: 1,
           }}
         >
           <Button
@@ -165,6 +186,14 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
             disabled={isCancelled || isCanceling}
           >
             Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={handleOpenChat}
+            disabled={isCancelled}
+          >
+            Chat
           </Button>
         </Box>
       </div>

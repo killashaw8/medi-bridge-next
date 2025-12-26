@@ -23,8 +23,12 @@ const GRAPHQL_HTTP_URL =
 	process.env.REACT_APP_API_GRAPHQL_URL ??
 	'http://localhost:5885/graphql';
 
+const defaultWsUrl = GRAPHQL_HTTP_URL.startsWith('https')
+	? GRAPHQL_HTTP_URL.replace(/^https/, 'wss')
+	: GRAPHQL_HTTP_URL.replace(/^http/, 'ws');
+
 const GRAPHQL_WS_URL =
-	process.env.NEXT_PUBLIC_API_WS ?? process.env.REACT_APP_API_WS ?? '';
+	process.env.NEXT_PUBLIC_API_WS ?? process.env.REACT_APP_API_WS ?? defaultWsUrl;
 
 let apolloClient: ApolloClient<NormalizedCacheObject> | undefined;
 

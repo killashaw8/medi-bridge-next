@@ -1,26 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Offcanvas from "react-bootstrap/Offcanvas";
 import { useRouter, withRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
 import { menus } from "./Menus";
-import { useReactiveVar } from "@apollo/client";
+import { useQuery, useReactiveVar } from "@apollo/client";
 import { cartVar, userVar } from "@/apollo/store";
-import { logOut, getJwtToken, updateUserInfo } from "@/libs/auth";
+import { logOut, getJwtToken, refreshTokens, updateUserInfo } from "@/libs/auth";
 import { Badge, Box, Button, IconButton, Menu, MenuItem, Typography } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import EmailIcon from '@mui/icons-material/Email';
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { getImageUrl } from "@/libs/imageHelper";
 import { useMemo } from 'react';
 import CheckoutPopover from "@/libs/components/order/CheckoutPopover";
+import { GET_CONVERSATIONS } from "@/apollo/user/query";
+import { ChatConversation } from "@/libs/types/chat/chat";
+import { io, Socket } from "socket.io-client";
+import jwtDecode from "jwt-decode";
 
 const Navbar = () => {
   const router = useRouter();
   const pathname = router.pathname;
   const user = useReactiveVar(userVar);
   const cartItems = useReactiveVar(cartVar);
+  const { data: conversationsData, refetch: refetchConversations } = useQuery(GET_CONVERSATIONS, {
+    skip: !user?._id,
+    fetchPolicy: "cache-and-network",
+  });
+  const socketRef = useRef<Socket | null>(null);
   const [logoutAnchor, setLogoutAnchor] = useState<null | HTMLElement>(null);
   const logoutOpen = Boolean(logoutAnchor);
   const [cartAnchor, setCartAnchor] = useState<null | HTMLElement>(null);
@@ -69,6 +79,73 @@ const Navbar = () => {
     setImageRefreshKey(Date.now());
     setNickRefreshKey(Date.now());
   }, [user]);
+
+  useEffect(() => {
+    if (!user?._id) return;
+    let cancelled = false;
+
+    const connect = async () => {
+      let token = getJwtToken();
+      if (token === "undefined" || token === "null") token = "";
+      if (!token) return;
+      token = token.replace(/^Bearer\s+/i, "");
+      if (token.split(".").length !== 3) return;
+      try {
+        const { exp } = jwtDecode<{ exp?: number }>(token);
+        if (exp && Date.now() >= exp * 1000) {
+          token = await refreshTokens();
+        }
+      } catch {
+        try {
+          token = await refreshTokens();
+        } catch {
+          return;
+        }
+      }
+      if (!token) return;
+      token = token.replace(/^Bearer\s+/i, "");
+      if (token.split(".").length !== 3) return;
+      if (cancelled) return;
+
+      const socketUrl =
+        process.env.NEXT_PUBLIC_API_SOCKET ??
+        process.env.NEXT_PUBLIC_API_URL ??
+        process.env.REACT_APP_API_URL ??
+        "http://localhost:5885";
+      const socket = io(socketUrl, {
+        auth: { token },
+        query: { token },
+        transports: ["websocket"],
+      });
+      socketRef.current = socket;
+
+      const handleMessage = (payload: { message?: { conversationId?: string } }) => {
+        if (!payload?.message?.conversationId) return;
+        void refetchConversations();
+      };
+      const handleRead = () => {
+        void refetchConversations();
+      };
+
+      socket.on("chat:message", handleMessage);
+      socket.on("chat:read", handleRead);
+
+      (socketRef.current as any).__cleanup = () => {
+        socket.off("chat:message", handleMessage);
+        socket.off("chat:read", handleRead);
+        socket.disconnect();
+      };
+    };
+
+    void connect();
+
+    return () => {
+      cancelled = true;
+      const cleanup = (socketRef.current as any)?.__cleanup;
+      if (cleanup) cleanup();
+      socketRef.current = null;
+    };
+  }, [user?._id, refetchConversations]);
 
   // Sticky navbar effect
   useEffect(() => {
@@ -139,6 +216,10 @@ const userImageUrl = useMemo(() => {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotal = cartItems.reduce(
     (sum, item) => sum + item.product.productPrice * item.quantity,
+    0
+  );
+  const chatUnreadCount = (conversationsData?.getConversations ?? []).reduce(
+    (sum: number, convo: ChatConversation) => sum + (convo.unreadCount ?? 0),
     0
   );
 
@@ -365,6 +446,17 @@ const userImageUrl = useMemo(() => {
                 </Box>
               </Menu>
             </div>
+            {isLoggedIn && (
+              <div className="option-item">
+                <Link href="/chat">
+                  <IconButton size="small" aria-label="Chat">
+                    <Badge color="error" badgeContent={chatUnreadCount}>
+                      <EmailIcon />
+                    </Badge>
+                  </IconButton>
+                </Link>
+              </div>
+            )}
             {isLoggedIn ? (
               // ✅ User is logged in - show profile image with menu
               <div className="option-item">
@@ -624,6 +716,19 @@ const userImageUrl = useMemo(() => {
                     </Link>
                   </div>
                 </>
+              )}
+              {isLoggedIn && (
+                <div className="option-item w-100">
+                  <Link
+                    href="/chat"
+                    className="login-btn d-flex align-items-center gap-2"
+                  >
+                    <Badge color="error" badgeContent={chatUnreadCount}>
+                      <EmailIcon />
+                    </Badge>
+                    <span>Chat</span>
+                  </Link>
+                </div>
               )}
             </div>
             

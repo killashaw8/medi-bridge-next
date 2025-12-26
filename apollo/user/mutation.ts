@@ -441,6 +441,89 @@ export const RESCHEDULE_APPOINTMENT = gql`
   }
 `;
 
+/******************************
+ *            CHAT            *
+ ******************************/
+
+export const OPEN_CONVERSATION = gql`
+  mutation OpenConversation($input: OpenConversationInput!) {
+    openConversation(input: $input) {
+      _id
+      appointmentId
+      doctorId
+      patientId
+      lastMessageText
+      lastMessageAt
+      unreadCount
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const SEND_CHAT_MESSAGE = gql`
+  mutation SendChatMessage($input: SendChatMessageInput!) {
+    sendChatMessage(input: $input) {
+      _id
+      conversationId
+      senderId
+      content
+      readBy
+      isDeleted
+      editedAt
+      deletedAt
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const UPDATE_CHAT_MESSAGE = gql`
+  mutation UpdateChatMessage($input: UpdateChatMessageInput!) {
+    updateChatMessage(input: $input) {
+      _id
+      conversationId
+      senderId
+      content
+      readBy
+      isDeleted
+      editedAt
+      deletedAt
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const DELETE_CHAT_MESSAGE = gql`
+  mutation DeleteChatMessage($input: DeleteChatMessageInput!) {
+    deleteChatMessage(input: $input) {
+      _id
+      conversationId
+      senderId
+      content
+      readBy
+      isDeleted
+      editedAt
+      deletedAt
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const PING_CHAT_PRESENCE = gql`
+  mutation PingChatPresence {
+    pingChatPresence
+  }
+`;
+
+export const MARK_CHAT_READ = gql`
+  mutation MarkChatRead($input: MarkChatReadInput!) {
+    markChatRead(input: $input)
+  }
+`;
+
 export const HOLD_APPOINTMENT_SLOT = gql`
   mutation HoldAppointmentSlot($input: HoldSlotInput!) {
     holdAppointmentSlot(input: $input)

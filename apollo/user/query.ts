@@ -474,6 +474,67 @@ export const GET_APPOINTMENT = gql`
   }
 `;
 
+/******************************
+ *            CHAT            *
+ ******************************/
+
+export const GET_CONVERSATIONS = gql`
+  query GetConversations {
+    getConversations {
+      _id
+      appointmentId
+      doctorId
+      patientId
+      doctor {
+        _id
+        memberNick
+        memberFullName
+        memberImage
+      }
+      patient {
+        _id
+        memberNick
+        memberFullName
+        memberImage
+      }
+      lastMessageText
+      lastMessageAt
+      unreadCount
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_CHAT_MESSAGES = gql`
+  query GetChatMessages($input: ChatMessagesInput!) {
+    getChatMessages(input: $input) {
+      list {
+        _id
+        conversationId
+        senderId
+        content
+        readBy
+        isDeleted
+        editedAt
+        deletedAt
+        createdAt
+        updatedAt
+      }
+      total
+    }
+  }
+`;
+
+export const GET_CONVERSATION_PRESENCE = gql`
+  query GetConversationPresence($conversationId: String!) {
+    getConversationPresence(conversationId: $conversationId) {
+      doctorOnline
+      patientOnline
+    }
+  }
+`;
+
 export const GET_APPOINTMENTS = gql`
   query GetAppointments($input: AppointmentsInquiry!) {
     getAppointments(input: $input) {
