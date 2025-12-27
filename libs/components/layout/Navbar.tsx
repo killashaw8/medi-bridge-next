@@ -43,6 +43,15 @@ const Navbar = () => {
 
   const DEFAULT_USER_IMAGE = '/images/users/defaultUser.svg'
 
+  const getStoredImageVersion = (userId?: string) => {
+    if (typeof window === 'undefined') return 0;
+    if (!userId) return 0;
+    const storageKey = `memberImageVersion:${userId}`;
+    const rawValue = localStorage.getItem(storageKey);
+    const parsed = rawValue ? Number(rawValue) : 0;
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
   /** LIFECYCLES **/
   useEffect(() => {
     const jwt = getJwtToken();
@@ -76,9 +85,10 @@ const Navbar = () => {
 
   useEffect(() => {
     if (!user?._id) return;
-    setImageRefreshKey(Date.now());
+    const storedVersion = getStoredImageVersion(user._id);
+    setImageRefreshKey(storedVersion || Date.now());
     setNickRefreshKey(Date.now());
-  }, [user]);
+  }, [user?._id, user?.memberImage]);
 
   useEffect(() => {
     if (!user?._id) return;
@@ -184,7 +194,7 @@ const Navbar = () => {
   // Handler for logout
   const handleLogout = () => {
     setLogoutAnchor(null);
-    logOut();
+    logOut({ reload: false });
     router.push("/");
   };
 

@@ -251,6 +251,23 @@ export const updateStorage = ({ accessToken, refreshToken }: {
 
 const DEFAULT_USER_IMAGE = '/images/users/defaultUser.svg';
 
+const setMemberImageVersion = (userData: any) => {
+	if (typeof window === 'undefined') return;
+	if (!userData?._id) return;
+
+	const storageKey = `memberImageVersion:${userData._id}`;
+	const updatedAt = userData?.updatedAt ? new Date(userData.updatedAt).getTime() : null;
+
+	if (updatedAt && !Number.isNaN(updatedAt)) {
+		localStorage.setItem(storageKey, String(updatedAt));
+		return;
+	}
+
+	if (userData?.memberImage) {
+		localStorage.setItem(storageKey, String(Date.now()));
+	}
+};
+
 export const updateUserInfo = (jwtToken: any, force: boolean = false) => {
 	if (!jwtToken) return false;
 
@@ -308,6 +325,8 @@ export const updateUserInfoFromResponse = (userData: any) => {
 	if (!userData) return false;
 
 	try {
+		setMemberImageVersion(userData);
+
 		userVar({
 			_id: userData._id || '',
 			memberType: userData.memberType ?? '',
@@ -341,10 +360,13 @@ export const updateUserInfoFromResponse = (userData: any) => {
 	}
 };
 
-export const logOut = () => {
+export const logOut = (options?: { reload?: boolean }) => {
 	deleteStorage();
 	deleteUserInfo();
-	window.location.reload();
+	const shouldReload = options?.reload ?? true;
+	if (shouldReload) {
+		window.location.reload();
+	}
 };
 
 const deleteStorage = () => {

@@ -62,6 +62,11 @@ const MyPage: NextPage = () => {
 
     // Check if user is logged in
     if (!user?._id) {
+      const token = getJwtToken();
+      if (!token) {
+        router.push("/");
+        return;
+      }
       sweetMixinErrorAlert("Please login to access your page");
       router.push("/login");
       return;

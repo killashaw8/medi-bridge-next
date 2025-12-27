@@ -1,4 +1,4 @@
-import React, { useEffect, } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { Stack } from '@mui/material';
@@ -18,6 +18,7 @@ const withLayoutChat = (Component: any) => {
     const router = useRouter();
     const { t, i18n } = useTranslation('common');
     const user = useReactiveVar(userVar);
+    const [authChecked, setAuthChecked] = useState(false);
     const DEFAULT_USER_IMAGE = '/images/users/defaultUser.svg'
 
     /** LIFECYCLES **/
@@ -29,9 +30,23 @@ const withLayoutChat = (Component: any) => {
           updateUserInfo(jwt);
         }
       }
+      setAuthChecked(true);
     }, []);
 
+    useEffect(() => {
+      if (!authChecked) return;
+      if (user?._id) return;
+      const token = getJwtToken();
+      if (!token) {
+        router.push('/');
+      }
+    }, [authChecked, user?._id, router]);
+
     /** HANDLERS **/
+    if (!authChecked || !user?._id) {
+      return null;
+    }
+
     return (
       <>
         <Head>
