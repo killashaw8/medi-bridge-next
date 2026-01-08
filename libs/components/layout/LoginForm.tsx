@@ -1,9 +1,16 @@
-import React, { useState, FormEvent } from "react";
+import React, { useEffect, useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { logIn } from "@/libs/auth";
+import { logIn, logInWithGoogle } from "@/libs/auth";
 import { sweetMixinErrorAlert } from "@/libs/sweetAlert";
 import { Button } from "@mui/material";
+import { FaGoogle } from "react-icons/fa";
+
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
 
 const LoginForm = () => {
   const router = useRouter();
@@ -13,6 +20,7 @@ const LoginForm = () => {
   });
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [googleReady, setGoogleReady] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -46,6 +54,64 @@ const LoginForm = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      console.warn("Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID");
+      return;
+    }
+
+    const initializeGoogle = () => {
+      if (!window.google?.accounts?.id) return;
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async (response: { credential?: string }) => {
+          if (!response?.credential) {
+            await sweetMixinErrorAlert("Google login failed. Please try again.");
+            return;
+          }
+
+          setLoading(true);
+          try {
+            await logInWithGoogle(response.credential);
+            router.push("/");
+          } catch (error) {
+            console.error("Google login error:", error);
+          } finally {
+            setLoading(false);
+          }
+        },
+      });
+      setGoogleReady(true);
+    };
+
+    if (window.google?.accounts?.id) {
+      initializeGoogle();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = initializeGoogle;
+    document.body.appendChild(script);
+
+    return () => {
+      script.onload = null;
+    };
+  }, [router]);
+
+  const handleGoogleLogin = async () => {
+    if (!window.google?.accounts?.id) {
+      await sweetMixinErrorAlert("Google login is not ready. Please try again.");
+      return;
+    }
+    window.google.accounts.id.prompt();
   };
 
   return (
@@ -118,6 +184,25 @@ const LoginForm = () => {
                 </Button>
               </div>
             </form>
+
+            <div className="auth-divider">
+              <span>OR</span>
+            </div>
+
+            <div className="social-auth">
+              <p>Sign in with:</p>
+              <div className="social-auth-icons">
+                <button
+                  type="button"
+                  className="social-auth-btn"
+                  onClick={handleGoogleLogin}
+                  disabled={!googleReady || loading}
+                  aria-label="Sign in with Google"
+                >
+                  <FaGoogle />
+                </button>
+              </div>
+            </div>
 
             <div className="bottom-text">
               <span>

@@ -4489,6 +4489,78 @@ Profile Authentication Area CSS
       }
     }
   }
+
+  .social-auth {
+    margin-top: 30px;
+    text-align: center;
+
+    p {
+      margin-bottom: 14px;
+      font-weight: 500;
+    }
+
+    .social-auth-icons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .social-auth-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 1px solid $dawn-pinkColor;
+      background-color: $whiteColor;
+      color: $bodyTextColor;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: $transition;
+
+      svg {
+        font-size: 20px;
+      }
+
+      &:hover:not(:disabled) {
+        border-color: $primary;
+        color: $primary;
+        transform: translateY(-2px);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .auth-divider {
+    position: relative;
+    margin: 30px 0 10px;
+    text-align: center;
+
+    &:before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 1px;
+      background: $dawn-pinkColor;
+      transform: translateY(-50%);
+    }
+
+    span {
+      position: relative;
+      z-index: 1;
+      padding: 0 14px;
+      background: $white-smokeColor;
+      font-weight: 600;
+      font-size: $font-fifteen;
+      color: $bodyTextColor;
+      letter-spacing: 0.5px;
+    }
+  }
 }
 .forgot-container {
   background-color: $white-smokeColor;

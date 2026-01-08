@@ -2,7 +2,7 @@ import jwtDecode from 'jwt-decode';
 import { initializeApollo } from '../../apollo/client';
 import { userVar } from '../../apollo/store';
 import { sweetMixinErrorAlert } from '../sweetAlert';
-import { LOGIN, SIGN_UP } from '@/apollo/user/mutation';
+import { LOGIN, LOGIN_WITH_GOOGLE, SIGN_UP } from '@/apollo/user/mutation';
 import { DoctorSpecialization } from '../enums/member.enum';
 import { T } from '../types/common';
 
@@ -45,6 +45,25 @@ export const logIn = async (nick: string, password: string): Promise<void> => {
 		console.warn('login err', err);
 		logOut();
 		// throw new Error('Login Err');
+	}
+};
+
+export const logInWithGoogle = async (idToken: string): Promise<void> => {
+	try {
+		const { accessToken, refreshToken, userData } = await requestGoogleJwtToken({ idToken });
+
+		if (accessToken) {
+			updateStorage({ accessToken, refreshToken });
+
+			if (userData) {
+				updateUserInfoFromResponse(userData);
+			} else {
+				updateUserInfo(accessToken);
+			}
+		}
+	} catch (err) {
+		console.warn('login err', err);
+		logOut();
 	}
 };
 
@@ -156,6 +175,48 @@ const requestJwtToken = async ({
 			case 'Definer: user has been blocked!':
 				await sweetMixinErrorAlert('User has been blocked!');
 				break;
+		}
+		throw new Error('token error');
+	}
+};
+
+const requestGoogleJwtToken = async ({
+	idToken,
+}: {
+	idToken: string;
+}): Promise<{
+	accessToken: string;
+	refreshToken: string | null;
+	userData?: T;
+}> => {
+	const apolloClient = await initializeApollo();
+
+	try {
+		const result = await apolloClient.mutate({
+			mutation: LOGIN_WITH_GOOGLE,
+			variables: { input: { idToken } },
+			fetchPolicy: 'network-only',
+		});
+
+		console.log('---------- login (google) ----------');
+		const { accessToken, refreshToken, ...userData } = result?.data?.loginWithGoogle ?? {};
+
+		return {
+			accessToken,
+			refreshToken: refreshToken ?? null,
+			userData: userData && Object.keys(userData).length > 0 ? userData : undefined,
+		};
+	} catch (err: any) {
+		console.log('request token err', err.graphQLErrors);
+		switch (err.graphQLErrors?.[0]?.message) {
+			case 'No member with that nick!':
+				await sweetMixinErrorAlert('Account not found');
+				break;
+			case 'You have been blocked, contact restaurant!':
+				await sweetMixinErrorAlert('User has been blocked!');
+				break;
+			default:
+				await sweetMixinErrorAlert('Google login failed');
 		}
 		throw new Error('token error');
 	}

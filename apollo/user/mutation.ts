@@ -76,6 +76,43 @@ export const LOGIN = gql`
   }
 `;
 
+export const LOGIN_WITH_GOOGLE = gql`
+  mutation LoginWithGoogle($input: GoogleLoginInput!) {
+    loginWithGoogle(input: $input) {
+      _id
+      memberType
+      memberStatus
+      authProvider
+      memberPhone
+      memberNick
+      memberFullName
+      memberImage
+      memberAddress
+      memberDesc
+      memberAppointments
+      memberArticles
+      memberFollowers
+      memberFollowings
+      memberPoints
+      memberLikes
+      memberViews
+      memberComments
+      memberRank
+      memberWarnings
+      memberBlocks
+      deletedAt
+      createdAt
+      updatedAt
+      accessToken
+      clinicId
+      specialization
+      refreshToken
+      googleId
+      memberEmail
+    }
+  }
+`;
+
 export const UPDATE_MEMBER = gql`
   mutation UpdateMember($input: MemberUpdate!) {
     updateMember(input: $input) {
