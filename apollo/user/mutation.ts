@@ -76,6 +76,43 @@ export const LOGIN = gql`
   }
 `;
 
+export const LOGIN_WITH_TELEGRAM = gql`
+  mutation LoginWithTelegram($input: TelegramLoginInput!) {
+    loginWithTelegram(input: $input) {
+      _id
+      memberType
+      memberStatus
+      authProvider
+      memberPhone
+      memberNick
+      memberFullName
+      memberImage
+      memberAddress
+      memberDesc
+      memberAppointments
+      memberArticles
+      memberFollowers
+      memberFollowings
+      memberPoints
+      memberLikes
+      memberViews
+      memberComments
+      memberRank
+      memberWarnings
+      memberBlocks
+      deletedAt
+      createdAt
+      updatedAt
+      accessToken
+      clinicId
+      specialization
+      refreshToken
+      telegramId
+      memberEmail
+    }
+  }
+`;
+
 export const LOGIN_WITH_GOOGLE = gql`
   mutation LoginWithGoogle($input: GoogleLoginInput!) {
     loginWithGoogle(input: $input) {

@@ -2,7 +2,7 @@ import jwtDecode from 'jwt-decode';
 import { initializeApollo } from '../../apollo/client';
 import { userVar } from '../../apollo/store';
 import { sweetMixinErrorAlert } from '../sweetAlert';
-import { LOGIN, LOGIN_WITH_GOOGLE, SIGN_UP } from '@/apollo/user/mutation';
+import { LOGIN, LOGIN_WITH_GOOGLE, LOGIN_WITH_TELEGRAM, SIGN_UP } from '@/apollo/user/mutation';
 import { DoctorSpecialization } from '../enums/member.enum';
 import { T } from '../types/common';
 
@@ -51,6 +51,33 @@ export const logIn = async (nick: string, password: string): Promise<void> => {
 export const logInWithGoogle = async (idToken: string): Promise<void> => {
 	try {
 		const { accessToken, refreshToken, userData } = await requestGoogleJwtToken({ idToken });
+
+		if (accessToken) {
+			updateStorage({ accessToken, refreshToken });
+
+			if (userData) {
+				updateUserInfoFromResponse(userData);
+			} else {
+				updateUserInfo(accessToken);
+			}
+		}
+	} catch (err) {
+		console.warn('login err', err);
+		logOut();
+	}
+};
+
+export const logInWithTelegram = async (payload: {
+	id: number | string;
+	hash: string;
+	auth_date: number | string;
+	first_name?: string;
+	last_name?: string;
+	username?: string;
+	photo_url?: string;
+}): Promise<void> => {
+	try {
+		const { accessToken, refreshToken, userData } = await requestTelegramJwtToken(payload);
 
 		if (accessToken) {
 			updateStorage({ accessToken, refreshToken });
@@ -217,6 +244,60 @@ const requestGoogleJwtToken = async ({
 				break;
 			default:
 				await sweetMixinErrorAlert('Google login failed');
+		}
+		throw new Error('token error');
+	}
+};
+
+const requestTelegramJwtToken = async (payload: {
+	id: number | string;
+	hash: string;
+	auth_date: number | string;
+	first_name?: string;
+	last_name?: string;
+	username?: string;
+	photo_url?: string;
+}): Promise<{
+	accessToken: string;
+	refreshToken: string | null;
+	userData?: T;
+}> => {
+	const apolloClient = await initializeApollo();
+
+	try {
+		console.log('---------- telegram payload ----------', payload);
+		const result = await apolloClient.mutate({
+			mutation: LOGIN_WITH_TELEGRAM,
+			variables: {
+				input: {
+					...payload,
+					id: String(payload.id),
+					auth_date: String(payload.auth_date),
+				},
+			},
+			fetchPolicy: 'network-only',
+		});
+
+		console.log('---------- login (telegram) ----------');
+		const { accessToken, refreshToken, ...userData } = result?.data?.loginWithTelegram ?? {};
+
+		return {
+			accessToken,
+			refreshToken: refreshToken ?? null,
+			userData: userData && Object.keys(userData).length > 0 ? userData : undefined,
+		};
+	} catch (err: any) {
+		console.error('request token err', err);
+		const graphMessage = err?.graphQLErrors?.[0]?.message;
+		switch (graphMessage) {
+			case 'No member with that nick!':
+				await sweetMixinErrorAlert('Account not found');
+				break;
+			case 'You have been blocked, contact restaurant!':
+				await sweetMixinErrorAlert('User has been blocked!');
+				break;
+			default:
+				await sweetMixinErrorAlert(graphMessage || err?.networkError?.message || 'Telegram login failed');
 		}
 		throw new Error('token error');
 	}

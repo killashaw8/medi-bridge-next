@@ -32,6 +32,16 @@ const GRAPHQL_WS_URL =
 
 let apolloClient: ApolloClient<NormalizedCacheObject> | undefined;
 
+class PatchedInMemoryCache extends InMemoryCache {
+	diff(options: any) {
+		if (options && Object.prototype.hasOwnProperty.call(options, 'canonizeResults')) {
+			const { canonizeResults, ...rest } = options;
+			return super.diff(rest);
+		}
+		return super.diff(options);
+	}
+}
+
 function safeGetJwtToken(): string | null {
 	if (typeof window === 'undefined') return null;
 	try {
@@ -150,7 +160,7 @@ function createApolloClient() {
 	return new ApolloClient({
 		ssrMode: typeof window === 'undefined',
 		link: createIsomorphicLink(),
-		cache: new InMemoryCache(),
+		cache: new PatchedInMemoryCache(),
 	});
 }
 

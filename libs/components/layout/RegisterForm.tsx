@@ -1,7 +1,7 @@
 import React, { useEffect, useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { logInWithGoogle, signUp, updateUserInfoFromResponse } from "@/libs/auth";
+import { logInWithGoogle, logInWithTelegram, signUp, updateUserInfoFromResponse } from "@/libs/auth";
 import { sweetMixinErrorAlert } from "@/libs/sweetAlert";
 import { DoctorSpecialization, MemberType } from "@/libs/enums/member.enum";
 import { ClinicsInquiry } from "@/libs/types/member/member.input";
@@ -18,7 +18,8 @@ import { UPDATE_MEMBER } from "@/apollo/user/mutation";
 import { GET_MEMBER } from "@/apollo/user/query";
 import { initializeApollo } from "@/apollo/client";
 import ImageCropper from "@/libs/components/common/ImageCropper";
-import { FaGoogle } from "react-icons/fa";
+import { FaGoogle, FaTelegramPlane } from "react-icons/fa";
+import TelegramLoginButton, { TelegramUser } from "@/libs/components/common/TelegramLoginButton";
 
 declare global {
   interface Window {
@@ -49,6 +50,7 @@ const RegisterForm = () => {
   const [cropperOpen, setCropperOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [googleReady, setGoogleReady] = useState(false);
+  const telegramBotName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME;
 
   const [uploadImage] = useMutation(IMAGE_UPLOADER);
   const [updateMember] = useMutation(UPDATE_MEMBER);
@@ -126,6 +128,26 @@ const RegisterForm = () => {
       return;
     }
     window.google.accounts.id.prompt();
+  };
+
+  const handleTelegramAuth = async (user: TelegramUser) => {
+    setLoading(true);
+    try {
+      await logInWithTelegram({
+        id: user.id,
+        hash: user.hash,
+        auth_date: user.auth_date,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        username: user.username,
+        photo_url: user.photo_url,
+      });
+      router.push("/");
+    } catch (error) {
+      console.error("Telegram login error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -708,15 +730,37 @@ const RegisterForm = () => {
             <div className="social-auth">
               <p>Sign in with:</p>
               <div className="social-auth-icons">
-                <button
-                  type="button"
-                  className="social-auth-btn"
-                  onClick={handleGoogleLogin}
-                  disabled={!googleReady || loading}
-                  aria-label="Sign in with Google"
-                >
-                  <FaGoogle />
-                </button>
+                <div className="social-auth-icon">
+                  <button
+                    type="button"
+                    className="social-auth-btn"
+                    onClick={handleGoogleLogin}
+                    disabled={!googleReady || loading}
+                    aria-label="Sign in with Google"
+                  >
+                    <FaGoogle />
+                  </button>
+                </div>
+                {telegramBotName ? (
+                  <div className="telegram-auth social-auth-icon">
+                    <button
+                      type="button"
+                      className="social-auth-btn"
+                      aria-label="Sign in with Telegram"
+                      disabled={loading}
+                    >
+                      <FaTelegramPlane />
+                    </button>
+                    <TelegramLoginButton
+                      botName={telegramBotName}
+                      onAuth={handleTelegramAuth}
+                      size="large"
+                      cornerRadius={12}
+                      usePic={false}
+                      className="telegram-login-overlay"
+                    />
+                  </div>
+                ) : null}
               </div>
             </div>
             
