@@ -166,6 +166,30 @@ export const GET_CLINICS = gql`
   }
 `;
 
+/**************************
+ *        NOTICE          *
+ *************************/
+
+export const GET_MY_NOTICES = gql`
+  query GetMyNotices($input: NoticesInquiry!) {
+    getMyNotices(input: $input) {
+      list {
+        _id
+        noticeCategory
+        noticeStatus
+        noticeTitle
+        noticeContent
+        memberId
+        createdAt
+        updatedAt
+      }
+      metaCounter {
+        total
+      }
+    }
+  }
+`;
+
 
 /***************************
  *         PRODUCT         *

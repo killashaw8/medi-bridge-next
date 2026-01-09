@@ -224,6 +224,20 @@ export const LIKE_TARGET_MEMBER = gql`
   }
 `;
 
+/**************************
+ *        NOTICE          *
+ *************************/
+
+export const MARK_NOTICE_READ = gql`
+  mutation MarkNoticeRead($input: NoticeReadInput!) {
+    markNoticeRead(input: $input) {
+      _id
+      noticeStatus
+      updatedAt
+    }
+  }
+`;
+
 
 /***************************
  *         PRODUCT         *

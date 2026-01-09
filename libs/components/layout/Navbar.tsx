@@ -4,37 +4,57 @@ import { useRouter, withRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
 import { menus } from "./Menus";
-import { useQuery, useReactiveVar } from "@apollo/client";
+import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import { cartVar, userVar } from "@/apollo/store";
 import { logOut, getJwtToken, refreshTokens, updateUserInfo } from "@/libs/auth";
-import { Badge, Box, Button, IconButton, Menu, MenuItem, Typography } from "@mui/material";
+import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Menu, MenuItem, Typography } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import EmailIcon from '@mui/icons-material/Email';
+import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { getImageUrl } from "@/libs/imageHelper";
 import { useMemo } from 'react';
 import CheckoutPopover from "@/libs/components/order/CheckoutPopover";
-import { GET_CONVERSATIONS } from "@/apollo/user/query";
+import { GET_CONVERSATIONS, GET_MY_NOTICES } from "@/apollo/user/query";
 import { ChatConversation } from "@/libs/types/chat/chat";
 import { io, Socket } from "socket.io-client";
 import jwtDecode from "jwt-decode";
+import { MARK_NOTICE_READ } from "@/apollo/user/mutation";
+import { Notice } from "@/libs/types/notice/notice";
+import { NoticeStatus } from "@/libs/enums/notice.enum";
 
 const Navbar = () => {
   const router = useRouter();
   const pathname = router.pathname;
   const user = useReactiveVar(userVar);
   const cartItems = useReactiveVar(cartVar);
+  const isLoggedIn = !!(user?._id && user._id !== '');
   const { data: conversationsData, refetch: refetchConversations } = useQuery(GET_CONVERSATIONS, {
     skip: !user?._id,
     fetchPolicy: "cache-and-network",
   });
+  const { data: noticesData, refetch: refetchNotices } = useQuery(GET_MY_NOTICES, {
+    skip: !isLoggedIn,
+    fetchPolicy: "cache-and-network",
+    variables: { input: { page: 1, limit: 6 } },
+  });
+  const { data: unreadNoticesData, refetch: refetchUnreadNotices } = useQuery(GET_MY_NOTICES, {
+    skip: !isLoggedIn,
+    fetchPolicy: "cache-and-network",
+    variables: { input: { page: 1, limit: 1, status: NoticeStatus.UNREAD } },
+  });
+  const [markNoticeRead] = useMutation(MARK_NOTICE_READ);
   const socketRef = useRef<Socket | null>(null);
   const [logoutAnchor, setLogoutAnchor] = useState<null | HTMLElement>(null);
   const logoutOpen = Boolean(logoutAnchor);
   const [cartAnchor, setCartAnchor] = useState<null | HTMLElement>(null);
   const cartOpen = Boolean(cartAnchor);
+  const [noticeAnchor, setNoticeAnchor] = useState<null | HTMLElement>(null);
+  const noticeOpen = Boolean(noticeAnchor);
+  const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+  const [noticeDialogOpen, setNoticeDialogOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const [colorChange, setColorChange] = useState(false);
@@ -222,7 +242,6 @@ const userImageUrl = useMemo(() => {
   }, [user?.memberNick, user?.memberFullName, nickRefreshKey]);
 
   // Check if user is logged in
-  const isLoggedIn = user?._id && user._id !== '';
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotal = cartItems.reduce(
     (sum, item) => sum + item.product.productPrice * item.quantity,
@@ -232,6 +251,8 @@ const userImageUrl = useMemo(() => {
     (sum: number, convo: ChatConversation) => sum + (convo.unreadCount ?? 0),
     0
   );
+  const notices = noticesData?.getMyNotices?.list ?? [];
+  const unreadNoticeCount = unreadNoticesData?.getMyNotices?.metaCounter?.[0]?.total ?? 0;
 
   const handleCartQuantityChange = (productId: string, delta: number) => {
     const currentCart = cartVar();
@@ -243,6 +264,24 @@ const userImageUrl = useMemo(() => {
       })
       .filter((item) => item.quantity > 0);
     cartVar(nextCart);
+  };
+
+  const handleNoticeOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setNoticeAnchor(event.currentTarget);
+  };
+
+  const handleNoticeClose = () => {
+    setNoticeAnchor(null);
+  };
+
+  const handleNoticeSelect = async (notice: Notice) => {
+    setSelectedNotice(notice);
+    setNoticeDialogOpen(true);
+    if (notice.noticeStatus === NoticeStatus.UNREAD) {
+      await markNoticeRead({ variables: { input: { noticeId: notice._id } } });
+      void refetchNotices();
+      void refetchUnreadNotices();
+    }
   };
 
   return (
@@ -458,6 +497,69 @@ const userImageUrl = useMemo(() => {
             </div>
             {isLoggedIn && (
               <div className="option-item">
+                <IconButton size="small" onClick={handleNoticeOpen} aria-label="Notifications">
+                  <Badge color="error" badgeContent={unreadNoticeCount}>
+                    <NotificationsNoneIcon />
+                  </Badge>
+                </IconButton>
+                <Menu
+                  id="notice-menu"
+                  anchorEl={noticeAnchor}
+                  open={noticeOpen}
+                  onClose={handleNoticeClose}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  sx={{ mt: '5px' }}
+                >
+                  <Box sx={{ p: 2, width: 360 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        Notifications
+                      </Typography>
+                      <Button size="small" onClick={() => refetchNotices()}>
+                        Refresh
+                      </Button>
+                    </Box>
+                    {notices.length === 0 ? (
+                      <Typography variant="body2" color="text.secondary">
+                        You are all caught up.
+                      </Typography>
+                    ) : (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {notices.map((notice) => (
+                          <Box
+                            key={notice._id}
+                            onClick={() => handleNoticeSelect(notice)}
+                            sx={{
+                              p: 1.2,
+                              borderRadius: 1,
+                              cursor: 'pointer',
+                              border: '1px solid #eee',
+                              backgroundColor:
+                                notice.noticeStatus === NoticeStatus.UNREAD
+                                  ? 'rgba(51, 106, 234, 0.08)'
+                                  : 'transparent',
+                            }}
+                          >
+                            <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
+                              {notice.noticeTitle}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" noWrap>
+                              {notice.noticeContent}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {new Date(notice.createdAt).toLocaleString()}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                  </Box>
+                </Menu>
+              </div>
+            )}
+            {isLoggedIn && (
+              <div className="option-item">
                 <Link href="/chat">
                   <IconButton size="small" aria-label="Chat">
                     <Badge color="error" badgeContent={chatUnreadCount}>
@@ -597,6 +699,39 @@ const userImageUrl = useMemo(() => {
         cartItems={cartItems}
       />
 
+      <Dialog
+        open={noticeDialogOpen}
+        onClose={() => {
+          setNoticeDialogOpen(false);
+          setSelectedNotice(null);
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>{selectedNotice?.noticeTitle || 'Notification'}</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="caption" color="text.secondary">
+            {selectedNotice?.noticeCategory}
+            {selectedNotice?.createdAt
+              ? ` · ${new Date(selectedNotice.createdAt).toLocaleString()}`
+              : ''}
+          </Typography>
+          <Typography sx={{ mt: 2, whiteSpace: 'pre-line' }}>
+            {selectedNotice?.noticeContent || ''}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setNoticeDialogOpen(false);
+              setSelectedNotice(null);
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* ✅ MODIFIED: For Mobile Menu */}
       <Offcanvas
         show={show}
@@ -726,6 +861,21 @@ const userImageUrl = useMemo(() => {
                     </Link>
                   </div>
                 </>
+              )}
+              {isLoggedIn && (
+                <div className="option-item w-100">
+                  <button
+                    type="button"
+                    className="login-btn d-flex align-items-center gap-2"
+                    onClick={handleNoticeOpen}
+                    style={{ width: "100%", background: "transparent", border: "none" }}
+                  >
+                    <Badge color="error" badgeContent={unreadNoticeCount}>
+                      <NotificationsNoneIcon />
+                    </Badge>
+                    <span>Notifications</span>
+                  </button>
+                </div>
               )}
               {isLoggedIn && (
                 <div className="option-item w-100">
