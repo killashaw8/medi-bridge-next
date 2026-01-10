@@ -245,20 +245,13 @@ const CalendarContent: React.FC<CalendarContentProps> = ({
         </div>
 
         <div className="time-slots">
-          <div className="time-title-row" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <h4 id="time-title" style={{ margin: 0 }}>{timeTitle}</h4>
+          <div className="time-title-row">
+            <h4 id="time-title">{timeTitle}</h4>
             <button
               type="button"
               onClick={() => refetchSlots()}
               disabled={!doctorId || !selectedDate || slotsLoading}
-              style={{
-                border: "1px solid #cfd7e3",
-                borderRadius: 6,
-                padding: "4px 10px",
-                background: "white",
-                cursor: "pointer",
-                fontSize: "0.85rem",
-              }}
+              className="time-refresh-btn"
             >
               Refresh
             </button>

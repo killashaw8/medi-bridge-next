@@ -34,8 +34,6 @@ export const GET_ALL_MEMBERS_BY_ADMIN = gql`
         deletedAt
         createdAt
         updatedAt
-        accessToken
-        refreshToken
         telegramId
         googleId
         kakaoId

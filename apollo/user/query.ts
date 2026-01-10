@@ -34,8 +34,6 @@ export const GET_MEMBER = gql`
       deletedAt
       createdAt
       updatedAt
-      accessToken
-      refreshToken
       telegramId
       googleId
       kakaoId
@@ -85,8 +83,6 @@ export const GET_DOCTORS = gql`
         deletedAt
         createdAt
         updatedAt
-        accessToken
-        refreshToken
         telegramId
         googleId
         kakaoId
@@ -140,8 +136,6 @@ export const GET_CLINICS = gql`
         deletedAt
         createdAt
         updatedAt
-        accessToken
-        refreshToken
         telegramId
         googleId
         kakaoId

@@ -63,6 +63,16 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
     : "/images/users/defaultUser.svg";
   const doctorId = appointment.doctor?._id || appointment.doctorId || "";
   const isCancelled = appointment.status === AppointmentStatus.CANCELLED;
+  const appointmentStartAt = appointment.date
+    ? new Date(`${appointment.date}T00:00:00`)
+    : null;
+  const appointmentEndAt = appointment.date
+    ? getAppointmentEnd(appointment.date, timeLabel)
+    : null;
+  const isPastAppointment = appointmentEndAt ? Date.now() > appointmentEndAt.getTime() : false;
+  const isChatWindowOpen = appointmentStartAt
+    ? isWithinChatWindow(appointmentStartAt)
+    : false;
 
   const handleCancel = async () => {
     if (isCancelled || isCanceling) {
@@ -96,7 +106,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   };
 
   const handleReschedule = async () => {
-    if (isCancelled || isRescheduling) {
+    if (isCancelled || isRescheduling || isPastAppointment) {
       return;
     }
     setIsRescheduling(true);
@@ -111,7 +121,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   };
 
   const handleOpenChat = async () => {
-    if (!appointment?._id) return;
+    if (!appointment?._id || isCancelled || !isChatWindowOpen) return;
     try {
       const result = await openConversation({
         variables: { input: { appointmentId: appointment._id } },
@@ -174,7 +184,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
             type="button"
             variant="contained"
             onClick={handleReschedule}
-            disabled={isCancelled || isRescheduling}
+            disabled={isCancelled || isRescheduling || isPastAppointment}
           >
             Reschedule
           </Button>
@@ -183,7 +193,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
             variant="contained"
             color="error"
             onClick={handleCancel}
-            disabled={isCancelled || isCanceling}
+            disabled={isCancelled || isCanceling || isPastAppointment}
           >
             Cancel
           </Button>
@@ -191,7 +201,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
             type="button"
             variant="outlined"
             onClick={handleOpenChat}
-            disabled={isCancelled}
+            disabled={isCancelled || !isChatWindowOpen}
           >
             Chat
           </Button>
@@ -202,3 +212,19 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
 };
 
 export default AppointmentCard;
+
+const getAppointmentEnd = (date: string, timeRange: string): Date | null => {
+  const match = timeRange.match(/(\d{2})\.(\d{2})\s*-\s*(\d{2})\.(\d{2})/);
+  if (!match) return null;
+  const [, startH, startM, endH, endM] = match;
+  return new Date(`${date}T${endH}:${endM}:00`);
+};
+
+const isWithinChatWindow = (appointmentStart: Date) => {
+  const start = new Date(appointmentStart);
+  const end = new Date(appointmentStart);
+  start.setDate(start.getDate() - 7);
+  end.setDate(end.getDate() + 7);
+  const now = Date.now();
+  return now >= start.getTime() && now <= end.getTime();
+};

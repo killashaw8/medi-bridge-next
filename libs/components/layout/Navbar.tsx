@@ -544,7 +544,18 @@ const userImageUrl = useMemo(() => {
                             <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
                               {notice.noticeTitle}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary" noWrap>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{
+                                whiteSpace: "normal",
+                                wordBreak: "break-word",
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden",
+                              }}
+                            >
                               {notice.noticeContent}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
