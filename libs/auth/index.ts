@@ -7,17 +7,6 @@ import { DoctorSpecialization } from '../enums/member.enum';
 import { T } from '../types/common';
 
 
-export function getRefreshToken(): string | null {
-	if (typeof window === 'undefined') return null;
-	return localStorage.getItem('refreshToken');
-}
-
-export function setRefreshToken(token: string | null) {
-	if (typeof window === 'undefined') return;
-	if (token) localStorage.setItem('refreshToken', token);
-	else localStorage.removeItem('refreshToken');
-}
-
 export function getJwtToken(): any {
 	if (typeof window !== 'undefined') {
 		return localStorage.getItem('accessToken') ?? '';
@@ -154,21 +143,33 @@ export const signUp = async (
 };
 
 export async function refreshTokens(): Promise<string> {
-	const refreshToken = getRefreshToken();
-	if (!refreshToken) throw new Error('No refresh token found');
+	const graphQlUrl =
+		process.env.NEXT_PUBLIC_API_GRAPHQL_URL ??
+		process.env.REACT_APP_API_GRAPHQL_URL ??
+		'http://localhost:5885/graphql';
 
-	const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
+	const response = await fetch(graphQlUrl, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		credentials: 'include', // keep if server stores token in HttpOnly cookie
-		body: JSON.stringify({ refreshToken }),
+		credentials: 'include',
+		body: JSON.stringify({
+			query: `
+        mutation RefreshTokens($input: RefreshInput!) {
+          refreshMemberTokens(input: $input) {
+            accessToken
+          }
+        }
+      `,
+			variables: { input: {} },
+		}),
 	});
 
 	if (!response.ok) {
 		throw new Error('Failed to refresh token');
 	}
 
-	const { accessToken, refreshToken: rotatedRefresh } = await response.json();
+	const payload = await response.json();
+	const accessToken = payload?.data?.refreshMemberTokens?.accessToken;
 
 	if (!accessToken) {
 		throw new Error('No access token returned from refresh endpoint');
@@ -176,10 +177,6 @@ export async function refreshTokens(): Promise<string> {
 
 	setJwtToken(accessToken);
 	updateUserInfo(accessToken);
-
-	if (rotatedRefresh) {
-		setRefreshToken(rotatedRefresh);
-	}
 
 	return accessToken;
 }
@@ -447,9 +444,6 @@ export const updateStorage = ({ accessToken, refreshToken }: {
 	accessToken: string, refreshToken: string | null
 }) => {
 	setJwtToken(accessToken);
-	if (refreshToken) {
-		setRefreshToken(refreshToken);
-	}
 	window.localStorage.setItem('login', Date.now().toString());
 };
 
@@ -575,7 +569,6 @@ export const logOut = (options?: { reload?: boolean }) => {
 
 const deleteStorage = () => {
 	localStorage.removeItem('accessToken');
-	localStorage.removeItem('refreshToken');
 	window.localStorage.setItem('logout', Date.now().toString());
 };
 

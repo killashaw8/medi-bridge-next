@@ -36,7 +36,6 @@ export const SIGN_UP = gql`
       accessToken
       clinicId
       specialization
-      refreshToken
     }
   }
 `;
@@ -71,7 +70,6 @@ export const LOGIN = gql`
       accessToken
       clinicId
       specialization
-      refreshToken
     }
   }
 `;
@@ -106,7 +104,6 @@ export const LOGIN_WITH_TELEGRAM = gql`
       accessToken
       clinicId
       specialization
-      refreshToken
       telegramId
       memberEmail
     }
@@ -143,7 +140,6 @@ export const LOGIN_WITH_GOOGLE = gql`
       accessToken
       clinicId
       specialization
-      refreshToken
       googleId
       memberEmail
     }
@@ -180,7 +176,6 @@ export const LOGIN_WITH_KAKAO = gql`
       accessToken
       clinicId
       specialization
-      refreshToken
       kakaoId
       memberEmail
     }
@@ -250,7 +245,6 @@ export const LIKE_TARGET_MEMBER = gql`
       createdAt
       updatedAt
       accessToken
-      refreshToken
       telegramId
       googleId
       kakaoId
