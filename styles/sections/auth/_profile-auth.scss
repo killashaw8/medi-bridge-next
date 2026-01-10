@@ -249,6 +249,12 @@ Profile Authentication Area CSS
         font-size: 20px;
       }
 
+      .kakao-icon {
+        width: 20px;
+        height: 20px;
+        display: block;
+      }
+
       &:hover:not(:disabled) {
         border-color: $primary;
         color: $primary;

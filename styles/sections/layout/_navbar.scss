@@ -345,8 +345,11 @@ Navbar Area CSS
         }
 
         .navbar-avatar {
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
           object-fit: cover;
+          display: block;
         }
 
         .login-btn {
