@@ -1,0 +1,99 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Default CSS
+=================================================*/
+body {
+  margin: 0;
+  padding: 0;
+  font-size: $font-sixteen;
+  color: $bodyTextColor;
+  font-family: var(--font-plus-jakarta-sans);
+}
+p {
+  margin-bottom: 15px;
+  line-height: 1.7;
+  color: $bodyTextColor;
+  font-size: $font-fifteen;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: $blackColor;
+  font-weight: 500;
+
+  a {
+    color: $blackColor;
+
+    &:hover {
+      color: $primary;
+    }
+  }
+}
+a {
+  text-decoration: none;
+  outline: 0 !important;
+  transition: $transition;
+}
+:focus {
+  outline: 0 !important;
+}
+img {
+  max-width: 100%;
+  height: auto;
+}
+.ptb-140 {
+  padding: {
+    top: 140px;
+    bottom: 140px;
+  }
+}
+.pt-140 {
+  padding-top: 140px;
+}
+.pb-140 {
+  padding-bottom: 140px;
+}
+
+.smoke-bg-color {
+  background: $white-smokeColor;
+}
+
+.linear-gradient-inner {
+  background: linear-gradient(181deg, #f5f5f5 0.88%, #fffbe8 99.37%);
+}
+
+
+// Keyframes
+@keyframes waviy {
+  0%,
+  40%,
+  100% {
+    transform: translateY(0);
+  }
+  20% {
+    transform: translateY(-20px);
+  }
+}
+@keyframes rotateme {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

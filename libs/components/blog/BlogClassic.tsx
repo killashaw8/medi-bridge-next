@@ -221,18 +221,16 @@ const BlogClassic = (props: BlogClassicProps) => {
                   
                   {/* Conditionally render pagination */}
                   {totalCount > 0 && (
-                    <Stack>
-                      <Stack>
-                        <Pagination
-                          count={Math.ceil(totalCount / searchArticles.limit)}
-                          page={searchArticles.page}
-                          shape="rounded"
-                          variant="outlined"
-                          size="large"
-                          color="primary"
-                          onChange={paginationHandler}
-                        />
-                      </Stack>
+                    <Stack direction="row" justifyContent="center">
+                      <Pagination
+                        count={Math.ceil(totalCount / searchArticles.limit)}
+                        page={searchArticles.page}
+                        shape="rounded"
+                        variant="outlined"
+                        size="large"
+                        color="primary"
+                        onChange={paginationHandler}
+                      />
                     </Stack>
                   )}
                 </Stack>

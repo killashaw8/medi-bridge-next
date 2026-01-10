@@ -1,0 +1,74 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Default Btn Area CSS
+=================================================*/
+.default-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20.5px 30px;
+  background-color: $primary;
+  color: $whiteColor !important;
+  border-radius: 100px;
+  font-weight: 500;
+  transition: $transition;
+  text-decoration: unset;
+  position: relative;
+  margin-right: 50px;
+  line-height: 1;
+
+  strong {
+    font-weight: 600;
+  }
+  .left {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 55px;
+    width: 55px;
+    background-color: $primary;
+    border-radius: 55px;
+    transition: $transition;
+    opacity: 0;
+
+    svg {
+      transform: rotate(45deg);
+    }
+  }
+  .right {
+    position: absolute;
+    right: -50px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 55px;
+    width: 55px;
+    background-color: $primary;
+    border-radius: 50px;
+    transition: $transition;
+  }
+  &:hover {
+    background-color: $secondaryColor;
+    margin: {
+      left: 50px;
+      right: 0;
+    }
+    .left {
+      left: -50px;
+      opacity: 1;
+      background-color: $secondaryColor;
+    }
+    .right {
+      opacity: 0;
+      background-color: $secondaryColor;
+    }
+  }
+}

@@ -1,0 +1,79 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Work Area CSS
+=================================================*/
+.work-area {
+  overflow: hidden;
+}
+.work-image {
+  padding-right: 75px;
+
+  img {
+    border-radius: 15px;
+  }
+}
+.work-items {
+  padding-left: 50px;
+
+  .item {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+    margin-bottom: 170px;
+    position: relative;
+    z-index: 1;
+
+    .icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 72px;
+      width: 72px;
+      background-color: $white-smokeColor;
+      border-radius: 72px;
+
+      img {
+        transition: $transition;
+      }
+    }
+    .content {
+      h3 {
+        font-size: 24px;
+        margin-bottom: 10.5px;
+      }
+      p {
+        margin-bottom: 0;
+      }
+    }
+    &:nth-child(1) {
+      margin-left: 100px;
+    }
+    &:nth-child(2) {
+      margin-left: 50px;
+
+      .vector {
+        left: 165px;
+      }
+    }
+    &:last-child {
+      margin-bottom: 0;
+    }
+    .vector {
+      position: absolute;
+      left: 65px;
+      bottom: -130px;
+      z-index: -1;
+    }
+    &:hover {
+      .icon {
+        img {
+          animation: animate__jello 1s;
+          animation-name: jello;
+          animation-duration: 1s;
+        }
+      }
+    }
+  }
+}

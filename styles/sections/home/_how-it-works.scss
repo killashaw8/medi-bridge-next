@@ -1,0 +1,55 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+How It Works Area CSS
+=================================================*/
+.how-it-work-card {
+  background: $whiteColor;
+  padding: 35px 35px 50px 35px;
+  border-radius: 15px;
+  text-align: center;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+
+  .image {
+    margin-bottom: 25px;
+    transition: transform 0.4s ease;
+  }
+  h3 {
+    font-size: 24px;
+    margin-bottom: 15px;
+  }
+  p {
+    margin-bottom: 0;
+  }
+  &:before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle,
+      rgba($primary, 0.25) 0%,
+      transparent 95%
+    );
+    transform: scale(0);
+    transition: transform 0.5s ease;
+    border-radius: 50%;
+    z-index: -1;
+  }
+  &:hover {
+    transform: translateY(-10px) scale(1.03);
+
+    .image {
+      transform: scale(1.05);
+    }
+    &:before {
+      transform: scale(1);
+    }
+  }
+}

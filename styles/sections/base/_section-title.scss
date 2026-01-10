@@ -1,0 +1,71 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Section Title CSS
+=================================================*/
+.section-title {
+  margin-bottom: 55px;
+
+  .left {
+    .sub {
+      display: inline-flex;
+      padding: 10px 20px;
+      justify-content: center;
+      align-items: center;
+      background-color: $white-smokeColor;
+      color: $blackColor;
+
+      line-height: 1;
+      border-radius: 50px;
+      margin-bottom: 15px;
+      border: 1px solid #ebebeb;
+
+      &.wrap2 {
+        background-color: $whiteColor;
+      }
+    }
+    h2 {
+      font-size: 40px;
+      margin-bottom: 0;
+      line-height: 1.3;
+    }
+  }
+  .right {
+    p {
+      margin-bottom: 0;
+    }
+    .link-btn {
+      display: inline-flex;
+      gap: 12px;
+      align-items: center;
+      font-weight: 600;
+      color: $primary;
+
+      line-height: 1;
+      border-bottom: 0.5px solid $primary;
+      transition: $transition;
+
+      &:hover {
+        border-bottom: 0.5px solid $secondaryColor;
+        letter-spacing: 0.5px;
+      }
+    }
+    &.wrap2 {
+      text-align: end;
+    }
+    &.wrap3 {
+      text-align: end;
+
+      .link-btn {
+        color: $whiteColor;
+        border-bottom: 0.5px solid $whiteColor;
+
+        &:hover {
+          border-bottom: 0.5px solid $blackColor;
+          letter-spacing: 0.5px;
+        }
+      }
+    }
+  }
+}

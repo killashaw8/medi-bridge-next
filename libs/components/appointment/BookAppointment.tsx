@@ -36,8 +36,10 @@ import BusinessIcon from '@mui/icons-material/Business';
 import { AppointmentsInquiry, HoldSlotInput } from "@/libs/types/appointment/appointment.input";
 import { Appointment } from "@/libs/types/appointment/appointment";
 
+type AppointmentTimeKey = keyof typeof AppointmentTime;
+
 interface Slot {
-  time: AppointmentTime;
+  time: AppointmentTime | string;
   free: boolean;
 }
 
@@ -57,7 +59,7 @@ const BookAppointment = () => {
   const [formData, setFormData] = useState({
     channel: AppointmentType.ONLINE as AppointmentType,
     date: "",
-    time: "" as AppointmentTime | "",
+    time: "" as AppointmentTimeKey | "",
     note: "",
     agree: false,
   });
@@ -74,7 +76,7 @@ const BookAppointment = () => {
   const initialAppointmentRef = useRef<{
     doctorId: string;
     date: string;
-    time: AppointmentTime | "";
+    time: AppointmentTimeKey | "";
     channel: AppointmentType;
     note: string;
     location: Location | "";
@@ -165,13 +167,25 @@ const BookAppointment = () => {
       return "";
     }
     const stringValue = String(value);
-    if (Object.values(AppointmentTime).includes(stringValue as AppointmentTime)) {
-      return stringValue as AppointmentTime;
-    }
     if (Object.keys(AppointmentTime).includes(stringValue)) {
-      return AppointmentTime[stringValue as keyof typeof AppointmentTime];
+      return stringValue as AppointmentTimeKey;
     }
-    return stringValue as AppointmentTime;
+    const entry = Object.entries(AppointmentTime).find(([, val]) => val === stringValue);
+    return entry ? (entry[0] as AppointmentTimeKey) : "";
+  };
+
+  const getTimeLabel = (value: AppointmentTimeKey | AppointmentTime | string | null | undefined) => {
+    if (!value) {
+      return "";
+    }
+    const stringValue = String(value);
+    if (Object.keys(AppointmentTime).includes(stringValue)) {
+      return AppointmentTime[stringValue as AppointmentTimeKey];
+    }
+    if (Object.values(AppointmentTime).includes(stringValue as AppointmentTime)) {
+      return stringValue;
+    }
+    return stringValue;
   };
 
   const dateParam = useMemo(() => {
@@ -228,7 +242,7 @@ const BookAppointment = () => {
     setFormData((prev) => ({
       ...prev,
       date: dateParam || prev.date,
-      time: (timeParam || prev.time) as AppointmentTime | "",
+      time: (normalizeTimeInput(timeParam) || prev.time) as AppointmentTimeKey | "",
     }));
   }, [router.isReady, allDoctors, doctorIdParam, dateParam, timeParam]);
 
@@ -432,12 +446,12 @@ const BookAppointment = () => {
       if (prefillSlotRef.current) {
         prefillSlotRef.current = false;
       } else {
-        setFormData(prev => ({ ...prev, time: "" as AppointmentTime | "" }));
+        setFormData(prev => ({ ...prev, time: "" as AppointmentTimeKey | "" }));
       }
       refetchSlots();
     } else {
       setAvailableSlots([]);
-      setFormData(prev => ({ ...prev, time: "" as AppointmentTime | "" }));
+      setFormData(prev => ({ ...prev, time: "" as AppointmentTimeKey | "" }));
     }
   }, [selectedDoctor?._id, formData.date, refetchSlots]);
 
@@ -450,7 +464,7 @@ const BookAppointment = () => {
         return;
       }
       setSelectedDoctor(null); // Reset doctor selection
-      setFormData(prev => ({ ...prev, date: "", time: "" as AppointmentTime | "" })); // Reset date and time
+      setFormData(prev => ({ ...prev, date: "", time: "" as AppointmentTimeKey | "" })); // Reset date and time
     }
   }, [selectedSpecialization, refetchDoctors]);
 
@@ -477,10 +491,10 @@ const BookAppointment = () => {
     // If clicking the same doctor, unselect them
     if (selectedDoctor?._id === doctor._id) {
       setSelectedDoctor(null);
-      setFormData(prev => ({ ...prev, date: "", time: "" as AppointmentTime | "" })); // Reset date and time
+      setFormData(prev => ({ ...prev, date: "", time: "" as AppointmentTimeKey | "" })); // Reset date and time
     } else {
       setSelectedDoctor(doctor);
-      setFormData(prev => ({ ...prev, date: "", time: "" as AppointmentTime | "" })); // Reset date and time
+      setFormData(prev => ({ ...prev, date: "", time: "" as AppointmentTimeKey | "" })); // Reset date and time
     }
   };
 
@@ -502,11 +516,11 @@ const BookAppointment = () => {
     setFormData(prev => ({
       ...prev,
       date: nextDate,
-      time: "" as AppointmentTime | "", // Reset time when date changes
+      time: "" as AppointmentTimeKey | "", // Reset time when date changes
     }));
   };
 
-  const handleTimeSlotSelect = async (time: AppointmentTime) => {
+  const handleTimeSlotSelect = async (time: AppointmentTime | string) => {
     if (isWeekendDate) {
       await sweetMixinErrorAlert("Weekends are non-working days. Please select a weekday.");
       return;
@@ -521,10 +535,16 @@ const BookAppointment = () => {
       return;
     }
 
+    const timeKey = normalizeTimeInput(time);
+    if (!timeKey) {
+      await sweetMixinErrorAlert("Invalid time slot. Please choose another.");
+      return;
+    }
+
     const nextHold: HoldSlotInput = {
       doctorId: selectedDoctor._id,
       date: formData.date,
-      time,
+      time: timeKey as AppointmentTime,
     };
 
     if (
@@ -533,7 +553,7 @@ const BookAppointment = () => {
       heldSlotRef.current.date === nextHold.date &&
       heldSlotRef.current.time === nextHold.time
     ) {
-      setFormData(prev => ({ ...prev, time }));
+      setFormData(prev => ({ ...prev, time: timeKey }));
       return;
     }
 
@@ -544,7 +564,7 @@ const BookAppointment = () => {
       }
       await holdSlot({ variables: { input: nextHold } });
       heldSlotRef.current = nextHold;
-      setFormData(prev => ({ ...prev, time }));
+      setFormData(prev => ({ ...prev, time: timeKey }));
     } catch (error) {
       console.error("Hold slot error:", error);
       await sweetMixinErrorAlert("This slot is temporarily unavailable. Please choose another.");
@@ -575,7 +595,7 @@ const BookAppointment = () => {
         heldSlotRef.current = nextHold;
       } catch (error) {
         console.error("Auto-hold slot error:", error);
-        setFormData(prev => ({ ...prev, time: "" as AppointmentTime | "" }));
+        setFormData(prev => ({ ...prev, time: "" as AppointmentTimeKey | "" }));
         await sweetMixinErrorAlert("This slot is temporarily unavailable. Please choose another.");
         await refetchSlots();
       }
@@ -735,7 +755,7 @@ const BookAppointment = () => {
         heldSlotRef.current = null;
       }
       setSelectedDoctor(null);
-      setFormData(prev => ({ ...prev, date: "", time: "" as AppointmentTime | "" }));
+      setFormData(prev => ({ ...prev, date: "", time: "" as AppointmentTimeKey | "" }));
     }
   }, [locationFilteredDoctors, selectedDoctor?._id]);
 
@@ -995,28 +1015,24 @@ const BookAppointment = () => {
                             {availableSlots.map((slot, index) => {
                               // slot.time is of type AppointmentTime (enum value like '09.00 - 09.25')
                               // If backend returns enum key (like 'T01'), convert it to value
-                              const timeValue = slot.time as string;
-                              const timeString = Object.values(AppointmentTime).includes(timeValue as AppointmentTime)
-                                ? timeValue // Already the value string
-                                : (Object.keys(AppointmentTime).includes(timeValue)
-                                    ? AppointmentTime[timeValue as unknown as keyof typeof AppointmentTime]
-                                    : timeValue); // Use as-is if neither key nor value
+                              const slotKey = normalizeTimeInput(slot.time);
+                              const timeString = getTimeLabel(slot.time);
                               
                               return (
                                 <Grid item xs={6} sm={4} md={3} key={index}>
                                   <Button
                                     fullWidth
-                                    variant={formData.time === slot.time ? "contained" : "outlined"}
+                                    variant={formData.time === slotKey ? "contained" : "outlined"}
                                     disabled={!slot.free}
                                     onClick={() => slot.free && handleTimeSlotSelect(slot.time)}
                                     sx={{
                                       minHeight: '50px',
-                                      backgroundColor: formData.time === slot.time ? '#336AEA' : 'transparent',
-                                      color: formData.time === slot.time ? 'white' : slot.free ? '#336AEA' : '#999',
+                                      backgroundColor: formData.time === slotKey ? '#336AEA' : 'transparent',
+                                      color: formData.time === slotKey ? 'white' : slot.free ? '#336AEA' : '#999',
                                       borderColor: slot.free ? '#336AEA' : '#ccc',
                                       '&:hover': {
                                         backgroundColor: slot.free 
-                                          ? (formData.time === slot.time ? '#2a5bd8' : '#f0f4ff')
+                                          ? (formData.time === slotKey ? '#2a5bd8' : '#f0f4ff')
                                           : 'transparent',
                                       },
                                       '&:disabled': {

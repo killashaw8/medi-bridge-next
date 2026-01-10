@@ -1,0 +1,110 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Feedback Area CSS
+=================================================*/
+.feedback-area {
+  background-color: $whiteColor;
+  margin: 0 20px;
+  overflow: hidden;
+  border-radius: 40px;
+
+  &.smoke-bg-color {
+    margin: 0 0;
+    border-radius: 0;
+  }
+  &.wrap-style2 {
+    margin: 0 0;
+    border-radius: 0;
+    background-color: transparent;
+  }
+  &.wrap-style3 {
+    margin: 0 0;
+    border-radius: 0;
+    background-color: transparent;
+  }
+}
+.feedback-items {
+  margin: {
+    top: 85px;
+    left: 25px;
+    right: 22px;
+    bottom: 17px;
+  }
+}
+.feedback-card {
+  border: 1px solid $dawn-pinkColor;
+  background: $whiteColor;
+  padding: 45px;
+  border-radius: 15px;
+  transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+
+  .info {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 35px;
+
+    .image {
+      img {
+        border-radius: 55px;
+      }
+    }
+    .title {
+      h4 {
+        font-size: 20px;
+        margin-bottom: 0;
+      }
+      span {
+        font-size: $font-fifteen;
+        display: block;
+        margin-top: 8px;
+      }
+    }
+  }
+  .list {
+    display: flex;
+    gap: 0;
+    margin-bottom: 15px;
+    padding: {
+      left: 0;
+      right: 0;
+    }
+    li {
+      list-style-type: none;
+      i {
+        color: #ff9529;
+        font-size: 18px;
+      }
+    }
+  }
+  p {
+    margin-bottom: 0;
+  }
+  &.wrap1 {
+    position: relative;
+    z-index: 1;
+    transform: rotate(-7.606deg);
+    margin-right: -100px;
+  }
+  &.wrap2 {
+    transform: rotate(5.401deg);
+    margin-right: -100px;
+  }
+  &.wrap3 {
+    transform: rotate(-2.739deg);
+    margin: 50px -47px 0;
+  }
+  &.wrap4 {
+    transform: rotate(7.912deg);
+    margin-left: -90px;
+  }
+  &:hover {
+    transform: translateY(-8px) scale(1.1);
+    position: relative;
+    z-index: 11;
+    transition: transform 0.4s ease, box-shadow 0.4s ease,
+      border-color 0.4s ease;
+  }
+}

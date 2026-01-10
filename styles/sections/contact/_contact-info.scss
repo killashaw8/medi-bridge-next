@@ -1,0 +1,79 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Contact Info Area CSS
+=================================================*/
+.contact-info-area {
+  padding-bottom: 60px;
+}
+.contact-info-card {
+  display: flex;
+  gap: 25px;
+  align-items: center;
+  background-color: $white-smokeColor;
+  padding: 30px;
+  height: 100%;
+  border-radius: 15px;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+
+  .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 75px;
+    height: 75px;
+    background-color: $whiteColor;
+    border-radius: 7px;
+  }
+  .content {
+    max-width: 245px;
+
+    span {
+      display: block;
+      margin-bottom: 5px;
+      font-size: $font-fifteen;
+    }
+    a {
+      font-size: $font-eighteen;
+      font-weight: 500;
+      color: $blackColor;
+
+      &:hover {
+        color: $primary;
+      }
+    }
+    strong {
+      font-size: $font-eighteen;
+      font-weight: 400;
+      color: $blackColor;
+    }
+  }
+  &:before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle,
+      rgba($primary, 0.25) 0%,
+      transparent 95%
+    );
+    transform: scale(0);
+    transition: transform 0.5s ease;
+    border-radius: 50%;
+    z-index: -1;
+  }
+  &:hover {
+    transform: translateY(-10px) scale(1.03);
+
+    &:before {
+      transform: scale(1);
+    }
+  }
+}

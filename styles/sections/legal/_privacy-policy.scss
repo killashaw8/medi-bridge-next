@@ -1,0 +1,68 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Privacy Policy Area CSS
+=================================================*/
+.privacy-policy-content {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: {
+      top: 30px;
+      bottom: 15px;
+    }
+  }
+  h1 {
+    font-size: 30px;
+  }
+  h2 {
+    font-size: 28px;
+  }
+  h3 {
+    font-size: 25px;
+  }
+  h4 {
+    font-size: 22px;
+  }
+  h5 {
+    font-size: 20px;
+  }
+  h6 {
+    font-size: 18px;
+  }
+
+  .blockquote,
+  blockquote {
+    margin-top: 25px;
+    margin-bottom: 35px;
+    background-color: $white-smokeColor;
+    text-align: start !important;
+    padding: 25px !important;
+    border-radius: 10px;
+
+    p {
+      margin-bottom: 0;
+      line-height: 1.9;
+    }
+    &::after {
+      display: none;
+    }
+    &::before {
+      display: none;
+    }
+  }
+  ol,
+  ul {
+    margin-top: 20px;
+
+    li {
+      margin-bottom: 10px;
+      color: $bodyTextColor;
+      line-height: 1.8;
+    }
+  }
+}

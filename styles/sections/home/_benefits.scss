@@ -1,0 +1,54 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Benefits Area CSS
+=================================================*/
+.benefit-card {
+  padding: 40px;
+  border: 1px solid $dawn-pinkColor;
+  border-radius: 15px;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+
+  .icon {
+    margin-bottom: 70px;
+    transition: transform 0.4s ease, color 0.4s ease;
+  }
+  h3 {
+    font-size: 24px;
+    margin-bottom: 18px;
+    transition: color 0.3s ease;
+  }
+  p {
+    margin-bottom: 0;
+    transition: color 0.3s ease;
+  }
+  &:before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle,
+      rgba($primary, 0.15) 0%,
+      transparent 70%
+    );
+    transform: scale(0);
+    transition: transform 0.5s ease;
+    border-radius: 50%;
+    z-index: -1;
+  }
+  &:hover {
+    border: 1px solid $primary;
+    transform: translateY(-10px) scale(1.03);
+
+    &:before {
+      transform: scale(1);
+    }
+  }
+}

@@ -1,0 +1,48 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Overview Area Area CSS
+=================================================*/
+.overview-area {
+  background-color: $primary;
+  margin: 0 20px;
+  border-radius: 40px;
+  padding-top: 45px;
+  overflow: hidden;
+
+  &.wrap-style2 {
+    margin: 0 0;
+    border-radius: 0;
+  }
+}
+.overview-content {
+  max-width: 580px;
+  position: relative;
+  top: -27px;
+
+  h2 {
+    font-size: 40px;
+    color: $whiteColor;
+    margin-bottom: 20px;
+  }
+  p {
+    color: $whiteColor;
+    max-width: 527px;
+  }
+  .overview-btn {
+    margin-top: 45px;
+
+    .default-btn {
+      background-color: $whiteColor;
+      color: $primary !important;
+
+      .left {
+        background-color: $whiteColor;
+      }
+      .right {
+        background-color: $whiteColor;
+      }
+    }
+  }
+}

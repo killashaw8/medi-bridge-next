@@ -1,0 +1,222 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Doctors Area CSS
+=================================================*/
+.doctors-area {
+  background-color: $whiteColor;
+  margin: 0 20px;
+  overflow: hidden;
+  border-radius: 40px;
+
+  &.smoke-bg-color {
+    margin: 0 0;
+    border-radius: 0;
+  }
+  &.wrap-style2 {
+    margin: 0 0;
+    border-radius: 0;
+    background-color: transparent;
+    overflow: unset;
+  }
+}
+.doctor-card {
+  background-color: $whiteColor;
+  padding: 40px;
+  border-radius: 15px;
+  text-align: center;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+
+  .image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    img,             
+    span {               
+      width: 100%;
+      height: 100%;
+      object-fit: cover;   
+    }
+  }  
+  .content {
+    margin-top: 25px;
+
+    h3 {
+      font-size: 24px;
+      margin-bottom: 12.5px;
+    }
+    .sub {
+      font-size: $font-fifteen;
+      display: block;
+      margin-bottom: 20px;
+    }
+    .tag {
+      display: inline-flex;
+      padding: 10px 20px;
+      justify-content: center;
+      align-items: center;
+      background-color: $primary;
+      color: $whiteColor;
+      font-weight: 500;
+
+      font-size: 15px;
+      border-radius: 50px;
+      line-height: 1;
+      margin-bottom: 20px;
+    }
+    .experience {
+      font-size: $font-fifteen;
+      display: block;
+      margin-bottom: 20px;
+    }
+    .rating-info {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      border-top: 1px solid #e9f1fe;
+      border-bottom: 1px solid #e9f1fe;
+      padding: 7px 0;
+      line-height: 1;
+      justify-content: center;
+
+      .list {
+        display: flex;
+        gap: 0;
+        margin-bottom: 0;
+        position: relative;
+        top: -1px;
+        padding: {
+          left: 0;
+          right: 0;
+        }
+        li {
+          list-style-type: none;
+
+          i {
+            color: #ff9529;
+            font-size: 15px;
+          }
+        }
+      }
+      b {
+        font-size: 13px;
+        color: $blackColor;
+        font-weight: 500;
+      }
+      span {
+        font-size: 13px;
+      }
+    }
+    .doctor-btn {
+      margin-top: 30px;
+
+      .default-btn {
+        padding: 15px 25px;
+        background-color: $white-smokeColor;
+        color: $primary !important;
+        margin-right: 40px;
+
+        .left {
+          height: 45px;
+          width: 45px;
+          background-color: $white-smokeColor;
+          border-radius: 45px;
+
+          svg path {
+            transition: $transition;
+          }
+        }
+        .right {
+          right: -40px;
+          height: 45px;
+          width: 45px;
+          background-color: $white-smokeColor;
+          border-radius: 45px;
+
+          svg path {
+            transition: $transition;
+          }
+        }
+        &:hover {
+          background-color: $primary;
+          color: $whiteColor !important;
+          margin: {
+            left: 40px;
+            right: 0;
+          }
+          .left {
+            left: -40px;
+            background-color: $primary;
+
+            svg path {
+              stroke: $whiteColor;
+            }
+          }
+          .right {
+            background-color: $primary;
+
+            svg path {
+              stroke: $whiteColor;
+            }
+          }
+        }
+      }
+    }
+  }
+  &:before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle,
+      rgba($primary, 0.25) 0%,
+      transparent 95%
+    );
+    transform: scale(0);
+    transition: transform 0.5s ease;
+    border-radius: 50%;
+    z-index: -1;
+  }
+  &:hover {
+    transform: translateY(-10px) scale(1.03);
+
+    &:before {
+      transform: scale(1);
+    }
+  }
+  &.wrap2 {
+    background-color: $white-smokeColor;
+
+    .content {
+      .doctor-btn {
+        .default-btn {
+          background-color: $whiteColor;
+
+          .left {
+            background-color: $whiteColor;
+          }
+          .right {
+            background-color: $whiteColor;
+          }
+          &:hover {
+            background-color: $primary;
+
+            .left {
+              background-color: $primary;
+            }
+            .right {
+              background-color: $primary;
+            }
+          }
+        }
+      }
+    }
+  }
+}

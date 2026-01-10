@@ -1,0 +1,87 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Review Area CSS
+=================================================*/
+.review-card {
+  background-color: $white-smokeColor;
+  padding: 45px 40px;
+  border-radius: 15px;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+
+  .rating {
+    display: flex;
+    margin-bottom: 20px;
+    line-height: 1;
+    padding: {
+      left: 0;
+      right: 0;
+    }
+    li {
+      list-style-type: none;
+      margin-right: 3px;
+
+      i {
+        font-size: 20px;
+        color: #f4c150;
+      }
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+  p {
+    margin-bottom: 0;
+  }
+  .info {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-top: 30px;
+
+    .image {
+      img {
+        border-radius: 50px;
+      }
+    }
+    .title {
+      h3 {
+        font-size: $font-eighteen;
+        margin-bottom: 0;
+      }
+      span {
+        font-size: $font-fourteen;
+        display: block;
+        margin-top: 5px;
+      }
+    }
+  }
+  &:before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+      circle,
+      rgba($primary, 0.25) 0%,
+      transparent 95%
+    );
+    transform: scale(0);
+    transition: transform 0.5s ease;
+    border-radius: 50%;
+    z-index: -1;
+  }
+  &:hover {
+    transform: translateY(-10px) scale(1.03);
+
+    &:before {
+      transform: scale(1);
+    }
+  }
+}

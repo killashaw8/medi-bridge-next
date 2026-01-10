@@ -1,0 +1,177 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Blog Sidebar Widget Area CSS
+=================================================*/
+.widget-area {
+  background: $white-smokeColor;
+  padding: 40px 35px;
+  border-radius: 15px;
+  position: sticky;
+  top: 120px;
+  align-self: flex-start;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+    
+    &:hover {
+      background: #999;
+    }
+  }
+
+  .widget {
+    margin-bottom: 45px;
+
+    .widget-title {
+      font-size: 20px;
+      margin-bottom: 25px;
+    }
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  .widget_search {
+    .searchbar {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+
+      form {
+        position: relative;
+
+        .form-control {
+          display: inline-block;
+          width: 100%;
+          height: 57px;
+          border-radius: 50px;
+          outline: 0;
+          box-shadow: unset;
+          background-color: $whiteColor;
+          border: 1px solid $whiteColor;
+          padding: 15px 75px 15px 25px;
+          transition: $transition;
+          color: $bodyTextColor;
+          font-size: $font-fourteen;
+
+          &::placeholder {
+            transition: $transition;
+            color: $bodyTextColor;
+          }
+          &:focus {
+            border: 1px solid $primary;
+
+            &::placeholder {
+              color: transparent;
+            }
+          }
+        }
+        button {
+          background-color: transparent;
+          border: none;
+          position: absolute;
+          right: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          padding: 0;
+          margin: 0;
+          line-height: 1;
+        }
+      }
+    }
+  }
+  .widget_posts_thumb {
+    .item {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 25px;
+
+      .thumb {
+        img {
+          border-radius: 85px;
+          max-width: 85px;
+          border: 2px solid $whiteColor;
+        }
+      }
+      .info {
+        span {
+          display: inline-flex;
+          padding: 5px 10px;
+          justify-content: center;
+          align-items: center;
+          line-height: 1;
+          font-size: $font-fifteen;
+
+          background-color: $whiteColor;
+          color: $bodyTextColor;
+          border-radius: 50px;
+          font-size: 13px;
+          margin-bottom: 12px;
+        }
+        .title {
+          margin-bottom: 0;
+          line-height: 1.5;
+          font-size: 17px;
+        }
+      }
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+  .widget_box {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 15px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+
+    .image {
+      margin-bottom: 50px;
+    }
+    p {
+      color: $primary;
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 50px;
+
+      max-width: 210px;
+    }
+    .link-btn {
+      display: inline-flex;
+      gap: 12px;
+      align-items: center;
+      font-weight: 600;
+      color: $primary;
+
+      line-height: 1;
+      border-bottom: 0.5px solid $whiteColor;
+      transition: $transition;
+
+      &:hover {
+        border-bottom: 0.5px solid $secondaryColor;
+        letter-spacing: 0.5px;
+      }
+    }
+    .shape {
+      position: absolute;
+      right: 0;
+      top: 0;
+      z-index: -1;
+      max-width: 165px;
+    }
+  }
+}

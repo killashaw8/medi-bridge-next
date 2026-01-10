@@ -1,0 +1,92 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+FAQ Area CSS
+=================================================*/
+.faq-area {
+  .section-title {
+    .left {
+      h2 {
+        max-width: 637px;
+      }
+    }
+  }
+  &.smoke-bg-color {
+    overflow: hidden;
+  }
+}
+.faq-accordion {
+  .accordion {
+    .accordion-item {
+      border: 0;
+      margin-bottom: 20px;
+      background-color: $white-smokeColor;
+      border-radius: 5px;
+
+      &.wrap2 {
+        background-color: $whiteColor;
+      }
+      .accordion-button {
+        border: none;
+        box-shadow: unset;
+        position: relative;
+        padding: 15px 57px 15px 20px;
+        background-color: transparent;
+        color: $blackColor;
+        font-size: 20px;
+        font-weight: 500;
+        border-radius: 5px 5px 0 0;
+        transition: $transition;
+
+        &::before {
+          position: absolute;
+          content: "\ea13";
+          top: 50%;
+          transform: translateY(-50%);
+          right: 20px;
+          font-family: "remixicon";
+          font-size: 20px;
+          color: $blackColor;
+          font-weight: 400;
+          transition: $transition;
+        }
+        &::after {
+          display: none;
+        }
+        &:not(.collapsed) {
+          background-color: $primary;
+          color: $whiteColor;
+
+          &::before {
+            content: "\f1af";
+            color: $whiteColor;
+          }
+        }
+        &.collapsed {
+          background-color: transparent;
+        }
+      }
+      .accordion-body {
+        padding: 15px 20px;
+
+        p {
+          a {
+            color: $primary;
+
+            &:hover {
+              color: $secondaryColor;
+            }
+          }
+        }
+      }
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+  &.wrap-style2 {
+    max-width: 857px;
+    margin: auto;
+  }
+}

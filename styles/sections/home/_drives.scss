@@ -1,0 +1,25 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Drives Area CSS
+=================================================*/
+.drive-card {
+  display: flex;
+  gap: 25px;
+  align-items: start;
+  border-left: 1px solid $primary;
+  padding-left: 30px;
+
+  .content {
+    max-width: 287px;
+
+    h3 {
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+    p {
+      margin-bottom: 0;
+    }
+  }
+}

@@ -1,0 +1,97 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Showing Doctors Bar CSS
+=================================================*/
+.showing-doctors-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 35px;
+
+  .results-text {
+    font-weight: 500;
+    color: $blackColor;
+
+    span {
+      color: $primary;
+      font-weight: 600;
+    }
+  }
+  .search-sort-wrapper {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+
+    .search-box {
+      position: relative;
+
+      .form-control {
+        border: none;
+        display: inline-block;
+        height: 55px;
+        border-radius: 30px;
+        background-color: $white-smokeColor;
+        box-shadow: unset;
+        outline: 0;
+        color: $bodyTextColor;
+        transition: $transition;
+        padding: 10px 70px 10px 25px;
+        font-size: $font-fourteen;
+
+        &::placeholder {
+          color: $bodyTextColor;
+          transition: $transition;
+        }
+        &:focus {
+          &::placeholder {
+            color: transparent;
+          }
+        }
+      }
+      button {
+        padding: 0;
+        background-color: transparent;
+        border: none;
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        line-height: 0;
+      }
+    }
+    .sort-dropdown {
+      padding: 10px 15px;
+      border-radius: 7px;
+      border: 1px solid $dawn-pinkColor;
+
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: $bodyTextColor;
+        margin-bottom: 5px;
+      }
+      .form-select {
+        background-color: transparent;
+        border: none;
+        outline: 0;
+        box-shadow: unset;
+        padding: 0 35px 0 0;
+        background-position: right 0 center;
+        cursor: pointer;
+        color: $blackColor;
+        font-weight: 500;
+        font-size: $font-fifteen;
+
+        option {
+          color: $bodyTextColor;
+          font-size: $font-fourteen;
+        }
+      }
+    }
+  }
+}

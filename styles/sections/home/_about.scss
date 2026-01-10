@@ -1,0 +1,58 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+About Area CSS
+=================================================*/
+.about-area {
+  background-color: $blackColor;
+  margin: 0 20px;
+  overflow: hidden;
+  border-radius: 40px;
+}
+.about-content {
+  padding-left: 100px;
+
+  p {
+    color: $whiteColor;
+    margin-bottom: 40px;
+  }
+  .left {
+    border-left: 1px solid rgba(255, 255, 255, 0.25);
+    padding-left: 20px;
+    margin-left: 30px;
+  }
+  .link-btn {
+    display: inline-flex;
+    gap: 12px;
+    align-items: center;
+    font-weight: 600;
+    color: $whiteColor;
+
+    line-height: 1;
+    border-bottom: 0.5px solid $whiteColor;
+    transition: $transition;
+
+    &:hover {
+      border-bottom: 0.5px solid $primary;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+.about-fun-inner {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 65px;
+  margin-top: 140px;
+
+  .fun {
+    h3 {
+      font-size: 40px;
+      color: $whiteColor;
+      line-height: 1;
+      margin-bottom: 13.5px;
+    }
+    span {
+      color: $white-smokeColor;
+    }
+  }
+}

@@ -1,0 +1,89 @@
+@use "sass:color";
+@use "../../variables" as *;
+
+/*================================================
+Page Banner Area CSS
+=================================================*/
+.page-banner-area {
+  background-color: $white-smokeColor;
+  border-radius: 40px;
+  margin: 0 20px;
+  overflow: hidden;
+  padding: {
+    top: 100px;
+    bottom: 100px;
+  }
+}
+.page-banner-content {
+  .meta {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid $dawn-pinkColor;
+    margin-bottom: 15px;
+    padding: 0 0 20px 0;
+    line-height: 1;
+    margin-right: 15px;
+
+    li {
+      list-style-type: none;
+      font-size: $font-fifteen;
+      position: relative;
+      margin-right: 40px;
+
+      a {
+        color: $blackColor;
+
+        &:hover {
+          color: $primary;
+        }
+      }
+      &::before {
+        position: absolute;
+        content: "\ea6e";
+        font-family: "remixicon" !important;
+        right: -32px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 20px;
+        color: $bodyTextColor;
+        line-height: 1;
+      }
+      &:last-child {
+        margin-right: 0;
+
+        &::before {
+          display: none;
+        }
+      }
+    }
+  }
+  h2 {
+    font-size: 40px;
+    margin-bottom: 15px;
+    max-width: 580px;
+  }
+  p {
+    margin-bottom: 0;
+    max-width: 557px;
+  }
+  &.wrap2 {
+    p {
+      max-width: 410px;
+    }
+  }
+  &.wrap3 {
+    h2 {
+      max-width: 870px;
+    }
+    p {
+      max-width: 835px;
+    }
+  }
+}
+.page-banner-image {
+  text-align: end;
+  margin: {
+    left: -15px;
+    bottom: -100px;
+  }
+}
