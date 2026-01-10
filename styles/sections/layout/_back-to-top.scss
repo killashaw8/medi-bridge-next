@@ -101,6 +101,13 @@ Back to Top CSS
       }
     }
 
+    &.has-followed-badge {
+      .MuiCardContent-root {
+        padding-top: 36px;
+        padding-right: 66px;
+      }
+    }
+
     .MuiCardActions-root {
       padding: 12px 16px 16px;
       justify-content: space-between;

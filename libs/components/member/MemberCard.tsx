@@ -1,19 +1,23 @@
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
-import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Avatar from "@mui/material/Avatar";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import PersonRemoveAlt1Icon from "@mui/icons-material/PersonRemoveAlt1";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import IconButton from "@mui/material/IconButton";
 import { useRouter } from "next/router";
-import { useApolloClient } from "@apollo/client";
+import { useApolloClient, useReactiveVar } from "@apollo/client";
 import { Member } from "@/libs/types/member/member";
 import { getImageUrl } from "@/libs/imageHelper";
 import { MemberType } from "@/libs/enums/member.enum";
 import { GET_MEMBER } from "@/apollo/user/query";
 import { useEffect, useState } from "react";
+import { userVar } from "@/apollo/store";
+import { canFollowMemberType } from "@/libs/utils/follow";
 
 interface MemberCardProps {
   member: Member;
@@ -21,6 +25,8 @@ interface MemberCardProps {
   onFollow?: (memberId: string) => void;
   onUnfollow?: (memberId: string) => void;
   showActions?: boolean;
+  isLiked?: boolean;
+  onLike?: (memberId: string) => void;
 }
 
 const MemberCard: React.FC<MemberCardProps> = ({
@@ -29,9 +35,12 @@ const MemberCard: React.FC<MemberCardProps> = ({
   onFollow,
   onUnfollow,
   showActions = true,
+  isLiked = false,
+  onLike,
 }) => {
   const router = useRouter();
   const apolloClient = useApolloClient();
+  const currentUser = useReactiveVar(userVar);
   const [clinicName, setClinicName] = useState<string>("");
   const imageSrc = member.memberImage
     ? getImageUrl(member.memberImage)
@@ -50,8 +59,13 @@ const MemberCard: React.FC<MemberCardProps> = ({
           .replace(/\b\w/g, (char) => char.toUpperCase())
       : "";
 
-  const showFollow = showActions && !isFollowing && onFollow;
+  const canStartFollow =
+    !!currentUser?._id &&
+    currentUser._id !== member._id &&
+    canFollowMemberType(currentUser?.memberType, member.memberType);
+  const showFollow = showActions && canStartFollow && !isFollowing && onFollow;
   const showUnfollow = showActions && isFollowing && onUnfollow;
+  const showLike = showActions && onLike && currentUser?._id && currentUser._id !== member._id;
   const memberTypeLabel = formatLabel(member.memberType);
   const specializationLabel =
     member.memberType === MemberType.DOCTOR ? formatLabel(member.specialization) : "";
@@ -90,7 +104,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
 
   return (
     <Card
-      className="mypage-member-card"
+      className={`mypage-member-card${isFollowing ? " has-followed-badge" : ""}`}
       sx={{
         height: "100%",
         display: "flex",
@@ -102,6 +116,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
     >
       {isFollowing && (
         <Stack
+          className="followed-badge"
           sx={{
             position: "absolute",
             top: 10,
@@ -120,8 +135,8 @@ const MemberCard: React.FC<MemberCardProps> = ({
           Followed
         </Stack>
       )}
-      <CardContent sx={{ flexGrow: 1 }}>
-        <Stack direction="row" spacing={2} alignItems="center">
+      <CardContent sx={{ flexGrow: 1, pt: isFollowing ? 5 : 2, pr: isFollowing ? 6 : 2 }}>
+        <Stack direction="row" spacing={2} alignItems="flex-start">
           <Avatar
             src={imageSrc}
             alt={member.memberFullName}
@@ -152,33 +167,46 @@ const MemberCard: React.FC<MemberCardProps> = ({
           </Stack>
         </Stack>
       </CardContent>
-      {(showFollow || showUnfollow) && (
-        <CardActions sx={{ px: 2, pb: 2 }}>
-          {showFollow && (
-            <Button
-              variant="contained"
-              startIcon={<PersonAddAlt1Icon />}
-              onClick={(e) => {
-                e.stopPropagation();
-                onFollow?.(member._id);
-              }}
-            >
-              Follow
-            </Button>
-          )}
-          {showUnfollow && (
-            <Button
-              variant="contained"
-              color="error"
-              startIcon={<PersonRemoveAlt1Icon />}
-              onClick={(e) => {
-                e.stopPropagation();
-                onUnfollow?.(member._id);
-              }}
-            >
-              Unfollow
-            </Button>
-          )}
+      {(showFollow || showUnfollow || showLike) && (
+        <CardActions sx={{ px: 2, pb: 2, justifyContent: "center" }}>
+          <Stack direction="row" spacing={0.5} justifyContent="center" alignItems="center">
+            {showLike && (
+              <IconButton
+                aria-label={isLiked ? "Unlike" : "Like"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLike?.(member._id);
+                }}
+                color={isLiked ? "error" : "default"}
+              >
+                {isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+              </IconButton>
+            )}
+            {showFollow && (
+              <IconButton
+                aria-label="Follow"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFollow?.(member._id);
+                }}
+                color="primary"
+              >
+                <PersonAddAlt1Icon />
+              </IconButton>
+            )}
+            {showUnfollow && (
+              <IconButton
+                aria-label="Unfollow"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUnfollow?.(member._id);
+                }}
+                color="error"
+              >
+                <PersonRemoveAlt1Icon />
+              </IconButton>
+            )}
+          </Stack>
         </CardActions>
       )}
     </Card>

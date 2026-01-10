@@ -8,7 +8,7 @@ import { FollowInquiry } from "@/libs/types/follow/follow.input";
 import { Following } from "@/libs/types/follow/follow";
 import { CircularProgress, Box, Typography } from "@mui/material";
 import MemberCard from "@/libs/components/member/MemberCard";
-import { UNSUBSCRIBE } from "@/apollo/user/mutation";
+import { LIKE_TARGET_MEMBER, UNSUBSCRIBE } from "@/apollo/user/mutation";
 import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
 
 const Followings: React.FC = () => {
@@ -31,6 +31,7 @@ const Followings: React.FC = () => {
     errorPolicy: "all",
   });
   const [unsubscribe] = useMutation(UNSUBSCRIBE);
+  const [likeMember] = useMutation(LIKE_TARGET_MEMBER);
 
   const isNoDataError = error?.message?.includes("No data is found");
   const followings: Following[] = isNoDataError ? [] : (data?.getMemberFollowings?.list || []);
@@ -64,6 +65,16 @@ const Followings: React.FC = () => {
     }
   };
 
+  const handleLike = async (memberId: string) => {
+    try {
+      await likeMember({ variables: { input: memberId } });
+      await refetch();
+    } catch (err: any) {
+      console.error("Like error:", err);
+      await sweetMixinErrorAlert(err.message || "Failed to like");
+    }
+  };
+
   return (
     <div className="mypage-section">
       <div className="section-header">
@@ -82,6 +93,7 @@ const Followings: React.FC = () => {
             {followings.map((following) => {
               const member = following.followingData;
               if (!member) return null;
+              const isLiked = following.meLiked?.some((like) => like.myFavorite);
 
               return (
                 <div key={following._id} className="col-md-6 col-lg-4">
@@ -89,6 +101,8 @@ const Followings: React.FC = () => {
                     member={member}
                     isFollowing
                     onUnfollow={handleUnfollow}
+                    isLiked={!!isLiked}
+                    onLike={handleLike}
                   />
                 </div>
               );

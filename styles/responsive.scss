@@ -81,6 +81,12 @@
                     gap: 12px;
                 }
             }
+            &.has-followed-badge {
+                .MuiCardContent-root {
+                    padding-top: 30px;
+                    padding-right: 60px;
+                }
+            }
             .MuiCardActions-root {
                 padding: 10px 12px 12px;
             }

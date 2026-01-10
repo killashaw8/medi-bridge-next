@@ -7,12 +7,13 @@ import { FollowInquiry } from "@/libs/types/follow/follow.input";
 import { Follower } from "@/libs/types/follow/follow";
 import { CircularProgress, Box, Typography } from "@mui/material";
 import MemberCard from "@/libs/components/member/MemberCard";
-import { SUBSCRIBE, UNSUBSCRIBE } from "@/apollo/user/mutation";
+import { LIKE_TARGET_MEMBER, SUBSCRIBE, UNSUBSCRIBE } from "@/apollo/user/mutation";
 import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
 
 const Followers: React.FC = () => {
   const user = useReactiveVar(userVar);
   const [page, setPage] = useState(1);
+  const [localFollowingIds, setLocalFollowingIds] = useState<Set<string>>(new Set());
   const limit = 20;
 
   const input: FollowInquiry = {
@@ -31,6 +32,7 @@ const Followers: React.FC = () => {
   });
   const [subscribe] = useMutation(SUBSCRIBE);
   const [unsubscribe] = useMutation(UNSUBSCRIBE);
+  const [likeMember] = useMutation(LIKE_TARGET_MEMBER);
 
   const isNoDataError = error?.message?.includes("No data is found");
   const followers: Follower[] = isNoDataError ? [] : (data?.getMemberFollowers?.list || []);
@@ -57,6 +59,7 @@ const Followers: React.FC = () => {
     try {
       await subscribe({ variables: { input: memberId } });
       await refetch();
+      setLocalFollowingIds((prev) => new Set(prev).add(memberId));
       await sweetMixinSuccessAlert("Followed member");
     } catch (err: any) {
       console.error("Follow error:", err);
@@ -68,10 +71,25 @@ const Followers: React.FC = () => {
     try {
       await unsubscribe({ variables: { input: memberId } });
       await refetch();
+      setLocalFollowingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(memberId);
+        return next;
+      });
       await sweetMixinSuccessAlert("Unfollowed member");
     } catch (err: any) {
       console.error("Unfollow error:", err);
       await sweetMixinErrorAlert(err.message || "Failed to unfollow");
+    }
+  };
+
+  const handleLike = async (memberId: string) => {
+    try {
+      await likeMember({ variables: { input: memberId } });
+      await refetch();
+    } catch (err: any) {
+      console.error("Like error:", err);
+      await sweetMixinErrorAlert(err.message || "Failed to like");
     }
   };
 
@@ -93,7 +111,10 @@ const Followers: React.FC = () => {
             {followers.map((follower) => {
               const member = follower.followerData;
               if (!member) return null;
-              const isFollowing = follower.meFollowed?.some((follow) => follow.myFollowing);
+              const isFollowing =
+                localFollowingIds.has(member._id) ||
+                follower.meFollowed?.some((follow) => follow.myFollowing);
+              const isLiked = follower.meLiked?.some((like) => like.myFavorite);
 
               return (
                 <div key={follower._id} className="col-md-6 col-lg-4">
@@ -102,6 +123,8 @@ const Followers: React.FC = () => {
                     isFollowing={!!isFollowing}
                     onFollow={handleFollow}
                     onUnfollow={handleUnfollow}
+                    isLiked={!!isLiked}
+                    onLike={handleLike}
                   />
                 </div>
               );

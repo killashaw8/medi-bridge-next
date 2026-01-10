@@ -1,18 +1,24 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { useQuery, useApolloClient } from "@apollo/client";
+import { useMutation, useQuery, useApolloClient, useReactiveVar } from "@apollo/client";
 import { Pagination, Stack } from "@mui/material";
 import { DoctorsInquiry } from "@/libs/types/member/member.input";
 import { GET_DOCTORS, GET_MEMBER } from "@/apollo/user/query";
+import { LIKE_TARGET_MEMBER, SUBSCRIBE, UNSUBSCRIBE } from "@/apollo/user/mutation";
 import { Member } from "@/libs/types/member/member";
 import DoctorCard from "./DoctorCard";
 import DoctorFilter from "./DoctorFilter";
 import { Location } from "@/libs/enums/appointment.enum";
 import { DoctorSpecialization } from "@/libs/enums/member.enum";
+import { userVar } from "@/apollo/store";
+import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
+import { useRouter } from "next/router";
 
 const DoctorsList = () => {
   const apolloClient = useApolloClient();
+  const router = useRouter();
+  const currentUser = useReactiveVar(userVar);
   const doctorsInput: DoctorsInquiry = {
     page: 1,
     limit: 6,
@@ -21,15 +27,19 @@ const DoctorsList = () => {
     search: {},
   };
 
-  const { data } = useQuery(GET_DOCTORS, {
+  const { data, refetch } = useQuery(GET_DOCTORS, {
     variables: { input: doctorsInput },
     fetchPolicy: "cache-and-network",
   });
+  const [subscribe] = useMutation(SUBSCRIBE);
+  const [unsubscribe] = useMutation(UNSUBSCRIBE);
+  const [likeMember] = useMutation(LIKE_TARGET_MEMBER);
 
   const doctors: Member[] = data?.getDoctors?.list || [];
   const [clinicInfo, setClinicInfo] = useState<
     Record<string, { name: string; location?: Location }>
   >({});
+  const [localFollowingIds, setLocalFollowingIds] = useState<Set<string>>(new Set());
 
   const clinicOptions = useMemo(() => {
     return Object.entries(clinicInfo).map(([id, info]) => ({
@@ -171,6 +181,89 @@ const DoctorsList = () => {
   const currentItems = sortedDoctors.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(sortedDoctors.length / itemsPerPage);
 
+  const updateFollowCache = (memberId: string, nextFollowing: boolean) => {
+    const cacheId = apolloClient.cache.identify({
+      __typename: "Member",
+      _id: memberId,
+    });
+    if (!cacheId) return;
+    apolloClient.cache.modify({
+      id: cacheId,
+      fields: {
+        meFollowed() {
+          if (!nextFollowing || !currentUser?._id) return [];
+          return [
+            {
+              __typename: "MeFollowed",
+              followerId: currentUser._id,
+              followingId: memberId,
+              myFollowing: true,
+            },
+          ];
+        },
+        memberFollowers(existing = 0) {
+          const next = Number(existing) + (nextFollowing ? 1 : -1);
+          return next < 0 ? 0 : next;
+        },
+      },
+    });
+  };
+
+  const handleFollow = async (memberId: string) => {
+    if (!currentUser?._id) {
+      await sweetMixinErrorAlert("Please login to follow.");
+      router.push("/login");
+      return;
+    }
+    try {
+      await subscribe({ variables: { input: memberId } });
+      updateFollowCache(memberId, true);
+      setLocalFollowingIds((prev) => new Set(prev).add(memberId));
+      await sweetMixinSuccessAlert("Followed.");
+      await refetch();
+    } catch (err: any) {
+      const message = err?.graphQLErrors?.[0]?.message || err?.message || "Failed to follow.";
+      await sweetMixinErrorAlert(message);
+    }
+  };
+
+  const handleUnfollow = async (memberId: string) => {
+    if (!currentUser?._id) {
+      await sweetMixinErrorAlert("Please login to unfollow.");
+      router.push("/login");
+      return;
+    }
+    try {
+      await unsubscribe({ variables: { input: memberId } });
+      updateFollowCache(memberId, false);
+      setLocalFollowingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(memberId);
+        return next;
+      });
+      await sweetMixinSuccessAlert("Unfollowed.");
+      await refetch();
+    } catch (err: any) {
+      const message = err?.graphQLErrors?.[0]?.message || err?.message || "Failed to unfollow.";
+      await sweetMixinErrorAlert(message);
+    }
+  };
+
+  const handleLike = async (memberId: string) => {
+    if (!currentUser?._id) {
+      await sweetMixinErrorAlert("Please login to like.");
+      router.push("/login");
+      return;
+    }
+    try {
+      await likeMember({ variables: { input: memberId } });
+      await refetch();
+    } catch (err: any) {
+      const message = err?.graphQLErrors?.[0]?.message || err?.message || "Failed to like.";
+      await sweetMixinErrorAlert(message);
+    }
+  };
+
   useEffect(() => {
     setCurrentPage(1);
   }, [
@@ -296,16 +389,26 @@ const DoctorsList = () => {
 
               <div className="row justify-content-start g-4">
                 {currentItems.length > 0 ? (
-                  currentItems.map((doctor) => (
+                  currentItems.map((doctor) => {
+                    const isFollowing =
+                      localFollowingIds.has(doctor.member._id) ||
+                      doctor.member.meFollowed?.some((follow) => follow.myFollowing);
+                    return (
                     <div key={doctor.id} className="col-xl-4 col-md-6">
                       <DoctorCard
                         doctor={doctor.member}
                         clinicName={doctor.clinicName}
                         clinicLocation={doctor.clinicLocation}
                         reviews={doctor.reviews}
+                        isFollowing={!!isFollowing}
+                        onFollow={handleFollow}
+                        onUnfollow={handleUnfollow}
+                        isLiked={doctor.member.meLiked?.some((like) => like.myFavorite)}
+                        onLike={handleLike}
                       />
                     </div>
-                  ))
+                  );
+                  })
                 ) : (
                   <div className="col-12 text-center py-5 border">
                     <p>No doctors found matching your search criteria.</p>

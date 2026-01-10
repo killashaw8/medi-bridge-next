@@ -1,16 +1,22 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useApolloClient, useQuery } from "@apollo/client";
+import { useApolloClient, useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import { Pagination, Stack } from "@mui/material";
 import { ClinicsInquiry } from "@/libs/types/member/member.input";
 import { GET_CLINICS, GET_MEMBER } from "@/apollo/user/query";
+import { LIKE_TARGET_MEMBER, SUBSCRIBE, UNSUBSCRIBE } from "@/apollo/user/mutation";
 import { Member } from "@/libs/types/member/member";
 import { Location } from "@/libs/enums/appointment.enum";
 import ClinicCard from "./ClinicCard";
+import { userVar } from "@/apollo/store";
+import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
+import { useRouter } from "next/router";
 
 const ClinicsList = () => {
   const apolloClient = useApolloClient();
+  const router = useRouter();
+  const currentUser = useReactiveVar(userVar);
   const clinicsInput: ClinicsInquiry = {
     page: 1,
     limit: 200,
@@ -19,15 +25,19 @@ const ClinicsList = () => {
     search: {},
   };
 
-  const { data } = useQuery(GET_CLINICS, {
+  const { data, refetch } = useQuery(GET_CLINICS, {
     variables: { input: clinicsInput },
     fetchPolicy: "cache-and-network",
   });
+  const [subscribe] = useMutation(SUBSCRIBE);
+  const [unsubscribe] = useMutation(UNSUBSCRIBE);
+  const [likeMember] = useMutation(LIKE_TARGET_MEMBER);
 
   const clinics: Member[] = data?.getClinics?.list || [];
   const [clinicLocations, setClinicLocations] = useState<
     Record<string, { location?: Location }>
   >({});
+  const [localFollowingIds, setLocalFollowingIds] = useState<Set<string>>(new Set());
 
   const locationOptions = useMemo(() => Object.values(Location), []);
 
@@ -128,6 +138,89 @@ const ClinicsList = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedClinics.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(sortedClinics.length / itemsPerPage);
+
+  const updateFollowCache = (memberId: string, nextFollowing: boolean) => {
+    const cacheId = apolloClient.cache.identify({
+      __typename: "Member",
+      _id: memberId,
+    });
+    if (!cacheId) return;
+    apolloClient.cache.modify({
+      id: cacheId,
+      fields: {
+        meFollowed() {
+          if (!nextFollowing || !currentUser?._id) return [];
+          return [
+            {
+              __typename: "MeFollowed",
+              followerId: currentUser._id,
+              followingId: memberId,
+              myFollowing: true,
+            },
+          ];
+        },
+        memberFollowers(existing = 0) {
+          const next = Number(existing) + (nextFollowing ? 1 : -1);
+          return next < 0 ? 0 : next;
+        },
+      },
+    });
+  };
+
+  const handleFollow = async (memberId: string) => {
+    if (!currentUser?._id) {
+      await sweetMixinErrorAlert("Please login to follow.");
+      router.push("/login");
+      return;
+    }
+    try {
+      await subscribe({ variables: { input: memberId } });
+      updateFollowCache(memberId, true);
+      setLocalFollowingIds((prev) => new Set(prev).add(memberId));
+      await sweetMixinSuccessAlert("Followed.");
+      await refetch();
+    } catch (err: any) {
+      const message = err?.graphQLErrors?.[0]?.message || err?.message || "Failed to follow.";
+      await sweetMixinErrorAlert(message);
+    }
+  };
+
+  const handleUnfollow = async (memberId: string) => {
+    if (!currentUser?._id) {
+      await sweetMixinErrorAlert("Please login to unfollow.");
+      router.push("/login");
+      return;
+    }
+    try {
+      await unsubscribe({ variables: { input: memberId } });
+      updateFollowCache(memberId, false);
+      setLocalFollowingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(memberId);
+        return next;
+      });
+      await sweetMixinSuccessAlert("Unfollowed.");
+      await refetch();
+    } catch (err: any) {
+      const message = err?.graphQLErrors?.[0]?.message || err?.message || "Failed to unfollow.";
+      await sweetMixinErrorAlert(message);
+    }
+  };
+
+  const handleLike = async (memberId: string) => {
+    if (!currentUser?._id) {
+      await sweetMixinErrorAlert("Please login to like.");
+      router.push("/login");
+      return;
+    }
+    try {
+      await likeMember({ variables: { input: memberId } });
+      await refetch();
+    } catch (err: any) {
+      const message = err?.graphQLErrors?.[0]?.message || err?.message || "Failed to like.";
+      await sweetMixinErrorAlert(message);
+    }
+  };
 
   useEffect(() => {
     setCurrentPage(1);
@@ -297,15 +390,25 @@ const ClinicsList = () => {
 
               <div className="row justify-content-start g-4">
                 {currentItems.length > 0 ? (
-                  currentItems.map((item) => (
+                  currentItems.map((item) => {
+                    const isFollowing =
+                      localFollowingIds.has(item.clinic._id) ||
+                      item.clinic.meFollowed?.some((follow) => follow.myFollowing);
+                    return (
                     <div key={item.id} className="col-xl-4 col-md-6">
                       <ClinicCard
                         clinic={item.clinic}
                         location={item.location}
                         reviews={item.reviews}
+                        isFollowing={!!isFollowing}
+                        onFollow={handleFollow}
+                        onUnfollow={handleUnfollow}
+                        isLiked={item.clinic.meLiked?.some((like) => like.myFavorite)}
+                        onLike={handleLike}
                       />
                     </div>
-                  ))
+                  );
+                  })
                 ) : (
                   <div className="col-12 text-center py-5 border">
                     <p>No clinics found matching your search criteria.</p>

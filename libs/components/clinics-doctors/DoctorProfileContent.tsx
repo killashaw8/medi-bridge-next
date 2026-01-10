@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import CalendarContent from "./CalendarContent";
 import { GET_COMMENTS, GET_MEMBER } from "@/apollo/user/query";
-import { CREATE_COMMENT, UPDATE_COMMENT } from "@/apollo/user/mutation";
+import { CREATE_COMMENT, LIKE_TARGET_MEMBER, SUBSCRIBE, UNSUBSCRIBE, UPDATE_COMMENT } from "@/apollo/user/mutation";
 import { Member } from "@/libs/types/member/member";
 import { Comment } from "@/libs/types/comment/comment";
 import { CommentGroup, CommentStatus } from "@/libs/enums/comment.enum";
@@ -17,11 +17,16 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import XIcon from '@mui/icons-material/X';
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
+import PersonRemoveAlt1Icon from "@mui/icons-material/PersonRemoveAlt1";
 import Moment from "react-moment";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { sweetConfirmAlert, sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
 import { userVar } from "@/apollo/store";
+import { canFollowMemberType } from "@/libs/utils/follow";
 
 
 const DoctorProfileContent = () => {
@@ -96,6 +101,9 @@ const DoctorProfileContent = () => {
 
   const [createComment, { loading: commentSubmitting }] = useMutation(CREATE_COMMENT);
   const [updateComment, { loading: commentUpdating }] = useMutation(UPDATE_COMMENT);
+  const [subscribe] = useMutation(SUBSCRIBE);
+  const [unsubscribe] = useMutation(UNSUBSCRIBE);
+  const [likeMember] = useMutation(LIKE_TARGET_MEMBER);
 
   const activeComments = useMemo(() => {
     const comments = (commentsData?.getComments?.list ?? []) as Comment[];
@@ -119,6 +127,13 @@ const DoctorProfileContent = () => {
   const clinicLocation = clinic?.location
     ? clinic.location.replace(/_/g, " ")
     : "";
+  const isFollowing = !!doctor?.meFollowed?.some((follow) => follow.myFollowing);
+  const isLiked = !!doctor?.meLiked?.some((like) => like.myFavorite);
+  const canStartFollow =
+    !!user?._id &&
+    !!doctor?._id &&
+    user._id !== doctor._id &&
+    canFollowMemberType(user?.memberType, doctor?.memberType);
 
   const handleTabClick = (index: number) => {
     setActiveTab(index);
@@ -142,6 +157,56 @@ const DoctorProfileContent = () => {
         time: selectedSlot,
       },
     });
+  };
+
+  const handleFollow = async () => {
+    if (!doctor?._id) return;
+    if (!user?._id) {
+      await sweetMixinErrorAlert("Please login to follow.");
+      router.push("/login");
+      return;
+    }
+    try {
+      await subscribe({ variables: { input: doctor._id } });
+      await sweetMixinSuccessAlert("Followed.");
+      await refetchDoctor();
+    } catch (err: any) {
+      const message = err?.graphQLErrors?.[0]?.message || err?.message || "Failed to follow.";
+      await sweetMixinErrorAlert(message);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    if (!doctor?._id) return;
+    if (!user?._id) {
+      await sweetMixinErrorAlert("Please login to unfollow.");
+      router.push("/login");
+      return;
+    }
+    try {
+      await unsubscribe({ variables: { input: doctor._id } });
+      await sweetMixinSuccessAlert("Unfollowed.");
+      await refetchDoctor();
+    } catch (err: any) {
+      const message = err?.graphQLErrors?.[0]?.message || err?.message || "Failed to unfollow.";
+      await sweetMixinErrorAlert(message);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!doctor?._id) return;
+    if (!user?._id) {
+      await sweetMixinErrorAlert("Please login to like.");
+      router.push("/login");
+      return;
+    }
+    try {
+      await likeMember({ variables: { input: doctor._id } });
+      await refetchDoctor();
+    } catch (err: any) {
+      const message = err?.graphQLErrors?.[0]?.message || err?.message || "Failed to like.";
+      await sweetMixinErrorAlert(message);
+    }
   };
 
   const updateDoctorComments = (delta: number) => {
@@ -343,17 +408,46 @@ const DoctorProfileContent = () => {
                       </li>
                     </ul>
                     <div className="right-btn">
-                      <Button  
-                        variant="contained"
-                        size="large"
-                        onClick={handleBookNow}
-                        disabled={!doctorId || !selectedDate || !selectedSlot}
-                        sx={{
-                          borderRadius: '50px'
-                        }}
-                      >
-                        Book Now
-                      </Button>
+                      <Stack direction="column" spacing={1} justifyContent="center" alignItems="center">
+                        <Button  
+                          variant="contained"
+                          size="large"
+                          onClick={handleBookNow}
+                          disabled={!doctorId || !selectedDate || !selectedSlot}
+                          sx={{
+                            borderRadius: '50px'
+                          }}
+                        >
+                          Book Now
+                        </Button>
+                        <Stack direction="row" spacing={0.5} justifyContent="center" alignItems="center">
+                          <IconButton
+                            aria-label={isLiked ? "Unlike" : "Like"}
+                            onClick={handleLike}
+                            color={isLiked ? "error" : "default"}
+                          >
+                            {isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                          </IconButton>
+                          {canStartFollow && !isFollowing && (
+                            <IconButton
+                              aria-label="Follow"
+                              onClick={handleFollow}
+                              color="primary"
+                            >
+                              <PersonAddAlt1Icon />
+                            </IconButton>
+                          )}
+                          {isFollowing && (
+                            <IconButton
+                              aria-label="Unfollow"
+                              onClick={handleUnfollow}
+                              color="error"
+                            >
+                              <PersonRemoveAlt1Icon />
+                            </IconButton>
+                          )}
+                        </Stack>
+                      </Stack>
                     </div>
                   </div>
                 </div>

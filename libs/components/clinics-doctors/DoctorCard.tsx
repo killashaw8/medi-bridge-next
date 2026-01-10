@@ -6,13 +6,25 @@ import Image from "next/image";
 import { Member } from "@/libs/types/member/member";
 import { getImageUrl } from "@/libs/imageHelper";
 import { Location } from "@/libs/enums/appointment.enum";
-import { Button } from "@mui/material";
+import { Button, IconButton, Stack } from "@mui/material";
+import { useReactiveVar } from "@apollo/client";
+import { userVar } from "@/apollo/store";
+import { canFollowMemberType } from "@/libs/utils/follow";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
+import PersonRemoveAlt1Icon from "@mui/icons-material/PersonRemoveAlt1";
 
 interface DoctorCardProps {
   doctor: Member;
   clinicName?: string;
   clinicLocation?: Location;
   reviews?: number;
+  isFollowing?: boolean;
+  onFollow?: (memberId: string) => void;
+  onUnfollow?: (memberId: string) => void;
+  isLiked?: boolean;
+  onLike?: (memberId: string) => void;
 }
 
 const DoctorCard: React.FC<DoctorCardProps> = ({
@@ -20,7 +32,13 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
   clinicName,
   clinicLocation,
   reviews = 0,
+  isFollowing = false,
+  onFollow,
+  onUnfollow,
+  isLiked = false,
+  onLike,
 }) => {
+  const currentUser = useReactiveVar(userVar);
   const imageSrc = doctor.memberImage
     ? getImageUrl(doctor.memberImage)
     : "/images/users/defaultUser.svg";
@@ -51,6 +69,13 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
   };
 
   const rating = doctor.memberLikes ?? 0;
+
+  const canStartFollow =
+    !!currentUser?._id &&
+    currentUser._id !== doctor._id &&
+    canFollowMemberType(currentUser?.memberType, doctor.memberType);
+  const showFollow = !!onFollow && canStartFollow && !isFollowing;
+  const showUnfollow = !!onUnfollow && isFollowing;
 
   return (
     <div className="doctor-card wrap2">
@@ -90,17 +115,46 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
           <span>({reviews?.toLocaleString()} Reviews)</span>
         </div>
         <div className="doctor-btn">
-          <Button
-            variant="contained"
-            href="/bookAppointment"
-            size="large"
-            sx={{
-              borderRadius: '50px',
-              color: 'primary'
-            }}
-          >
-            Book Now
-          </Button>
+          <Stack direction="column" spacing={1} justifyContent="center" alignItems="center">
+            <Button
+              variant="contained"
+              href="/bookAppointment"
+              size="large"
+              sx={{
+                borderRadius: '50px',
+                color: 'primary'
+              }}
+            >
+              Book Now
+            </Button>
+            <Stack direction="row" spacing={0.5} justifyContent="center" alignItems="center">
+              <IconButton
+                aria-label={isLiked ? "Unlike" : "Like"}
+                onClick={() => onLike?.(doctor._id)}
+                color={isLiked ? "error" : "default"}
+              >
+                {isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+              </IconButton>
+              {showFollow && (
+                <IconButton
+                  aria-label="Follow"
+                  onClick={() => onFollow?.(doctor._id)}
+                  color="primary"
+                >
+                  <PersonAddAlt1Icon />
+                </IconButton>
+              )}
+              {showUnfollow && (
+                <IconButton
+                  aria-label="Unfollow"
+                  onClick={() => onUnfollow?.(doctor._id)}
+                  color="error"
+                >
+                  <PersonRemoveAlt1Icon />
+                </IconButton>
+              )}
+            </Stack>
+          </Stack>
         </div>
       </div>
     </div>
