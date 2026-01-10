@@ -1,0 +1,64 @@
+@use "../../variables" as *;
+
+.article-form-content {
+  padding: 30px 0;
+}
+
+.article-form-row {
+  gap: 20px 0;
+}
+
+.article-form-col {
+  padding: 0 15px;
+}
+
+.article-form-group {
+  margin-bottom: 25px;
+}
+
+.article-form-label {
+  margin-bottom: 8px;
+  display: block;
+  font-weight: 500;
+}
+
+.article-required {
+  color: #f44336;
+}
+
+.article-image-preview {
+  min-height: 200px;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+  text-align: center;
+  overflow: hidden;
+}
+
+.article-preview-hint {
+  color: #999;
+  font-style: italic;
+}
+
+.article-preview-image {
+  max-width: 100%;
+  max-height: 200px;
+  margin-bottom: 10px;
+}
+
+.article-editor-frame {
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.article-form-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+}

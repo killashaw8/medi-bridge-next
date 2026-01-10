@@ -143,7 +143,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
                           alt={product.productTitle}
                           width={80}
                           height={80}
-                          style={{ borderRadius: 10, objectFit: "cover" }}
+                          className="u-img-cover u-radius-10px"
                         />
                       </Box>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>

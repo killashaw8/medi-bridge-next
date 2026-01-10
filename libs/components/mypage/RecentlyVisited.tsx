@@ -51,7 +51,7 @@ const RecentlyVisited: React.FC = () => {
 
       {products.length === 0 ? (
         <div className="empty-state">
-          <i className="ri-history-line" style={{ fontSize: "48px", color: "#ccc" }}></i>
+          <i className="ri-history-line u-icon-48"></i>
           <p>No recently visited products</p>
           <Link href="/products" className="default-btn">
             Browse Products
@@ -74,7 +74,7 @@ const RecentlyVisited: React.FC = () => {
                         alt={product.productTitle}
                         width={300}
                         height={300}
-                        style={{ objectFit: "cover" }}
+                        className="u-img-cover"
                       />
                     </div>
                     <div className="product-info">
@@ -95,4 +95,3 @@ const RecentlyVisited: React.FC = () => {
 };
 
 export default RecentlyVisited;
-

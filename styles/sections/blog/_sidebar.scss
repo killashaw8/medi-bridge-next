@@ -175,3 +175,21 @@ Blog Sidebar Widget Area CSS
     }
   }
 }
+
+.sidebar-status {
+  padding: 10px;
+  color: #5a6a85;
+  font-size: 14px;
+
+  &.is-error {
+    color: #d30082;
+  }
+}
+
+.sidebar-thumb {
+  width: 85px;
+  height: 85px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 10%;
+}

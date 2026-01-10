@@ -673,9 +673,9 @@ const PersonalInfo: React.FC = () => {
   };
 
   const renderViewField = (label: string, value?: string | null) => (
-    <div style={{ marginBottom: "16px" }}>
-      <div style={{ fontWeight: 600, marginBottom: "4px" }}>{label}</div>
-      <div style={{ color: "#444" }}>{value && value.trim() !== "" ? value : "—"}</div>
+    <div className="personal-info-field">
+      <div className="personal-info-label">{label}</div>
+      <div className="personal-info-value">{value && value.trim() !== "" ? value : "—"}</div>
     </div>
   );
 
@@ -686,8 +686,8 @@ const PersonalInfo: React.FC = () => {
         <p>Update your personal details and profile information</p>
       </div>
 
-      <div className="personal-info-content" style={{ padding: "30px 0" }}>
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "10px" }}>
+      <div className="personal-info-content">
+        <div className="personal-info-actions">
           {!isEditing ? (
             <Button
               variant="contained"
@@ -710,20 +710,16 @@ const PersonalInfo: React.FC = () => {
 
         {!isEditing && (
           <>
-            <div className="profile-image-section" style={{ marginBottom: "30px", textAlign: "center" }}>
+            <div className="profile-image-section view">
               <Image
                 src={displayImage}
                 alt={currentMember?.memberFullName || "Profile"}
                 width={150}
                 height={150}
-                style={{
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  border: "3px solid #f0f0f0",
-                }}
+                className="profile-image"
               />
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px", marginBottom: "30px" }}>
+            <div className="view-grid">
               {renderViewField("Full Name", initialData.memberFullName)}
               {renderViewField("Username", initialData.memberNick)}
               {renderViewField("Email Address", initialData.memberEmail)}
@@ -739,19 +735,15 @@ const PersonalInfo: React.FC = () => {
 
         {isEditing && (
         <>
-          <div className="profile-image-section" style={{ marginBottom: "40px", textAlign: "center" }}>
-            <div className="profile-image-wrapper" style={{ position: "relative", display: "inline-block" }}>
+          <div className="profile-image-section edit">
+            <div className="profile-image-wrapper">
               <Image
                 src={displayImage}
                 alt={currentMember?.memberFullName || "Profile"}
                 width={150}
                 height={150}
-                style={{
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  border: "3px solid #f0f0f0",
-                }} />
-              <div className="image-overlay" style={{ marginTop: "20px", display: "flex", gap: "10px", justifyContent: "center" }}>
+                className="profile-image" />
+              <div className="image-overlay">
                 <Button
                   component="label"
                   variant="contained"
@@ -770,7 +762,7 @@ const PersonalInfo: React.FC = () => {
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}
-                    style={{ display: "none" }}
+                    className="u-hidden"
                     disabled={loading || uploadingImage} />
                 </Button>
                 {currentMember?.memberImage && !removeImage && (
@@ -797,20 +789,16 @@ const PersonalInfo: React.FC = () => {
 
             {/* Image Preview and Actions */}
             {imagePreview && (
-              <div className="image-preview-section" style={{ marginTop: "20px", textAlign: "center" }}>
-                <div style={{ marginBottom: "15px" }}>
+              <div className="image-preview-section">
+                <div className="image-preview-wrapper">
                   <Image
                     src={imagePreview}
                     alt="Preview"
                     width={100}
                     height={100}
-                    style={{
-                      borderRadius: "50%",
-                      objectFit: "cover",
-                      marginBottom: "10px",
-                    }} />
+                    className="image-preview" />
                 </div>
-                <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+                <div className="image-preview-actions">
                   <Button
                     type="button"
                     variant="contained"
@@ -851,120 +839,93 @@ const PersonalInfo: React.FC = () => {
               </div>
             )}
             {uploadingImage && (
-              <p style={{ textAlign: "center", color: "#666", marginTop: "10px" }}>
+              <p className="personal-info-note">
                 Uploading image...
               </p>
             )}
           </div><form onSubmit={handleSubmit} className="personal-info-form">
-              <div className="row" style={{ gap: "20px 0" }}>
-                <div className="col-md-6" style={{ padding: "0 15px" }}>
-                  <div className="form-group" style={{ marginBottom: "25px" }}>
-                    <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+              <div className="row personal-info-row">
+                <div className="col-md-6 personal-info-col">
+                  <div className="form-group personal-info-form-group">
+                    <label className="personal-info-form-label">
                       Full Name
                     </label>
                     <input
                       type="text"
                       name="memberFullName"
-                      className="form-control"
+                      className="form-control personal-info-input"
                       value={formData.memberFullName}
                       onChange={handleChange}
                       placeholder={initialData.memberFullName || "Enter your full name"}
                       disabled={loading || uploadingImage}
-                      style={{
-                        padding: "12px 15px",
-                        borderRadius: "5px",
-                        border: "1px solid #e0e0e0",
-                        width: "100%",
-                      }} />
+                      />
                   </div>
                 </div>
 
-                <div className="col-md-6" style={{ padding: "0 15px" }}>
-                  <div className="form-group" style={{ marginBottom: "25px" }}>
-                    <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                <div className="col-md-6 personal-info-col">
+                  <div className="form-group personal-info-form-group">
+                    <label className="personal-info-form-label">
                       Username
                     </label>
                     <input
                       type="text"
                       name="memberNick"
-                      className="form-control"
+                      className="form-control personal-info-input"
                       value={formData.memberNick}
                       onChange={handleChange}
                       placeholder={initialData.memberNick || "Enter your nickname"}
                       disabled={loading || uploadingImage}
-                      style={{
-                        padding: "12px 15px",
-                        borderRadius: "5px",
-                        border: "1px solid #e0e0e0",
-                        width: "100%",
-                      }} />
+                      />
                   </div>
                 </div>
 
-                <div className="col-md-6" style={{ padding: "0 15px" }}>
-                  <div className="form-group" style={{ marginBottom: "25px" }}>
-                    <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                <div className="col-md-6 personal-info-col">
+                  <div className="form-group personal-info-form-group">
+                    <label className="personal-info-form-label">
                       Email Address
                     </label>
                     <input
                       type="email"
                       name="memberEmail"
-                      className="form-control"
+                      className="form-control personal-info-input"
                       value={formData.memberEmail}
                       onChange={handleChange}
                       placeholder={initialData.memberEmail || "Enter your email address"}
                       disabled={loading || uploadingImage}
-                      style={{
-                        padding: "12px 15px",
-                        borderRadius: "5px",
-                        border: "1px solid #e0e0e0",
-                        width: "100%",
-                      }} />
+                      />
                   </div>
                 </div>
 
-                <div className="col-md-6" style={{ padding: "0 15px" }}>
-                  <div className="form-group" style={{ marginBottom: "25px" }}>
-                    <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                <div className="col-md-6 personal-info-col">
+                  <div className="form-group personal-info-form-group">
+                    <label className="personal-info-form-label">
                       Phone Number
                     </label>
                     <input
                       type="text"
                       name="memberPhone"
-                      className="form-control"
+                      className="form-control personal-info-input"
                       value={formData.memberPhone}
                       onChange={handleChange}
                       placeholder={initialData.memberPhone || "Enter your phone number"}
                       disabled={loading || uploadingImage}
-                      style={{
-                        padding: "12px 15px",
-                        borderRadius: "5px",
-                        border: "1px solid #e0e0e0",
-                        width: "100%",
-                      }} />
+                      />
                   </div>
                 </div>
 
                 {isDoctor && (
                   <>
-                    <div className="col-md-6" style={{ padding: "0 15px" }}>
-                      <div className="form-group" style={{ marginBottom: "25px" }}>
-                        <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                    <div className="col-md-6 personal-info-col">
+                      <div className="form-group personal-info-form-group">
+                        <label className="personal-info-form-label">
                           Specialization
                         </label>
                         <select
                           name="specialization"
-                          className="form-control form-select"
+                          className="form-control form-select personal-info-input personal-info-select"
                           value={formData.specialization}
                           onChange={handleChange}
                           disabled={loading || uploadingImage}
-                          style={{
-                            padding: "12px 15px",
-                            borderRadius: "5px",
-                            border: "1px solid #e0e0e0",
-                            width: "100%",
-                            backgroundColor: "#fff",
-                          }}
                         >
                           <option value="">Select Specialization</option>
                           {Object.values(DoctorSpecialization).map((spec) => (
@@ -975,24 +936,17 @@ const PersonalInfo: React.FC = () => {
                         </select>
                       </div>
                     </div>
-                    <div className="col-md-6" style={{ padding: "0 15px" }}>
-                      <div className="form-group" style={{ marginBottom: "25px" }}>
-                        <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                    <div className="col-md-6 personal-info-col">
+                      <div className="form-group personal-info-form-group">
+                        <label className="personal-info-form-label">
                           Clinic
                         </label>
                         <select
                           name="clinicId"
-                          className="form-control form-select"
+                          className="form-control form-select personal-info-input personal-info-select"
                           value={formData.clinicId}
                           onChange={handleChange}
                           disabled={loading || uploadingImage || clinicsLoading}
-                          style={{
-                            padding: "12px 15px",
-                            borderRadius: "5px",
-                            border: "1px solid #e0e0e0",
-                            width: "100%",
-                            backgroundColor: "#fff",
-                          }}
                         >
                           <option value="">Select Clinic</option>
                           {clinics.map((clinic) => (
@@ -1002,12 +956,12 @@ const PersonalInfo: React.FC = () => {
                           ))}
                         </select>
                         {clinicsLoading && (
-                          <small style={{ color: "#666", marginTop: "5px", display: "block" }}>
+                          <small className="personal-info-help">
                             Loading clinics...
                           </small>
                         )}
                         {!clinicsLoading && clinics.length === 0 && (
-                          <small style={{ color: "#666", marginTop: "5px", display: "block" }}>
+                          <small className="personal-info-help">
                             No clinics available
                           </small>
                         )}
@@ -1017,24 +971,17 @@ const PersonalInfo: React.FC = () => {
                 )}
 
                 {isClinic && (
-                  <div className="col-md-6" style={{ padding: "0 15px" }}>
-                    <div className="form-group" style={{ marginBottom: "25px" }}>
-                      <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                  <div className="col-md-6 personal-info-col">
+                    <div className="form-group personal-info-form-group">
+                      <label className="personal-info-form-label">
                         Location
                       </label>
                       <select
                         name="location"
-                        className="form-control form-select"
+                        className="form-control form-select personal-info-input personal-info-select"
                         value={formData.location}
                         onChange={handleChange}
                         disabled={loading || uploadingImage}
-                        style={{
-                          padding: "12px 15px",
-                          borderRadius: "5px",
-                          border: "1px solid #e0e0e0",
-                          width: "100%",
-                          backgroundColor: "#fff",
-                        }}
                       >
                         <option value="">Select Location</option>
                         {Object.values(Location).map((loc) => (
@@ -1047,80 +994,64 @@ const PersonalInfo: React.FC = () => {
                   </div>
                 )}
 
-                <div className="col-md-12" style={{ padding: "0 15px" }}>
-                  <div className="form-group" style={{ marginBottom: "25px" }}>
-                    <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+                <div className="col-md-12 personal-info-col">
+                  <div className="form-group personal-info-form-group">
+                    <label className="personal-info-form-label">
                       Address
                     </label>
                     <input
                       type="text"
                       name="memberAddress"
-                      className="form-control"
+                      className="form-control personal-info-input"
                       value={formData.memberAddress}
                       onChange={handleChange}
                       placeholder={initialData.memberAddress || "Enter your address"}
                       disabled={loading || uploadingImage}
-                      style={{
-                        padding: "12px 15px",
-                        borderRadius: "5px",
-                        border: "1px solid #e0e0e0",
-                        width: "100%",
-                      }} />
+                      />
                   </div>
                 </div>
 
-            <div className="col-md-12" style={{ padding: "0 15px" }}>
-              <div className="form-group" style={{ marginBottom: "25px" }}>
-                <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+            <div className="col-md-12 personal-info-col">
+              <div className="form-group personal-info-form-group">
+                <label className="personal-info-form-label">
                   Description / Bio
                 </label>
                     <textarea
                       name="memberDesc"
-                      className="form-control"
+                      className="form-control personal-info-input personal-info-textarea"
                       rows={5}
                       value={formData.memberDesc}
                       onChange={handleChange}
                       placeholder={initialData.memberDesc || "Tell us about yourself..."}
                       disabled={loading || uploadingImage}
-                      style={{
-                        padding: "12px 15px",
-                        borderRadius: "5px",
-                        border: "1px solid #e0e0e0",
-                        width: "100%",
-                        resize: "vertical",
-                      }}
                 ></textarea>
               </div>
             </div>
 
-            <div className="col-md-12" style={{ padding: "0 15px" }}>
-              <div className="form-group" style={{ marginBottom: "10px" }}>
-                <label style={{ fontWeight: 600, display: "block", marginBottom: "8px" }}>
+            <div className="col-md-12 personal-info-col">
+              <div className="form-group personal-info-form-group compact">
+                <label className="personal-info-form-label is-strong">
                   Change Password
                 </label>
               </div>
             </div>
 
-            <div className="col-md-4" style={{ padding: "0 15px" }}>
-              <div className="form-group" style={{ marginBottom: "20px" }}>
-                <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+            <div className="col-md-4 personal-info-col">
+              <div className="form-group personal-info-form-group tight">
+                <label className="personal-info-form-label">
                   Current Password
                 </label>
-                <div style={{ position: "relative" }}>
+                <div className="personal-info-relative">
                   <input
                     type={showCurrentPassword ? "text" : "password"}
                     name="currentPassword"
-                    className="form-control"
+                    className="form-control personal-info-input personal-info-password"
                     value={formData.currentPassword}
                     onChange={handleChange}
                     placeholder="Enter current password"
                     disabled={loading || uploadingImage}
                     style={{
-                      padding: "12px 15px",
-                      borderRadius: "5px",
                       border: `1px solid ${getPasswordBorder("current")}`,
-                      width: "100%",
-                      paddingRight: "45px",
                     }}
                   />
                   <IconButton
@@ -1150,26 +1081,22 @@ const PersonalInfo: React.FC = () => {
               </div>
             </div>
 
-            <div className="col-md-4" style={{ padding: "0 15px" }}>
-              <div className="form-group" style={{ marginBottom: "20px" }}>
-                <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+            <div className="col-md-4 personal-info-col">
+              <div className="form-group personal-info-form-group tight">
+                <label className="personal-info-form-label">
                   New Password
                 </label>
-                <div style={{ position: "relative" }}>
+                <div className="personal-info-relative">
                   <input
                     type={showNewPassword ? "text" : "password"}
                     name="newPassword"
-                    className="form-control"
+                    className="form-control personal-info-input personal-info-password"
                     value={formData.newPassword}
                     onChange={handleChange}
                     placeholder="Enter new password"
                     disabled={loading || uploadingImage}
                     style={{
-                      padding: "12px 15px",
-                      borderRadius: "5px",
                       border: `1px solid ${getPasswordBorder("new")}`,
-                      width: "100%",
-                      paddingRight: "45px",
                     }}
                   />
                   <IconButton
@@ -1199,26 +1126,22 @@ const PersonalInfo: React.FC = () => {
               </div>
             </div>
 
-            <div className="col-md-4" style={{ padding: "0 15px" }}>
-              <div className="form-group" style={{ marginBottom: "20px" }}>
-                <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+            <div className="col-md-4 personal-info-col">
+              <div className="form-group personal-info-form-group tight">
+                <label className="personal-info-form-label">
                   Confirm New Password
                 </label>
-                <div style={{ position: "relative" }}>
+                <div className="personal-info-relative">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     name="confirmPassword"
-                    className="form-control"
+                    className="form-control personal-info-input personal-info-password"
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="Re-enter new password"
                     disabled={loading || uploadingImage}
                     style={{
-                      padding: "12px 15px",
-                      borderRadius: "5px",
                       border: `1px solid ${getPasswordBorder("confirm")}`,
-                      width: "100%",
-                      paddingRight: "45px",
                     }}
                   />
                   <IconButton
@@ -1249,7 +1172,7 @@ const PersonalInfo: React.FC = () => {
             </div>
           </div>
 
-              <div className="form-actions" style={{ marginTop: "30px", paddingTop: "20px", borderTop: "1px solid #e0e0e0" }}>
+              <div className="form-actions personal-info-form-actions">
                 <Button
                   type="submit"
                   variant="contained"

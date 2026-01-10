@@ -1,6 +1,7 @@
 @forward "./base/default";
 @forward "./base/default-btn";
 @forward "./base/section-title";
+@forward "./base/utilities";
 @forward "./layout/preloader";
 @forward "./layout/navbar";
 @forward "./layout/sidebar";
@@ -45,6 +46,8 @@
 @forward "./home/subscribe";
 @forward "./home/overview";
 @forward "./chat/chatting";
+@forward "./mypage/personal-info";
+@forward "./mypage/write-article";
 @forward "./layout/footer";
 @forward "./layout/pagination";
 @forward "./layout/back-to-top";

@@ -215,7 +215,7 @@ const CheckoutPopover: React.FC<CheckoutPopoverProps> = ({
                   alt={item.product.productTitle}
                   width={48}
                   height={48}
-                  style={{ borderRadius: 6, objectFit: "cover" }}
+                  className="u-img-cover u-radius-6"
                 />
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography variant="body2" noWrap>

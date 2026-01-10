@@ -102,7 +102,7 @@ const Followers: React.FC = () => {
 
       {followers.length === 0 ? (
         <div className="empty-state">
-          <i className="ri-user-follow-line" style={{ fontSize: "48px", color: "#ccc" }}></i>
+          <i className="ri-user-follow-line u-icon-48"></i>
           <p>No followers yet</p>
         </div>
       ) : (

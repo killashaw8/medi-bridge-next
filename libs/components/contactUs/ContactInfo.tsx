@@ -64,7 +64,7 @@ const ContactInfo = () => {
                       alt={item.title}
                       width={30}
                       height={30}
-                      style={{ width: "auto", height: "auto" }}
+                      className="u-img-auto"
                     />
                   </div>
                   <div className="content">

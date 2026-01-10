@@ -122,10 +122,9 @@ const AppointmentSidebar = (props: AppointmentSidebarProps) => {
         </h3>
         <Stack className="searchbar" direction="row" spacing={1} alignItems="center">
           <select
-            className="form-control form-select"
+            className="form-control form-select appointment-filter-select"
             value={selectedLocation}
             onChange={handleLocationChange}
-            style={{ flex: 1, height: '57px' }}
           >
             <option value="">All Locations</option>
             {locationOptions.map((location) => (
@@ -162,11 +161,10 @@ const AppointmentSidebar = (props: AppointmentSidebarProps) => {
         </h3>
         <Stack className="searchbar" direction="row" spacing={1} alignItems="center">
           <select
-            className="form-control form-select"
+            className="form-control form-select appointment-filter-select"
             value={selectedClinicId}
             onChange={handleClinicChange}
             disabled={clinicsLoading}
-            style={{ flex: 1, height: '57px' }}
           >
             <option value="">All Clinics</option>
             {clinics.map((clinic) => (
@@ -194,7 +192,7 @@ const AppointmentSidebar = (props: AppointmentSidebarProps) => {
           </Tooltip>
         </Stack>
         {clinicsLoading && (
-          <div style={{ padding: '10px', color: '#5A6A85', fontSize: '14px' }}>
+          <div className="appointment-filter-status">
             Loading clinics...
           </div>
         )}
@@ -208,7 +206,7 @@ const AppointmentSidebar = (props: AppointmentSidebarProps) => {
               <RefreshIcon />
             </IconButton>
           </Tooltip>
-          <span style={{ fontSize: '14px', color: '#5A6A85' }}>Reset All Filters</span>
+          <span className="appointment-filter-reset">Reset All Filters</span>
         </Stack>
       </div>
 
@@ -246,4 +244,3 @@ const AppointmentSidebar = (props: AppointmentSidebarProps) => {
 };
 
 export default AppointmentSidebar;
-

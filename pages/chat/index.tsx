@@ -29,7 +29,7 @@ const ChatHome: NextPage = () => {
   }, [conversationId, conversationsData, router]);
 
   return (
-    <div className="doctor-area" style={{ paddingTop: 32, paddingBottom: 48 }}>
+    <div className="doctor-area u-py-32-48">
       <div className="container">
         <Stack
           direction={{ xs: "column", md: "row" }}

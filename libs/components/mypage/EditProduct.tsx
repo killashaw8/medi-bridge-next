@@ -294,7 +294,7 @@ const EditProduct: React.FC<EditProductProps> = ({ productId, onSuccess }) => {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  style={{ display: "none" }}
+                  className="u-hidden"
                   onChange={handleFileChange}
                   disabled={uploadingImage}
                 />

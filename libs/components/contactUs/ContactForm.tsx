@@ -133,9 +133,6 @@ const ContactForm = () => {
             <div className="col-lg-6 col-md-12">
               <div
                 className="contact-us-image"
-                style={{
-                  backgroundImage: "url(/images/contact.jpg)",
-                }}
               >
                 <div className="wrap-content">
                   <div className="left">
@@ -188,7 +185,7 @@ const ContactForm = () => {
                     Have a question or need assistance? Send us a message and
                     our support team will respond as soon as possible.
                   </p>
-                  <p style={{ fontSize: "14px", color: "#666", marginTop: "10px" }}>
+                  <p className="contact-us-note">
                     <strong>Note:</strong> You can send up to 1 email per day.
                   </p>
                 </div>

@@ -331,11 +331,22 @@ Navbar Area CSS
         .user-profile-box {
           width: 100%;
           height: 100%;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 4px 8px;
+          border-radius: 8px;
+          transition: background-color 0.2s;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+          }
         }
 
-        img {
-          width:40px;
-          height:40px;
+        .navbar-avatar {
+          border-radius: 50%;
+          object-fit: cover;
         }
 
         .login-btn {
@@ -510,6 +521,36 @@ Navbar Area CSS
       }
     }
   }
+}
+
+.cart-item-thumb {
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.logout-icon {
+  color: #616161;
+  margin-right: 10px;
+}
+
+.mobile-notice-btn {
+  width: 100%;
+  background: transparent;
+  border: none;
+  text-align: left;
+}
+
+.mobile-user-name {
+  font-weight: 600;
+}
+
+.mobile-user-phone {
+  color: $bodyTextColor;
+  font-size: $font-fourteen;
+}
+
+.mobile-offcanvas {
+  width: 300px;
 }
 .mobile-menu .mobile-menu-list li:has(a.active) ul.dropdown-menu {
   display: block;

@@ -73,13 +73,7 @@ const FrequentlyAskedQuestions = () => {
       <div className="faq-area ptb-140">
         <div className="container">
           <div className="section-title">
-            <div
-              className="left text-center"
-              style={{
-                maxWidth: "637px",
-                margin: "auto",
-              }}
-            >
+            <div className="left text-center u-maxw-637 u-mx-auto">
               <span className="sub wrap2">Frequently Asked Questions</span>
               <h2>Everything You Need to Know About MediBridge</h2>
             </div>

@@ -5,6 +5,7 @@
 Contact Us Area CSS
 =================================================*/
 .contact-us-image {
+  background-image: url("/images/contact.jpg");
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -148,4 +149,10 @@ Contact Us Area CSS
       border: none;
     }
   }
+}
+
+.contact-us-note {
+  font-size: 14px;
+  color: #666;
+  margin-top: 10px;
 }

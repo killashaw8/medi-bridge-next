@@ -256,9 +256,9 @@ const ProductDetails: NextPage = () => {
       <div className="blog-details-area ptb-140">
         <div className="container">
           {!router.isReady || productLoading ? (
-            <p style={{ color: "#5A6A85" }}>Loading product...</p>
+            <p className="u-text-muted">Loading product...</p>
           ) : !product ? (
-            <p style={{ color: "#D30082" }}>Product not found.</p>
+            <p className="u-text-error">Product not found.</p>
           ) : (
             <Stack spacing={4} sx={{ mt: 2 }}>
               <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, border: "1px solid #eef1f6" }}>
@@ -308,7 +308,7 @@ const ProductDetails: NextPage = () => {
                               alt={`${product.productTitle} ${index + 1}`}
                               fill
                               sizes="(max-width: 600px) 200px, (max-width: 900px) 260px, 300px"
-                              style={{ objectFit: "cover" }}
+                              className="u-img-cover"
                             />
                           </Box>
                         </Box>
@@ -334,7 +334,7 @@ const ProductDetails: NextPage = () => {
                             alt="Product"
                             fill
                             sizes="(max-width: 600px) 280px, (max-width: 900px) 320px, 360px"
-                            style={{ objectFit: "cover" }}
+                            className="u-img-cover"
                           />
                         </Box>
                       </Box>
@@ -565,7 +565,7 @@ const ProductDetails: NextPage = () => {
                 alt={product?.productTitle || "Product image"}
                 fill
                 sizes="(max-width: 900px) 100vw, 720px"
-                style={{ objectFit: "contain", background: "#111" }}
+                className="u-img-contain-dark"
               />
             </Box>
           )}

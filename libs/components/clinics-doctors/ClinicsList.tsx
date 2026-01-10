@@ -347,7 +347,7 @@ const ClinicsList = () => {
                       >
                         <mask
                           id="mask0_10014_10966"
-                          style={{ maskType: "luminance" }}
+                          className="u-mask-luminance"
                           maskUnits="userSpaceOnUse"
                           x="1"
                           y="1"

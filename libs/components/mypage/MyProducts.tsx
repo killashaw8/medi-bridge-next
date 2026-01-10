@@ -77,7 +77,7 @@ const MyProducts: React.FC<MyProductsProps> = ({ onEdit }) => {
 
       {products.length === 0 ? (
         <div className="empty-state">
-          <i className="ri-shopping-bag-line" style={{ fontSize: "48px", color: "#ccc" }}></i>
+          <i className="ri-shopping-bag-line u-icon-48"></i>
           <p>You haven't added any products yet</p>
           <Link href="/mypage?section=add-product" className="default-btn">
             Add Your First Product

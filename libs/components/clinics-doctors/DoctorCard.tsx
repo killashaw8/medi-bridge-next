@@ -86,7 +86,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
             alt={doctor.memberFullName || doctor.memberNick || "Doctor"}
             width={340}
             height={340}
-            style={{ borderRadius: "10%" }}
+            className="u-radius-10"
           />
         </Link>
       </div>

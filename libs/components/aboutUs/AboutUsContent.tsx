@@ -94,7 +94,7 @@ const AboutUsContent = () => {
           <div className="about-fun-inner">
             <div
               className="d-lg-flex d-md-flex justify-content-between"
-              style={{ gap: "20px" }}
+              className="u-gap-20"
             >
               {aboutData.statistics.map((stat, index) => (
                 <div key={index} className="custom-grid">

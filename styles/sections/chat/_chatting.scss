@@ -6,6 +6,10 @@ Chatting Area Area CSS
 =================================================*/
 
 .chatting {
+  .chat-icon {
+    font-size: 18px;
+  }
+
   .chat-button {
     border: none;
     position: fixed;
@@ -63,6 +67,7 @@ Chatting Area Area CSS
       font-size: 18px;
       font-weight: 600;
       font-family: $font;
+
     }
 
     .chat-content {
@@ -98,6 +103,16 @@ Chatting Area Area CSS
         width: 100%;
         display: flex;
         flex-direction: column;
+
+        .chat-row {
+          display: flex;
+          margin: 10px 0;
+        }
+
+        .chat-row-right {
+          justify-content: flex-end;
+          align-items: flex-end;
+        }
 
         .welcome {
           margin-left: 10px;
@@ -216,6 +231,10 @@ Chatting Area Area CSS
           cursor: not-allowed;
           background: $bodyTextColor;
         }
+      }
+
+      .chat-send-icon {
+        color: $whiteColor;
       }
     }
   }

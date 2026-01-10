@@ -484,7 +484,7 @@ const DoctorProfileContent = () => {
                           onSelectionChange={handleSelectionChange}
                         />
                         <div className="availability-reviews">
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                          <div className="reviews-header">
                             <h3>
                               Reviews{" "}
                               <span>
@@ -593,8 +593,8 @@ const DoctorProfileContent = () => {
                             </Stack>
                           )}
 
-                          <div style={{ marginTop: "24px" }}>
-                            <h4 style={{ marginBottom: "12px" }}>
+                          <div className="review-form">
+                            <h4 className="review-form-title">
                               {editingCommentId ? "Edit your review" : "Write a review"}
                             </h4>
                             <TextField

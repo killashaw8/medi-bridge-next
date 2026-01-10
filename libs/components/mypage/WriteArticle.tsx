@@ -286,28 +286,21 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess, onCan
         <p>{isEditing ? "Update your article" : "Share your knowledge with the community"}</p>
       </div>
 
-      <div className="article-form-content" style={{ padding: "30px 0" }}>
+      <div className="article-form-content">
         <form onSubmit={handleSubmit} className="article-form">
-          <div className="row" style={{ gap: "20px 0" }}>
-            <div className="col-md-6" style={{ padding: "0 15px" }}>
-              <div className="form-group" style={{ marginBottom: "25px" }}>
-                <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
-                  Category <span style={{ color: "#f44336" }}>*</span>
+          <div className="row article-form-row">
+            <div className="col-md-6 article-form-col">
+              <div className="form-group article-form-group">
+                <label className="article-form-label">
+                  Category <span className="article-required">*</span>
                 </label>
                 <select
                   name="articleCategory"
-                  className="form-control form-select"
+                  className="form-control form-select personal-info-input personal-info-select"
                   value={formData.articleCategory}
                   onChange={handleChange}
                   required
                   disabled={loading}
-                  style={{
-                    padding: "12px 15px",
-                    borderRadius: "5px",
-                    border: "1px solid #e0e0e0",
-                    width: "100%",
-                    backgroundColor: "#fff",
-                  }}
                 >
                   {Object.values(ArticleCategory).map((category) => (
                     <option key={category} value={category}>
@@ -318,45 +311,30 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess, onCan
               </div>
             </div>
 
-            <div className="col-md-6" style={{ padding: "0 15px" }}>
-              <div className="form-group" style={{ marginBottom: "25px" }}>
-                <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
-                  Title <span style={{ color: "#f44336" }}>*</span>
+            <div className="col-md-6 article-form-col">
+              <div className="form-group article-form-group">
+                <label className="article-form-label">
+                  Title <span className="article-required">*</span>
                 </label>
                 <input
                   type="text"
                   name="articleTitle"
-                  className="form-control"
+                  className="form-control personal-info-input"
                   value={formData.articleTitle}
                   onChange={handleChange}
                   placeholder="Enter article title"
                   required
                   disabled={loading}
-                  style={{
-                    padding: "12px 15px",
-                    borderRadius: "5px",
-                    border: "1px solid #e0e0e0",
-                    width: "100%",
-                  }}
                 />
               </div>
             </div>
 
-            <div className="col-md-12" style={{ padding: "0 15px" }}>
-              <div className="form-group" style={{ marginBottom: "25px" }}>
-                <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
+            <div className="col-md-12 article-form-col">
+              <div className="form-group article-form-group">
+                <label className="article-form-label">
                   Article Image
                 </label>
-                <div className="article-image-preview" style={{ 
-                  minHeight: "200px", 
-                  border: "1px solid #e0e0e0", 
-                  borderRadius: "5px", 
-                  padding: "15px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#f9f9f9"
-                }}>
+                <div className="article-image-preview">
                   {formData.articleImage ? (
                     <img
                       src={
@@ -367,26 +345,21 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess, onCan
                           : getImageUrl(formData.articleImage)
                       }
                       alt="Article Preview"
-                      style={{
-                        maxWidth: "100%",
-                        maxHeight: "300px",
-                        borderRadius: "5px",
-                        objectFit: "contain"
-                      }}
+                      className="article-preview-image u-img-contain-dark u-radius-6"
                     />
                   ) : (
-                    <span style={{ color: "#999", fontStyle: "italic" }}>
+                    <span className="article-preview-hint">
                       No image uploaded yet. Upload an image inside the editor to set a preview.
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="form-group" style={{ marginBottom: "25px" }}>
-                <label style={{ marginBottom: "8px", display: "block", fontWeight: 500 }}>
-                  Content <span style={{ color: "#f44336" }}>*</span>
+              <div className="form-group article-form-group">
+                <label className="article-form-label">
+                  Content <span className="article-required">*</span>
                 </label>
-                <div style={{ border: "1px solid #e0e0e0", borderRadius: "5px", overflow: "hidden" }}>
+                <div className="article-editor-frame">
                   {/* Render editor only on client side */}
                   {typeof window !== 'undefined' && Editor && (
                     <Editor
@@ -444,10 +417,7 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess, onCan
             </div>
           </div>
 
-          <div
-            className="form-actions"
-            style={{ marginTop: "30px", display: "flex", justifyContent: "flex-end", gap: "15px" }}
-          >
+          <div className="form-actions article-form-actions">
             {pendingUploadCount > 0 && (
               <Box
                 sx={{

@@ -23,6 +23,21 @@ Doctor Profile Area CSS
     z-index: -1;
   }
 }
+
+.reviews-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.review-form {
+  margin-top: 24px;
+}
+
+.review-form-title {
+  margin-bottom: 12px;
+}
 .doctor-profile-image {
   position: sticky;
   top: 120px;

@@ -1,0 +1,153 @@
+@use "../../variables" as *;
+
+.personal-info-content {
+  padding: 30px 0;
+}
+
+.personal-info-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.personal-info-field {
+  margin-bottom: 16px;
+}
+
+.personal-info-label {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.personal-info-value {
+  color: #444;
+}
+
+.profile-image-section {
+  text-align: center;
+}
+
+.profile-image-section.view {
+  margin-bottom: 30px;
+}
+
+.profile-image-section.edit {
+  margin-bottom: 40px;
+}
+
+.profile-image-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-image {
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #f0f0f0;
+}
+
+.image-overlay {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.view-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.image-preview-section {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.image-preview-wrapper {
+  margin-bottom: 15px;
+}
+
+.image-preview {
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.image-preview-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.personal-info-note {
+  text-align: center;
+  color: #666;
+  margin-top: 10px;
+}
+
+.personal-info-row {
+  gap: 20px 0;
+}
+
+.personal-info-col {
+  padding: 0 15px;
+}
+
+.personal-info-form-group {
+  margin-bottom: 25px;
+
+  &.compact {
+    margin-bottom: 10px;
+  }
+
+  &.tight {
+    margin-bottom: 20px;
+  }
+}
+
+.personal-info-form-label {
+  margin-bottom: 8px;
+  display: block;
+  font-weight: 500;
+
+  &.is-strong {
+    font-weight: 600;
+  }
+}
+
+.personal-info-help {
+  color: #666;
+  margin-top: 5px;
+  display: block;
+}
+
+.personal-info-input {
+  padding: 12px 15px;
+  border-radius: 5px;
+  border: 1px solid #e0e0e0;
+  width: 100%;
+}
+
+.personal-info-select {
+  background-color: #fff;
+}
+
+.personal-info-textarea {
+  resize: vertical;
+}
+
+.personal-info-relative {
+  position: relative;
+}
+
+.personal-info-password {
+  padding-right: 45px;
+}
+
+.personal-info-form-actions {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}

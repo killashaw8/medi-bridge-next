@@ -95,3 +95,34 @@ Appointment Area CSS
     }
   }
 }
+
+.appointment-filter-select {
+  flex: 1;
+  height: 57px;
+}
+
+.appointment-filter-status {
+  padding: 10px;
+  color: #5a6a85;
+  font-size: 14px;
+}
+
+.appointment-filter-reset {
+  font-size: 14px;
+  color: #5a6a85;
+}
+
+.appointment-input {
+  border: 1px solid #d0d5dd;
+}
+
+.appointment-input-lg {
+  height: 57px;
+  border: 1px solid #d0d5dd;
+}
+
+.appointment-doctor-avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 15px;
+}

@@ -792,10 +792,9 @@ const BookAppointment = () => {
                 <div className="widget widget_search">
                   <h3 className="widget-title">Filter by Location</h3>
                   <select
-                    className="form-control form-select"
+                    className="form-control form-select appointment-input"
                     value={selectedLocation}
                     onChange={handleLocationChange}
-                    style={{ border: "1px solid #d0d5dd" }}
                   >
                     <option value="">All Locations</option>
                     {locationOptions.map((location) => (
@@ -810,10 +809,9 @@ const BookAppointment = () => {
                 <div className="widget widget_search">
                   <h3 className="widget-title">Filter by Specialization</h3>
                   <select
-                    className="form-control form-select"
+                    className="form-control form-select appointment-input"
                     value={selectedSpecialization}
                     onChange={handleSpecializationChange}
-                    style={{ border: "1px solid #d0d5dd" }}
                   >
                     <option value="">Select Specialization</option>
                     {specializationOptions.map((spec) => (
@@ -868,11 +866,7 @@ const BookAppointment = () => {
                               alt={doctor.memberFullName}
                               width={80}
                               height={80}
-                              style={{
-                                borderRadius: '50%',
-                                objectFit: 'cover',
-                                marginRight: '15px',
-                              }}
+                              className="appointment-doctor-avatar"
                             />
                             <Box>
                               <Typography variant="h6" component="div">
@@ -959,13 +953,12 @@ const BookAppointment = () => {
                       <input
                         type="date"
                         name="date"
-                        className="form-control"
+                        className="form-control appointment-input-lg"
                         value={formData.date}
                         onChange={handleDateChange}
                         min={new Date().toISOString().split('T')[0]}
                         disabled={loading}
                         required
-                        style={{ height: '57px', border: "1px solid #d0d5dd" }}
                       />
                       {formattedDateLabel && (
                         <Typography variant="caption" sx={{ display: "block", mt: 0.5, color: "#6b7280" }}>
@@ -1056,13 +1049,12 @@ const BookAppointment = () => {
                     <div className="form-group">
                       <label>Appointment Type <span>(required)</span></label>
                       <select
-                        className="form-control form-select"
+                        className="form-control form-select appointment-input"
                         name="channel"
                         value={formData.channel}
                         onChange={handleChange}
                         disabled={loading}
                         required
-                        style={{ border: "1px solid #d0d5dd" }}
                       >
                         <option value={AppointmentType.ONLINE}>Online Consultation</option>
                         <option value={AppointmentType.OFFLINE}>In-Person Visit</option>
@@ -1074,13 +1066,12 @@ const BookAppointment = () => {
                       <label>Additional Notes</label>
                       <textarea
                         name="note"
-                        className="form-control"
+                        className="form-control appointment-input"
                         placeholder="e.g. Briefly describe your symptoms"
                         value={formData.note}
                         onChange={handleChange}
                         disabled={loading}
                         rows={4}
-                        style={{ border: "1px solid #d0d5dd" }}
                       ></textarea>
                     </div>
 

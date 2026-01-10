@@ -88,7 +88,7 @@ const MyArticles: React.FC<MyArticlesProps> = ({ onEdit }) => {
 
       {articles.length === 0 ? (
         <div className="empty-state">
-          <i className="ri-article-line" style={{ fontSize: "48px", color: "#ccc" }}></i>
+          <i className="ri-article-line u-icon-48"></i>
           <p>You haven't written any articles yet</p>
           <Link href="/mypage?section=write-article" className="default-btn">
             Write Your First Article

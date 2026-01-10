@@ -80,7 +80,7 @@ const FavoriteArticles: React.FC = () => {
 
       {favoriteArticles.length === 0 ? (
         <div className="empty-state">
-          <i className="ri-bookmark-line" style={{ fontSize: "48px", color: "#ccc" }}></i>
+          <i className="ri-bookmark-line u-icon-48"></i>
           <p>No favorite articles yet</p>
           <Link href="/article" className="default-btn">
             Browse Articles

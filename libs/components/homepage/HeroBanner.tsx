@@ -170,7 +170,7 @@ function HeroBanner() {
                     preload="auto"
                     width={464}
                     height={688}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    className="u-img-cover u-img-block"
                   >
                     <source  src="/videos/herobannermov.mp4" type="video/mp4" />
                   </video>

@@ -30,7 +30,7 @@ const HowItWorks2 = () => {
           <div className="section-title">
             <div
               className="left text-center"
-              style={{ maxWidth: "637px", margin: "auto" }}
+              className="u-maxw-637 u-mx-auto"
             >
               <span className="sub wrap2">How It Works</span>
               <h2>How MediBridge Works—Signup to Consultation in Just Minutes</h2>

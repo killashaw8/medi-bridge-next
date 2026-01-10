@@ -143,11 +143,11 @@ const Sidebar = ( props: SidebarProps ) => {
       <div className="widget widget_posts_thumb">
         <h3 className="widget-title">Popular Posts</h3>
         {popularLoading ? (
-          <div style={{ padding: '10px', color: '#5A6A85', fontSize: '14px' }}>
+          <div className="sidebar-status">
             Loading...
           </div>
         ) : popularError ? (
-          <div style={{ padding: '10px', color: '#D30082', fontSize: '14px' }}>
+          <div className="sidebar-status is-error">
             Error loading posts
           </div>
         ) : popularPosts.length > 0 ? (
@@ -165,13 +165,7 @@ const Sidebar = ( props: SidebarProps ) => {
                   alt={post.articleTitle} 
                   width={85} 
                   height={85}
-                  style={{ 
-                    objectFit: 'cover', 
-                    borderRadius: '10%',
-                    width: '85px',
-                    height: '85px',
-                    flexShrink: 0 
-                  }}
+                  className="sidebar-thumb"
                 />
               </Link>
               <div className="info">
@@ -194,7 +188,7 @@ const Sidebar = ( props: SidebarProps ) => {
             </article>
           ))
         ) : (
-          <div style={{ padding: '10px', color: '#5A6A85', fontSize: '14px' }}>
+          <div className="sidebar-status">
             No popular posts available
           </div>
         )}

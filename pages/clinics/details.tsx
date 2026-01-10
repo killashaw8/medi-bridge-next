@@ -297,9 +297,9 @@ const ClinicDetails: NextPage = () => {
       <div className="blog-details-area ptb-140">
         <div className="container">
           {!router.isReady || clinicLoading ? (
-            <p style={{ color: "#5A6A85" }}>Loading clinic...</p>
+            <p className="u-text-muted">Loading clinic...</p>
           ) : !clinic ? (
-            <p style={{ color: "#D30082" }}>Clinic not found.</p>
+            <p className="u-text-error">Clinic not found.</p>
           ) : (
             <Stack spacing={4} sx={{ mt: 2 }}>
               <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, border: "1px solid #eef1f6" }}>
@@ -342,7 +342,7 @@ const ClinicDetails: NextPage = () => {
                         alt={clinicName}
                         width={520}
                         height={520}
-                        style={{ width: "100%", height: "auto", display: "block" }}
+                        className="u-img-block"
                       />
                     </Box>
 

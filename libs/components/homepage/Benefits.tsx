@@ -64,7 +64,7 @@ const Benefits = () => {
                       alt={benefit.title}
                       width={60}
                       height={60}
-                      style={{ width: "auto", height: "auto" }}
+                      className="u-img-auto"
                     />
                   </div>
                   <h3>{benefit.title}</h3>

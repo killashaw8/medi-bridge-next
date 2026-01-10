@@ -237,7 +237,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onSuccess }) => {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  style={{ display: "none" }}
+                  className="u-hidden"
                   onChange={handleFileChange}
                   disabled={uploadingImage}
                 />

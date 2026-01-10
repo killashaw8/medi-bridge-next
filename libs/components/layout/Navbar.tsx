@@ -423,7 +423,7 @@ const userImageUrl = useMemo(() => {
                               alt={item.product.productTitle}
                               width={44}
                               height={44}
-                              style={{ borderRadius: 6, objectFit: "cover" }}
+                              className="cart-item-thumb"
                             />
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Typography variant="body2" noWrap>
@@ -588,21 +588,6 @@ const userImageUrl = useMemo(() => {
                   onClick={(event: React.MouseEvent<HTMLElement>) => 
                     setLogoutAnchor(event.currentTarget)
                   }
-                  style={{
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '4px 8px',
-                    borderRadius: '8px',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
                 >
                   <Image
                     src={userImageUrl}
@@ -618,10 +603,7 @@ const userImageUrl = useMemo(() => {
                         target.src = '/images/users/defaultUser.svg';
                       }
                     }}
-                    style={{
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                    }}
+                    className="navbar-avatar"
                   />
                   <span key={nickRefreshKey}>
                     @{displayNick}
@@ -645,7 +627,7 @@ const userImageUrl = useMemo(() => {
                   }}
                 >
                   <MenuItem onClick={handleLogout}>
-                    <LogoutIcon fontSize="small" style={{ color: '#616161', marginRight: '10px' }} />
+                    <LogoutIcon fontSize="small" className="logout-icon" />
                     Logout
                   </MenuItem>
                 </Menu>
@@ -748,7 +730,7 @@ const userImageUrl = useMemo(() => {
         show={show}
         onHide={handleClose}
         placement="end"
-        style={{ width: "300px" }}
+        className="mobile-offcanvas"
       >
         <Offcanvas.Header closeButton>
           <Offcanvas.Title>
@@ -772,11 +754,6 @@ const userImageUrl = useMemo(() => {
                     onClick={(event: React.MouseEvent<HTMLElement>) => 
                       setLogoutAnchor(event.currentTarget)
                     }
-                    style={{
-                      cursor: 'pointer',
-                      borderRadius: '8px',
-                      transition: 'background-color 0.2s',
-                    }}
                   >
                     <Image
                       src={userImageUrl}
@@ -792,16 +769,13 @@ const userImageUrl = useMemo(() => {
                           target.src = '/images/users/defaultUser.svg';
                         }
                       }}
-                      style={{
-                        borderRadius: '50%',
-                        objectFit: 'cover',
-                      }}
+                      className="navbar-avatar"
                     />
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: '500' }}>
+                      <div className="mobile-user-name">
                         {displayNick}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#888' }}>
+                      <div className="mobile-user-phone">
                         {user?.memberPhone || ""}
                       </div>
                     </div>
@@ -815,10 +789,10 @@ const userImageUrl = useMemo(() => {
                     onClose={() => setLogoutAnchor(null)}
                     sx={{ mt: '5px' }}
                   >
-                    <MenuItem onClick={handleLogout}>
-                      <LogoutIcon fontSize="small" style={{ color: '#616161', marginRight: '10px' }} />
+                  <MenuItem onClick={handleLogout}>
+                      <LogoutIcon fontSize="small" className="logout-icon" />
                       Logout
-                    </MenuItem>
+                  </MenuItem>
                   </Menu>
                 </div>
               ) : (
@@ -877,9 +851,8 @@ const userImageUrl = useMemo(() => {
                 <div className="option-item w-100">
                   <button
                     type="button"
-                    className="login-btn d-flex align-items-center gap-2"
+                    className="login-btn d-flex align-items-center gap-2 mobile-notice-btn"
                     onClick={handleNoticeOpen}
-                    style={{ width: "100%", background: "transparent", border: "none" }}
                   >
                     <Badge color="error" badgeContent={unreadNoticeCount}>
                       <NotificationsNoneIcon />

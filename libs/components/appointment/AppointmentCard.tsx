@@ -148,7 +148,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
             alt={doctorName}
             width={220}
             height={220}
-            style={{ borderRadius: "10%", objectFit: "cover" }}
+            className="u-radius-10 u-img-cover"
           />
         </Link>
       </div>

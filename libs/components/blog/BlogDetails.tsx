@@ -69,7 +69,7 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ article, loading }) => {
     return (
       <div className="blog-details-area ptb-140">
         <div className="container">
-          <p style={{ color: "#5A6A85" }}>Loading article...</p>
+        <p className="u-text-muted">Loading article...</p>
         </div>
       </div>
     );
@@ -79,7 +79,7 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ article, loading }) => {
     return (
       <div className="blog-details-area ptb-140">
         <div className="container">
-          <p style={{ color: "#D30082" }}>Article not found.</p>
+        <p className="u-text-error">Article not found.</p>
         </div>
       </div>
     );

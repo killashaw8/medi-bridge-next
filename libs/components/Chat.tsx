@@ -144,14 +144,14 @@ const Ask_AI = () => {
 			) : null}
 			<Stack className={`chat-frame ${open ? 'open' : ''}`}>
 				<Box className={'chat-top'} component={'div'}>
-					<SmartToyIcon className='icon' style={{ fontSize: 18 }} />
+					<SmartToyIcon className="chat-icon" />
 					<div>MediBridge AI Assistant</div>
 				</Box>
 				<Box className={'chat-content'} id="chat-content" ref={chatContentRef} component={'div'}>
 					<ScrollableFeed>
 						<Stack className={'chat-main'}>
 							{messagesList.length === 0 && (
-								<Box flexDirection={'row'} style={{ display: 'flex' }} sx={{ m: '10px 0px' }} component={'div'}>
+								<Box className="chat-row" component={'div'}>
 									<div className={'welcome'}>
 										Welcome to MediBridge AI Assistant! I can help answer general medical questions. 
 										Please note: I cannot diagnose or prescribe. Always consult a licensed doctor for medical decisions.
@@ -163,30 +163,26 @@ const Ask_AI = () => {
 									<Box
 										key={message.id}
 										component={'div'}
-										flexDirection={'row'}
-										style={{ display: 'flex' }}
-										alignItems={'flex-end'}
-										justifyContent={'flex-end'}
-										sx={{ m: '10px 0px' }}
+										className="chat-row chat-row-right"
 									>
 										<div className={'msg-right'}>{message.text}</div>
 									</Box>
 								) : (
-									<Box key={message.id} flexDirection={'row'} style={{ display: 'flex' }} sx={{ m: '10px 0px' }} component={'div'}>
+									<Box key={message.id} className="chat-row" component={'div'}>
 										<Avatar 
 											alt={'AI Assistant'} 
 											sx={{ bgcolor: '#336AEA', width: 32, height: 32 }}
 										>
-											<SmartToyIcon style={{ fontSize: 18 }} />
+											<SmartToyIcon className="chat-icon" />
 										</Avatar>
 										<div className={'msg-left'}>{message.text}</div>
 									</Box>
 								);
 							})}
 							{loading && (
-								<Box flexDirection={'row'} style={{ display: 'flex' }} sx={{ m: '10px 0px' }} component={'div'}>
+								<Box className="chat-row" component={'div'}>
 									<Avatar sx={{ bgcolor: '#336AEA', width: 32, height: 32 }}>
-										<SmartToyIcon style={{ fontSize: 18 }} />
+										<SmartToyIcon className="chat-icon" />
 									</Avatar>
 									<div className={'msg-left'}>
 										<CircularProgress size={16} sx={{ mr: 1, color: '#fff' }} />
@@ -216,7 +212,7 @@ const Ask_AI = () => {
 						{loading ? (
 							<CircularProgress size={20} sx={{ color: '#fff' }} />
 						) : (
-							<SendIcon style={{ color: '#fff' }} />
+							<SendIcon className="chat-send-icon" />
 						)}
 					</button>
 				</Box>

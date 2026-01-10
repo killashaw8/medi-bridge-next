@@ -334,3 +334,22 @@ Profile Authentication Area CSS
     }
   }
 }
+
+.auth-input-wrapper {
+  position: relative;
+}
+
+.auth-password-input {
+  padding-right: 45px;
+}
+
+.auth-image-preview-img {
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.auth-image-actions {
+  display: flex;
+  gap: 10px;
+}

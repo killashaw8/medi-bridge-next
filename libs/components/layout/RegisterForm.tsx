@@ -447,18 +447,17 @@ const RegisterForm = () => {
                 <label>
                   Password <span>(required)</span>
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="auth-input-wrapper">
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="form-control"
+                    className="form-control auth-password-input"
                     placeholder="Enter your password (min. 6 characters)"
                     disabled={loading}
                     required
                     minLength={6}
-                    style={{ paddingRight: '45px' }}
                   />
                   {/* ✅ ADD: Material-UI IconButton */}
                   <IconButton
@@ -491,17 +490,16 @@ const RegisterForm = () => {
                 <label>
                   Confirm Password <span>(required)</span>
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="auth-input-wrapper">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="form-control"
+                    className="form-control auth-password-input"
                     placeholder="Confirm your password"
                     disabled={loading}
                     required
-                    style={{ paddingRight: '45px' }}
                   />
                   {/* ✅ ADD: Material-UI IconButton */}
                   <IconButton
@@ -540,13 +538,9 @@ const RegisterForm = () => {
                         alt="Profile preview"
                         width={100}
                         height={100}
-                        style={{
-                          borderRadius: '50%',
-                          objectFit: 'cover',
-                          marginBottom: '10px',
-                        }}
+                        className="auth-image-preview-img"
                       />
-                      <div style={{ display: 'flex', gap: '10px' }}>
+                      <div className="auth-image-actions">
                         <Button
                           type="button"
                           variant="contained"
@@ -593,7 +587,7 @@ const RegisterForm = () => {
                     accept="image/*"
                     onChange={handleImageChange}
                     disabled={loading || uploadingImage}
-                    style={{ display: 'none' }}
+                    className="u-hidden"
                   />
                   {!imagePreview && (
                     <label

@@ -68,12 +68,7 @@ const BlogDetailsContent = (props: BlogCardProps) => {
             alt={article?.articleTitle || "Article Image"}
             width={600}
             height={400}
-            style={{ 
-              objectFit: "cover",
-              borderRadius: "20px",
-              width: '600px',
-              height: '400px'
-            }}
+            className="blog-card-image"
           />
         </div>
         <div className="content">

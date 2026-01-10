@@ -63,7 +63,7 @@ const FavoriteProducts: React.FC = () => {
 
       {products.length === 0 ? (
         <div className="empty-state">
-          <i className="ri-heart-line" style={{ fontSize: "48px", color: "#ccc" }}></i>
+          <i className="ri-heart-line u-icon-48"></i>
           <p>No favorite products yet</p>
           <Button
             type="button" 

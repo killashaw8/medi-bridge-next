@@ -35,7 +35,7 @@ const WhatDrivesUs = () => {
       <div className="drive-area ptb-140">
         <div className="container">
           <div className="section-title">
-            <div className="left" style={{ maxWidth: "637px" }}>
+            <div className="left u-maxw-637">
               <span className="sub">What Drives Us</span>
               <h2>Our Purpose & Principles</h2>
             </div>

@@ -21,6 +21,13 @@ Blog Area CSS
     }
   }
 }
+
+.blog-card-image {
+  width: 600px;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 20px;
+}
 .blog-card {
   transition: $transition;
 
