@@ -60,6 +60,7 @@ const Navbar = () => {
   const [colorChange, setColorChange] = useState(false);
   const [imageRefreshKey, setImageRefreshKey] = useState(0);
   const [nickRefreshKey, setNickRefreshKey] = useState(0);
+  const [avatarError, setAvatarError] = useState(false);
 
   const DEFAULT_USER_IMAGE = '/images/users/defaultUser.svg'
 
@@ -236,6 +237,12 @@ const userImageUrl = useMemo(() => {
 
   return cacheBust ? `${imageUrl}${separator}${cacheBust}` : imageUrl;
 }, [user?.memberImage, imageRefreshKey]);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [userImageUrl]);
+
+  const avatarSrc = avatarError ? DEFAULT_USER_IMAGE : userImageUrl;
 
   const displayNick = useMemo(() => {
     return user?.memberNick || user?.memberFullName || 'User';
@@ -590,19 +597,12 @@ const userImageUrl = useMemo(() => {
                   }
                 >
                   <Image
-                    src={userImageUrl}
+                    src={avatarSrc}
                     alt={user?.memberNick || 'User'}
                     width={32}
                     height={32}
                     unoptimized={true}
-                    onError={(e) => {
-                      console.error('Navbar - Image failed to load:', userImageUrl);
-                      // Fallback to default on error
-                      const target = e.target as HTMLImageElement;
-                      if (target.src !== '/images/users/defaultUser.svg') {
-                        target.src = '/images/users/defaultUser.svg';
-                      }
-                    }}
+                    onError={() => setAvatarError(true)}
                     className="navbar-avatar"
                   />
                   <span key={nickRefreshKey}>
@@ -756,19 +756,12 @@ const userImageUrl = useMemo(() => {
                     }
                   >
                     <Image
-                      src={userImageUrl}
+                      src={avatarSrc}
                       alt={user?.memberNick || 'User'}
                       width={40}
                       height={40}
                       unoptimized={userImageUrl.startsWith('http')}
-                      onError={(e) => {
-                        console.error('Navbar Mobile - Image failed to load:', userImageUrl);
-                        // Fallback to default on error
-                        const target = e.target as HTMLImageElement;
-                        if (target.src !== '/images/users/defaultUser.svg') {
-                          target.src = '/images/users/defaultUser.svg';
-                        }
-                      }}
+                      onError={() => setAvatarError(true)}
                       className="navbar-avatar"
                     />
                     <div>

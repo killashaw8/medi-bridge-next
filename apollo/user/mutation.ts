@@ -146,6 +146,42 @@ export const LOGIN_WITH_GOOGLE = gql`
   }
 `;
 
+export const LOGIN_WITH_GOOGLE_ACCESS_TOKEN = gql`
+  mutation LoginWithGoogleAccessToken($input: GoogleAccessTokenInput!) {
+    loginWithGoogleAccessToken(input: $input) {
+      _id
+      memberType
+      memberStatus
+      authProvider
+      memberPhone
+      memberNick
+      memberFullName
+      memberImage
+      memberAddress
+      memberDesc
+      memberAppointments
+      memberArticles
+      memberFollowers
+      memberFollowings
+      memberPoints
+      memberLikes
+      memberViews
+      memberComments
+      memberRank
+      memberWarnings
+      memberBlocks
+      deletedAt
+      createdAt
+      updatedAt
+      accessToken
+      clinicId
+      specialization
+      googleId
+      memberEmail
+    }
+  }
+`;
+
 export const LOGIN_WITH_KAKAO = gql`
   mutation LoginWithKakao($input: KakaoLoginInput!) {
     loginWithKakao(input: $input) {

@@ -2,7 +2,7 @@ import jwtDecode from 'jwt-decode';
 import { initializeApollo } from '../../apollo/client';
 import { userVar } from '../../apollo/store';
 import { sweetMixinErrorAlert } from '../sweetAlert';
-import { LOGIN, LOGIN_WITH_GOOGLE, LOGIN_WITH_KAKAO, LOGIN_WITH_TELEGRAM, SIGN_UP } from '@/apollo/user/mutation';
+import { LOGIN, LOGIN_WITH_GOOGLE, LOGIN_WITH_GOOGLE_ACCESS_TOKEN, LOGIN_WITH_KAKAO, LOGIN_WITH_TELEGRAM, SIGN_UP } from '@/apollo/user/mutation';
 import { DoctorSpecialization } from '../enums/member.enum';
 import { T } from '../types/common';
 
@@ -48,6 +48,27 @@ export const logInWithGoogle = async (idToken: string): Promise<void> => {
 				updateUserInfoFromResponse(userData);
 			} else {
 				updateUserInfo(accessToken);
+			}
+		}
+	} catch (err) {
+		console.warn('login err', err);
+		logOut();
+	}
+};
+
+export const logInWithGoogleAccessToken = async (accessToken: string): Promise<void> => {
+	try {
+		const { accessToken: jwt, refreshToken, userData } = await requestGoogleAccessTokenJwtToken({
+			accessToken,
+		});
+
+		if (jwt) {
+			updateStorage({ accessToken: jwt, refreshToken });
+
+			if (userData) {
+				updateUserInfoFromResponse(userData);
+			} else {
+				updateUserInfo(jwt);
 			}
 		}
 	} catch (err) {
@@ -246,6 +267,49 @@ const requestGoogleJwtToken = async ({
 
 		return {
 			accessToken,
+			refreshToken: refreshToken ?? null,
+			userData: userData && Object.keys(userData).length > 0 ? userData : undefined,
+		};
+	} catch (err: any) {
+		console.log('request token err', err.graphQLErrors);
+		switch (err.graphQLErrors?.[0]?.message) {
+			case 'No member with that nick!':
+				await sweetMixinErrorAlert('Account not found');
+				break;
+			case 'You have been blocked, contact restaurant!':
+				await sweetMixinErrorAlert('User has been blocked!');
+				break;
+			default:
+				await sweetMixinErrorAlert('Google login failed');
+		}
+		throw new Error('token error');
+	}
+};
+
+const requestGoogleAccessTokenJwtToken = async ({
+	accessToken,
+}: {
+	accessToken: string;
+}): Promise<{
+	accessToken: string;
+	refreshToken: string | null;
+	userData?: T;
+}> => {
+	const apolloClient = await initializeApollo();
+
+	try {
+		const result = await apolloClient.mutate({
+			mutation: LOGIN_WITH_GOOGLE_ACCESS_TOKEN,
+			variables: { input: { accessToken } },
+			fetchPolicy: 'network-only',
+		});
+
+		console.log('---------- login (google access token) ----------');
+		const { accessToken: jwt, refreshToken, ...userData } =
+			result?.data?.loginWithGoogleAccessToken ?? {};
+
+		return {
+			accessToken: jwt,
 			refreshToken: refreshToken ?? null,
 			userData: userData && Object.keys(userData).length > 0 ? userData : undefined,
 		};

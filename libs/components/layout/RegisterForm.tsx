@@ -1,7 +1,7 @@
-import React, { useEffect, useState, FormEvent } from "react";
+import React, { useEffect, useRef, useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { logInWithGoogle, logInWithKakao, logInWithTelegram, signUp, updateUserInfoFromResponse } from "@/libs/auth";
+import { logInWithGoogleAccessToken, logInWithKakao, logInWithTelegram, signUp, updateUserInfoFromResponse } from "@/libs/auth";
 import { sweetMixinErrorAlert } from "@/libs/sweetAlert";
 import { DoctorSpecialization, MemberType } from "@/libs/enums/member.enum";
 import { ClinicsInquiry } from "@/libs/types/member/member.input";
@@ -51,6 +51,7 @@ const RegisterForm = () => {
   const [cropperOpen, setCropperOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [googleReady, setGoogleReady] = useState(false);
+  const googleTokenClientRef = useRef<any>(null);
   const telegramBotName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME;
   const kakaoJsKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
 
@@ -80,21 +81,21 @@ const RegisterForm = () => {
       console.warn("Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID");
       return;
     }
-
     const initializeGoogle = () => {
-      if (!window.google?.accounts?.id) return;
+      if (!window.google?.accounts?.oauth2) return;
 
-      window.google.accounts.id.initialize({
+      googleTokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
         client_id: clientId,
-        callback: async (response: { credential?: string }) => {
-          if (!response?.credential) {
+        scope: "openid email profile",
+        callback: async (response: { access_token?: string }) => {
+          if (!response?.access_token) {
             await sweetMixinErrorAlert("Google login failed. Please try again.");
             return;
           }
 
           setLoading(true);
           try {
-            await logInWithGoogle(response.credential);
+            await logInWithGoogleAccessToken(response.access_token);
             router.push("/");
           } catch (error) {
             console.error("Google login error:", error);
@@ -107,7 +108,7 @@ const RegisterForm = () => {
       setGoogleReady(true);
     };
 
-    if (window.google?.accounts?.id) {
+    if (window.google?.accounts?.oauth2) {
       initializeGoogle();
       return;
     }
@@ -156,11 +157,11 @@ const RegisterForm = () => {
   }, [kakaoJsKey]);
 
   const handleGoogleLogin = async () => {
-    if (!window.google?.accounts?.id) {
+    if (!googleReady) {
       await sweetMixinErrorAlert("Google login is not ready. Please try again.");
       return;
     }
-    window.google.accounts.id.prompt();
+    googleTokenClientRef.current?.requestAccessToken({ prompt: "consent" });
   };
 
   const handleTelegramAuth = async (user: TelegramUser) => {
