@@ -6,7 +6,8 @@ import { GET_VIEWED } from "@/apollo/user/query";
 import { OrdinaryInquiry } from "@/libs/types/product/product.input";
 import { Product } from "@/libs/types/product/product";
 import { getImageUrl } from "@/libs/imageHelper";
-import { CircularProgress, Box, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 
 const RecentlyVisited: React.FC = () => {
   const [page, setPage] = useState(1);
@@ -27,10 +28,27 @@ const RecentlyVisited: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ textAlign: "center", padding: "40px" }}>
-        <CircularProgress />
-        <Typography sx={{ marginTop: 2 }}>Loading recently visited...</Typography>
-      </Box>
+      <div className="mypage-section">
+        <div className="section-header">
+          <Skeleton variant="text" height={32} width="35%" />
+          <Skeleton variant="text" width="45%" />
+        </div>
+        <div className="products-grid">
+          <div className="row">
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => (
+              <div key={`visited-skeleton-${index}`} className="col-lg-3 col-md-4 col-sm-6">
+                <Box sx={{ borderRadius: 2, overflow: "hidden", border: "1px solid #eef1f6" }}>
+                  <Skeleton variant="rectangular" height={180} />
+                  <Box sx={{ p: 2 }}>
+                    <Skeleton variant="text" width="70%" />
+                    <Skeleton variant="text" width="40%" />
+                  </Box>
+                </Box>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     );
   }
 

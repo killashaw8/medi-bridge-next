@@ -39,7 +39,9 @@
 
 .profile-image-wrapper {
   position: relative;
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .profile-image {
@@ -56,6 +58,17 @@
   display: flex;
   gap: 10px;
   justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.crop-image-btn {
+  background-color: $primary !important;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background-color: $primaryHover !important;
+  }
 }
 
 .view-grid {

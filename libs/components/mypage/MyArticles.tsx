@@ -7,7 +7,8 @@ import { userVar } from "@/apollo/store";
 import { ArticlesInquiry } from "@/libs/types/article/article.input";
 import { Article } from "@/libs/types/article/article";
 import { ArticleStatus } from "@/libs/enums/article.enum";
-import { CircularProgress, Box, Typography, Grid, Pagination, Stack } from "@mui/material";
+import { Box, Typography, Grid, Pagination, Stack } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import { sweetMixinSuccessAlert, sweetMixinErrorAlert } from "@/libs/sweetAlert";
 import ArticleCard from "@/libs/components/common/ArticleCard";
 
@@ -47,10 +48,26 @@ const MyArticles: React.FC<MyArticlesProps> = ({ onEdit }) => {
 
   if (loading) {
     return (
-      <Box sx={{ textAlign: "center", padding: "40px" }}>
-        <CircularProgress />
-        <Typography sx={{ marginTop: 2 }}>Loading your articles...</Typography>
-      </Box>
+      <div className="mypage-section">
+        <div className="section-header">
+          <Skeleton variant="text" height={32} width="30%" />
+          <Skeleton variant="text" width="40%" />
+        </div>
+        <Grid container spacing={3} className="articles-grid">
+          {[0, 1, 2, 3, 4, 5].map((index) => (
+            <Grid item xs={12} sm={6} md={4} key={`article-skeleton-${index}`}>
+              <Box sx={{ borderRadius: 2, overflow: "hidden", border: "1px solid #eef1f6" }}>
+                <Skeleton variant="rectangular" height={180} />
+                <Box sx={{ p: 2 }}>
+                  <Skeleton variant="text" width="40%" />
+                  <Skeleton variant="text" width="80%" />
+                  <Skeleton variant="text" width="60%" />
+                </Box>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+      </div>
     );
   }
 

@@ -50,7 +50,7 @@ Profile Authentication Area CSS
         transition: border-color 0.3s;
 
         &:hover {
-          border-color: #336AEA;
+          border-color: $primary;
         }
 
         .image-preview {
@@ -62,7 +62,7 @@ Profile Authentication Area CSS
         }  
         .file-upload-label {
           padding: 12px 24px;
-          background-color: #336AEA;
+          background-color: $primary;
           color: white;
           border-radius: 8px;
           cursor: pointer;
@@ -74,7 +74,7 @@ Profile Authentication Area CSS
           min-width: 200px;
 
           &:hover:not(.disabled) {
-            background-color: #2856c7;
+            background-color: $primaryHover;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(51, 106, 234, 0.3);
           }
@@ -86,7 +86,7 @@ Profile Authentication Area CSS
         }
 
         .file-upload-label:hover:not(.disabled) {
-          background-color: #2856c7;
+          background-color: $primaryHover;
         }
 
         .file-upload-label.disabled {
@@ -96,7 +96,7 @@ Profile Authentication Area CSS
 
         .crop-image-btn {
           padding: 8px 16px;
-          background-color: #336AEA;
+          background-color: $primary;
           color: white;
           border: none;
           border-radius: 5px;
@@ -105,7 +105,7 @@ Profile Authentication Area CSS
           transition: background-color 0.3s;
 
           &:hover:not(:disabled) {
-            background-color: #2856c7;
+            background-color: $primaryHover;
           }
 
           &:disabled {
@@ -143,7 +143,7 @@ Profile Authentication Area CSS
         }
 
         .reactEasyCrop_CropArea {
-          border: 2px solid #336AEA;
+          border: 2px solid $primary;
           box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.5);
         }            
       }
@@ -359,4 +359,5 @@ Profile Authentication Area CSS
 .auth-image-actions {
   display: flex;
   gap: 10px;
+  margin-top: 8px;
 }

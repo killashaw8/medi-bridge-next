@@ -27,8 +27,10 @@ import {
   Typography, 
   Box, 
   Chip,
-  CircularProgress
+  Stack
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import Skeleton from "@mui/material/Skeleton";
 import { getImageUrl } from "@/libs/imageHelper";
 import { useApolloClient } from "@apollo/client";
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -668,7 +670,7 @@ const BookAppointment = () => {
       (appointment) =>
         appointment._id !== appointmentIdParam &&
         appointment.date === formData.date &&
-        appointment.time === formData.time &&
+        normalizeTimeInput(appointment.time) === formData.time &&
         appointment.status !== AppointmentStatus.CANCELLED
     );
     if (hasConflict) {
@@ -834,12 +836,22 @@ const BookAppointment = () => {
                   </Typography>
                 </Box>
               ) : doctorsLoading ? (
-                <Box sx={{ textAlign: 'center', padding: '40px' }}>
-                  <CircularProgress />
-                  <Typography variant="body1" sx={{ marginTop: 2 }}>
-                    Loading doctors...
-                  </Typography>
-                </Box>
+                <Grid container spacing={3} sx={{ marginBottom: 4 }}>
+                  {[0, 1, 2].map((index) => (
+                    <Grid item xs={12} sm={6} md={4} key={`doctor-skeleton-${index}`}>
+                      <Card sx={{ height: '100%', p: 2 }}>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                          <Skeleton variant="circular" width={80} height={80} />
+                          <Box sx={{ flex: 1 }}>
+                            <Skeleton variant="text" width="70%" />
+                            <Skeleton variant="text" width="45%" />
+                          </Box>
+                        </Stack>
+                        <Skeleton variant="rectangular" height={36} sx={{ mt: 2, borderRadius: 2 }} />
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
               ) : locationFilteredDoctors.length === 0 ? (
                 <Box sx={{ textAlign: 'center', padding: '40px' }}>
                   <Typography variant="h6" color="error">
@@ -851,13 +863,16 @@ const BookAppointment = () => {
                   {locationFilteredDoctors.map((doctor) => (
                     <Grid item xs={12} sm={6} md={4} key={doctor._id}>
                       <Card 
-                        sx={{ 
+                        sx={(theme) => ({ 
                           height: '100%',
                           display: 'flex',
                           flexDirection: 'column',
-                          border: selectedDoctor?._id === doctor._id ? '2px solid #336AEA' : '1px solid #e0e0e0',
-                          boxShadow: selectedDoctor?._id === doctor._id ? '0 4px 8px rgba(51, 106, 234, 0.3)' : '0 2px 4px rgba(0,0,0,0.1)',
-                        }}
+                          border: selectedDoctor?._id === doctor._id ? '2px solid' : '1px solid',
+                          borderColor: selectedDoctor?._id === doctor._id ? theme.palette.primary.main : '#e0e0e0',
+                          boxShadow: selectedDoctor?._id === doctor._id 
+                            ? `0 4px 8px ${alpha(theme.palette.primary.main, 0.3)}`
+                            : '0 2px 4px rgba(0,0,0,0.1)',
+                        })}
                       >
                         <CardContent sx={{ flexGrow: 1 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
@@ -912,14 +927,11 @@ const BookAppointment = () => {
                           <Button
                             fullWidth
                             variant={selectedDoctor?._id === doctor._id ? "contained" : "outlined"}
+                            color={selectedDoctor?._id === doctor._id ? "error" : "primary"}
                             onClick={() => handleDoctorSelect(doctor)}
                             sx={{
-                              backgroundColor: selectedDoctor?._id === doctor._id ? '#E92C28' : 'transparent',
-                              color: selectedDoctor?._id === doctor._id ? 'white' : '#336AEA',
-                              borderColor: selectedDoctor?._id === doctor._id ? '#E92C28' : '#336AEA',
-                              '&:hover': {
-                                backgroundColor: selectedDoctor?._id === doctor._id ? '#d12420' : '#f0f4ff',
-                              },
+                              border: selectedDoctor?._id === doctor._id ? "2px solid" : "1px solid",
+                              borderColor: selectedDoctor?._id === doctor._id ? "primary.main" : "#e0e0e0",
                             }}
                           >
                             {selectedDoctor?._id === doctor._id ? 'Unselect' : 'Book'}
@@ -993,12 +1005,13 @@ const BookAppointment = () => {
                             Weekends are non-working days.
                           </Typography>
                         ) : slotsQueryLoading ? (
-                          <Box sx={{ textAlign: 'center', padding: '20px' }}>
-                            <CircularProgress size={24} />
-                            <Typography variant="body2" sx={{ marginTop: 1 }}>
-                              Loading available slots...
-                            </Typography>
-                          </Box>
+                          <Grid container spacing={2} sx={{ marginTop: 1 }}>
+                            {[0, 1, 2, 3, 4, 5].map((index) => (
+                              <Grid item xs={6} sm={4} md={3} key={`slot-skeleton-${index}`}>
+                                <Skeleton variant="rectangular" height={50} sx={{ borderRadius: 1 }} />
+                              </Grid>
+                            ))}
+                          </Grid>
                         ) : availableSlots.length === 0 ? (
                           <Typography variant="body2" color="error" sx={{ padding: '10px' }}>
                             No available slots for this date
@@ -1016,22 +1029,11 @@ const BookAppointment = () => {
                                   <Button
                                     fullWidth
                                     variant={formData.time === slotKey ? "contained" : "outlined"}
+                                    color="primary"
                                     disabled={!slot.free}
                                     onClick={() => slot.free && handleTimeSlotSelect(slot.time)}
                                     sx={{
                                       minHeight: '50px',
-                                      backgroundColor: formData.time === slotKey ? '#336AEA' : 'transparent',
-                                      color: formData.time === slotKey ? 'white' : slot.free ? '#336AEA' : '#999',
-                                      borderColor: slot.free ? '#336AEA' : '#ccc',
-                                      '&:hover': {
-                                        backgroundColor: slot.free 
-                                          ? (formData.time === slotKey ? '#2a5bd8' : '#f0f4ff')
-                                          : 'transparent',
-                                      },
-                                      '&:disabled': {
-                                        borderColor: '#ccc',
-                                        color: '#999',
-                                      },
                                     }}
                                   >
                                     {timeString}

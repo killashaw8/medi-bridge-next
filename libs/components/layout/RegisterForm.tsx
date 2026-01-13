@@ -11,6 +11,7 @@ import { Member } from "@/libs/types/member/member";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { IconButton, Button } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import { useMutation } from "@apollo/client";
 import Image from "next/image";
 import { IMAGE_UPLOADER } from "@/apollo/user/mutation";
@@ -747,7 +748,9 @@ const RegisterForm = () => {
                     ))}
                   </select>
                   {clinicsLoading && (
-                    <small className="text-muted">Loading clinics...</small>
+                    <small className="text-muted">
+                      <Skeleton variant="text" width="60%" />
+                    </small>
                   )}
                   {!clinicsLoading && clinics.length === 0 && (
                     <small className="text-muted">No clinics available</small>

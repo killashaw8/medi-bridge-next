@@ -14,7 +14,8 @@ export const light = {
 		},
 		primary: {
 			contrastText: '#ffffff',
-			main: '#E92C28',
+			main: '#336AEA',
+			dark: '#2856c7',
 		},
 		secondary: {
 			main: '#1646C1',
@@ -118,6 +119,38 @@ export const light = {
 					ButtonText: {
 						color: '#212121',
 					},
+				},
+				containedPrimary: {
+					backgroundColor: '#336AEA',
+					color: '#ffffff',
+					'&:hover': {
+						backgroundColor: '#2856c7',
+						boxShadow: 'none',
+					},
+				},
+				outlinedPrimary: {
+					borderColor: '#336AEA',
+					color: '#336AEA',
+					'&:hover': {
+						borderColor: '#2856c7',
+						backgroundColor: 'rgba(51, 106, 234, 0.12)',
+					},
+				},
+				textPrimary: {
+					color: '#336AEA',
+					'&:hover': {
+						backgroundColor: 'rgba(51, 106, 234, 0.12)',
+					},
+				},
+			},
+		},
+		MuiSkeleton: {
+			defaultProps: {
+				animation: 'wave',
+			},
+			styleOverrides: {
+				root: {
+					backgroundColor: 'rgba(90, 106, 133, 0.12)',
 				},
 			},
 		},

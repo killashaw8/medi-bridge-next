@@ -4,13 +4,13 @@ import {
   Avatar,
   Badge,
   Box,
-  CircularProgress,
   List,
   ListItemButton,
   ListItemText,
   Stack,
   Typography,
 } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import { useRouter } from "next/router";
 import { GET_CONVERSATIONS } from "@/apollo/user/query";
 import { ChatConversation } from "@/libs/types/chat/chat";
@@ -130,8 +130,17 @@ const ConversationList: React.FC = () => {
           boxShadow: "0 8px 24px rgba(37, 99, 235, 0.12)",
         }}
       >
-        <CircularProgress />
-        <Typography sx={{ mt: 1 }}>Loading conversations...</Typography>
+        <Stack spacing={2} sx={{ px: 3 }}>
+          {[0, 1, 2, 3, 4].map((index) => (
+            <Stack key={`conversation-skeleton-${index}`} direction="row" spacing={2} alignItems="center">
+              <Skeleton variant="circular" width={44} height={44} />
+              <Box sx={{ flex: 1 }}>
+                <Skeleton variant="text" width="60%" />
+                <Skeleton variant="text" width="80%" />
+              </Box>
+            </Stack>
+          ))}
+        </Stack>
       </Box>
     );
   }

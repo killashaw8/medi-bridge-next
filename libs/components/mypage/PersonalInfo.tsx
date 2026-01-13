@@ -14,6 +14,7 @@ import { Location } from "@/libs/enums/appointment.enum";
 import { updateUserInfoFromResponse } from "@/libs/auth";
 import { initializeApollo } from "@/apollo/client";
 import { Button } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import { Messages } from "@/libs/config";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -692,7 +693,7 @@ const PersonalInfo: React.FC = () => {
             <Button
               variant="contained"
               onClick={handleEditToggle}
-              sx={{ backgroundColor: '#336AEA', '&:hover': { backgroundColor: '#2856c7' } }}
+              color="primary"
             >
               Edit Profile
             </Button>
@@ -747,15 +748,10 @@ const PersonalInfo: React.FC = () => {
                 <Button
                   component="label"
                   variant="contained"
+                  color="primary"
                   tabIndex={-1}
                   startIcon={<CloudUploadIcon />}
                   disabled={loading || uploadingImage}
-                  sx={{
-                    backgroundColor: '#336AEA',
-                    '&:hover': {
-                      backgroundColor: '#2856c7',
-                    },
-                  }}
                 >
                   Upload a photo
                   <input
@@ -763,8 +759,33 @@ const PersonalInfo: React.FC = () => {
                     accept="image/*"
                     onChange={handleImageChange}
                     className="u-hidden"
-                    disabled={loading || uploadingImage} />
+                  disabled={loading || uploadingImage} />
                 </Button>
+                {imagePreview && (
+                  <Button
+                    type="button"
+                    variant="contained"
+                    onClick={() => {
+                      if (selectedImage) {
+                        // Reopen cropper with current image
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setImageToCrop(reader.result as string);
+                          setCropperOpen(true);
+                        };
+                        reader.readAsDataURL(selectedImage);
+                      } else if (imagePreview) {
+                        // Reopen cropper with preview
+                        setImageToCrop(imagePreview);
+                        setCropperOpen(true);
+                      }
+                    }}
+                    className="crop-image-btn"
+                    disabled={loading || uploadingImage}
+                  >
+                    Edit/Crop Image
+                  </Button>
+                )}
                 {currentMember?.memberImage && !removeImage && (
                   <Button
                     variant="outlined"
@@ -784,44 +805,7 @@ const PersonalInfo: React.FC = () => {
                     Remove Photo
                   </Button>
                 )}
-              </div>
-            </div>
-
-            {/* Image Preview and Actions */}
-            {imagePreview && (
-              <div className="image-preview-section">
-                <div className="image-preview-wrapper">
-                  <Image
-                    src={imagePreview}
-                    alt="Preview"
-                    width={100}
-                    height={100}
-                    className="image-preview" />
-                </div>
-                <div className="image-preview-actions">
-                  <Button
-                    type="button"
-                    variant="contained"
-                    onClick={() => {
-                      if (selectedImage) {
-                        // Reopen cropper with current image
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setImageToCrop(reader.result as string);
-                          setCropperOpen(true);
-                        };
-                        reader.readAsDataURL(selectedImage);
-                      } else if (imagePreview) {
-                        // Reopen cropper with preview
-                        setImageToCrop(imagePreview);
-                        setCropperOpen(true);
-                      }
-                    } }
-                    className="crop-image-btn"
-                    disabled={loading || uploadingImage}
-                  >
-                    Edit/Crop Image
-                  </Button>
+                {imagePreview && (
                   <Button
                     type="button"
                     variant="contained"
@@ -829,15 +813,16 @@ const PersonalInfo: React.FC = () => {
                     onClick={() => {
                       setSelectedImage(null);
                       setImagePreview(null);
-                    } }
+                    }}
                     className="remove-image-btn"
                     disabled={loading || uploadingImage}
                   >
                     Remove Image
                   </Button>
-                </div>
+                )}
               </div>
-            )}
+            </div>
+
             {uploadingImage && (
               <p className="personal-info-note">
                 Uploading image...
@@ -957,7 +942,7 @@ const PersonalInfo: React.FC = () => {
                         </select>
                         {clinicsLoading && (
                           <small className="personal-info-help">
-                            Loading clinics...
+                            <Skeleton variant="text" width="60%" />
                           </small>
                         )}
                         {!clinicsLoading && clinics.length === 0 && (
@@ -1176,10 +1161,9 @@ const PersonalInfo: React.FC = () => {
                 <Button
                   type="submit"
                   variant="contained"
+                  color="primary"
                   disabled={loading || uploadingImage || !hasChanges}
                   sx={{
-                    backgroundColor: '#336AEA',
-                    '&:hover': { backgroundColor: '#2856c7' },
                     opacity: (!hasChanges || loading || uploadingImage) ? 0.6 : 1,
                     cursor: (!hasChanges || loading || uploadingImage) ? "not-allowed" : "pointer",
                     minWidth: 180,

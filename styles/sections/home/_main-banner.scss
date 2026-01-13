@@ -72,6 +72,17 @@ Main Banner Area CSS
   }
   .banner-btn {
     margin-top: 45px;
+
+    .hero-register-btn {
+      &:hover {
+        background-color: $secondaryColor;
+      }
+
+      &:hover .left,
+      &:hover .right {
+        background-color: $secondaryColor;
+      }
+    }
   }
   .banner-bottom {
     display: flex;
@@ -93,7 +104,7 @@ Main Banner Area CSS
         }
       }
       .content {
-        text-align: start;
+        text-align: left;
 
         h3 {
           font-size: 20px;

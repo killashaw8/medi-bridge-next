@@ -14,6 +14,12 @@ const nextConfig = {
 				pathname: '/uploads/**',
 			},
 			{
+				protocol: 'http',
+				hostname: 'localhost',
+				port: '4001',
+				pathname: '/uploads/**',
+			},
+			{
 				protocol: 'https',
 				hostname: 'lh3.googleusercontent.com',
 				pathname: '/**',
@@ -29,6 +35,19 @@ const nextConfig = {
 		REACT_APP_API_URL: process.env.REACT_APP_API_URL,
 		REACT_APP_API_GRAPHQL_URL: process.env.REACT_APP_API_GRAPHQL_URL,
 		REACT_APP_API_WS: process.env.REACT_APP_API_WS,
+	},
+	async rewrites() {
+		const proxyBase =
+			process.env.API_PROXY_URL ||
+			process.env.NEXT_PUBLIC_API_URL ||
+			process.env.REACT_APP_API_URL ||
+			'http://localhost:4001';
+		return [
+			{
+				source: '/uploads/:path*',
+				destination: `${proxyBase.replace(/\/$/, '')}/uploads/:path*`,
+			},
+		];
 	},
 };
 

@@ -2,7 +2,8 @@
 
 import React, { useMemo, useState } from "react";
 import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
-import { Box, CircularProgress, Pagination, Stack, Typography } from "@mui/material";
+import { Box, Pagination, Stack, Typography } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import ShoppingSidebar from "./ShoppingSidebar";
 import ShoppingCard from "./ShoppingCard";
 import { GET_PRODUCTS } from "@/apollo/user/query";
@@ -129,10 +130,19 @@ const Shopping = () => {
           </div>
           <div className="col-xl-9 col-md-12">
             {loading ? (
-              <Box sx={{ textAlign: "center", padding: "40px" }}>
-                <CircularProgress />
-                <Typography sx={{ marginTop: 2 }}>Loading products...</Typography>
-              </Box>
+              <div className="row justify-content-center g-4">
+                {[0, 1, 2, 3, 4, 5].map((index) => (
+                  <div className="col-lg-4 col-md-6" key={`shopping-skeleton-${index}`}>
+                    <Box sx={{ borderRadius: 2, overflow: "hidden", border: "1px solid #eef1f6" }}>
+                      <Skeleton variant="rectangular" height={200} />
+                      <Box sx={{ p: 2 }}>
+                        <Skeleton variant="text" width="70%" />
+                        <Skeleton variant="text" width="40%" />
+                      </Box>
+                    </Box>
+                  </div>
+                ))}
+              </div>
             ) : products.length === 0 ? (
               <Box sx={{ textAlign: "center", padding: "40px" }}>
                 <Typography>No products found.</Typography>

@@ -28,10 +28,7 @@ const HowItWorks2 = () => {
       <div className="how-it-works-area ptb-140 smoke-bg-color">
         <div className="container">
           <div className="section-title">
-            <div
-              className="left text-center"
-              className="u-maxw-637 u-mx-auto"
-            >
+            <div className="left text-center u-maxw-637 u-mx-auto">
               <span className="sub wrap2">How It Works</span>
               <h2>How MediBridge Works—Signup to Consultation in Just Minutes</h2>
             </div>

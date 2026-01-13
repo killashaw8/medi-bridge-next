@@ -9,6 +9,7 @@ import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { Article, } from "@/libs/types/article/article";
 import { T } from "@/libs/types/common";
 import { Box, Pagination, Stack } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import Tab from '@mui/material/Tab';
 import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from "@/libs/sweetAlert";
 import { Messages } from "@/libs/config";
@@ -150,6 +151,30 @@ const BlogClassic = (props: BlogClassicProps) => {
       blogAreaRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  const renderSkeletons = () => (
+    <Stack spacing={3}>
+      {[0, 1, 2].map((index) => (
+        <div key={`blog-list-skeleton-${index}`} className="blog-card wrap-style2">
+          <div className="image">
+            <Skeleton variant="rectangular" height={320} />
+          </div>
+          <div className="content">
+            <ul className="meta">
+              <li>
+                <Skeleton variant="rounded" width={110} height={28} sx={{ borderRadius: 50 }} />
+              </li>
+              <li>
+                <Skeleton variant="rounded" width={110} height={28} sx={{ borderRadius: 50 }} />
+              </li>
+            </ul>
+            <Skeleton variant="text" height={30} />
+            <Skeleton variant="text" height={30} width="80%" />
+          </div>
+        </div>
+      ))}
+    </Stack>
+  );
   
   return (
     <>
@@ -183,7 +208,9 @@ const BlogClassic = (props: BlogClassicProps) => {
                   </Box>
 
                   <TabPanel value="NEWS">
-                    {totalCount ? (
+                    {getArticlesLoading ? (
+                      renderSkeletons()
+                    ) : totalCount ? (
                       articles.map((article: Article) => {
                         return (
                           <BlogCard 
@@ -201,7 +228,9 @@ const BlogClassic = (props: BlogClassicProps) => {
                     )}
                   </TabPanel>
                   <TabPanel value="BLOG">
-                    {totalCount ? (
+                    {getArticlesLoading ? (
+                      renderSkeletons()
+                    ) : totalCount ? (
                       articles.map((article: Article) => {
                         return (
                           <BlogCard 

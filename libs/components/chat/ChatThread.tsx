@@ -3,7 +3,6 @@ import { useMutation, useQuery } from "@apollo/client";
 import {
   Avatar,
   Box,
-  CircularProgress,
   Divider,
   IconButton,
   InputAdornment,
@@ -14,6 +13,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import { GET_CHAT_MESSAGES, GET_CONVERSATIONS } from "@/apollo/user/query";
 import { MESSAGE_ADDED } from "@/apollo/user/subscription";
 import { ChatMessage } from "@/libs/types/chat/chat";
@@ -324,9 +324,19 @@ const ChatThread: React.FC<ChatThreadProps> = ({ conversationId }) => {
 
   if (loading) {
     return (
-      <Box sx={{ textAlign: "center", py: 4 }}>
-        <CircularProgress />
-        <Typography sx={{ mt: 1 }}>Loading messages...</Typography>
+      <Box sx={{ py: 4 }}>
+        <Stack spacing={2}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Skeleton variant="circular" width={44} height={44} />
+            <Box sx={{ flex: 1 }}>
+              <Skeleton variant="text" width="40%" />
+              <Skeleton variant="text" width="25%" />
+            </Box>
+          </Stack>
+          <Skeleton variant="rectangular" height={42} sx={{ borderRadius: 2 }} />
+          <Skeleton variant="rectangular" height={42} sx={{ borderRadius: 2, alignSelf: "flex-end", width: "70%" }} />
+          <Skeleton variant="rectangular" height={42} sx={{ borderRadius: 2, width: "60%" }} />
+        </Stack>
       </Box>
     );
   }
@@ -467,7 +477,7 @@ const ChatThread: React.FC<ChatThreadProps> = ({ conversationId }) => {
                       <Box
                         key={msg._id}
                         sx={{
-                          backgroundColor: group.isMine ? "#336AEA" : "#f1f5f9",
+                          backgroundColor: group.isMine ? "primary.main" : "#f1f5f9",
                           color: group.isMine ? "#fff" : "#111827",
                           px: 2,
                           py: 1,

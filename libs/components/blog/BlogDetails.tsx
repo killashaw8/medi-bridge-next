@@ -3,6 +3,7 @@ import Image from "next/image";
 import Moment from "react-moment";
 import { useApolloClient, useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import { Avatar, Box, IconButton, Stack, TextField, Button, Pagination, Paper, Typography } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Article } from "@/libs/types/article/article";
@@ -69,7 +70,14 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ article, loading }) => {
     return (
       <div className="blog-details-area ptb-140">
         <div className="container">
-        <p className="u-text-muted">Loading article...</p>
+          <Box sx={{ maxWidth: 960, mx: "auto" }}>
+            <Skeleton variant="text" height={40} width="70%" />
+            <Skeleton variant="text" height={24} width="35%" />
+            <Skeleton variant="rectangular" height={420} sx={{ mt: 3, borderRadius: 2 }} />
+            <Skeleton variant="text" height={22} sx={{ mt: 3 }} />
+            <Skeleton variant="text" height={22} />
+            <Skeleton variant="text" height={22} width="85%" />
+          </Box>
         </div>
       </div>
     );
@@ -272,7 +280,29 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ article, loading }) => {
                       </Stack>
                     </Stack>
                     {commentsLoading ? (
-                      <Typography color="text.secondary">Loading reviews...</Typography>
+                      <Stack spacing={2}>
+                        {[0, 1, 2].map((index) => (
+                          <Box
+                            key={`comment-skeleton-${index}`}
+                            sx={{
+                              p: 2,
+                              borderRadius: 2,
+                              border: "1px solid #eee",
+                              backgroundColor: "#fff",
+                            }}
+                          >
+                            <Stack direction="row" spacing={2} alignItems="center">
+                              <Skeleton variant="circular" width={40} height={40} />
+                              <Box sx={{ flex: 1 }}>
+                                <Skeleton variant="text" width="40%" />
+                                <Skeleton variant="text" width="25%" />
+                              </Box>
+                            </Stack>
+                            <Skeleton variant="text" sx={{ mt: 1 }} />
+                            <Skeleton variant="text" width="85%" />
+                          </Box>
+                        ))}
+                      </Stack>
                     ) : activeComments.length === 0 ? (
                       <Typography color="text.secondary">No reviews yet. Be the first to leave one.</Typography>
                     ) : (

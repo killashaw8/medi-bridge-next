@@ -7,6 +7,7 @@ import {
 	createHttpLink,
 	split,
 	from,
+	OperationVariables,
 } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import { getMainDefinition } from '@apollo/client/utilities';
@@ -19,6 +20,9 @@ import { sweetErrorAlert } from '@/libs/sweetAlert';
 import jwtDecode from 'jwt-decode';
 
 const GRAPHQL_HTTP_URL =
+	(typeof window === 'undefined'
+		? process.env.API_INTERNAL_GRAPHQL_URL
+		: undefined) ??
 	process.env.NEXT_PUBLIC_API_GRAPHQL_URL ??
 	process.env.REACT_APP_API_GRAPHQL_URL ??
 	'http://localhost:5885/graphql';
@@ -33,12 +37,14 @@ const GRAPHQL_WS_URL =
 let apolloClient: ApolloClient<NormalizedCacheObject> | undefined;
 
 class PatchedInMemoryCache extends InMemoryCache {
-	diff(options: any) {
+	diff<TData, TVariables extends OperationVariables = OperationVariables>(
+		options: any,
+	): any {
 		if (options && Object.prototype.hasOwnProperty.call(options, 'canonizeResults')) {
-			const { canonizeResults, ...rest } = options;
-			return super.diff(rest);
+			const { canonizeResults, ...rest } = options as Record<string, unknown>;
+			return super.diff(rest as any);
 		}
-		return super.diff(options);
+		return super.diff(options as any);
 	}
 }
 
@@ -122,7 +128,7 @@ function createIsomorphicLink() {
 	const uploadLink = createUploadLink({
 		uri: GRAPHQL_HTTP_URL,
 		credentials: 'include',
-	});
+	}) as unknown as ApolloLink;
 
 	let terminatingLink: ApolloLink = authLink.concat(uploadLink);
 

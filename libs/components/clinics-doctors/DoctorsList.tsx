@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useApolloClient, useReactiveVar } from "@apollo/client";
 import { Pagination, Stack } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { DoctorsInquiry } from "@/libs/types/member/member.input";
 import { GET_DOCTORS, GET_MEMBER } from "@/apollo/user/query";
 import { LIKE_TARGET_MEMBER, SUBSCRIBE, UNSUBSCRIBE } from "@/apollo/user/mutation";
@@ -16,6 +17,7 @@ import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert"
 import { useRouter } from "next/router";
 
 const DoctorsList = () => {
+  const theme = useTheme();
   const apolloClient = useApolloClient();
   const router = useRouter();
   const currentUser = useReactiveVar(userVar);
@@ -367,7 +369,7 @@ const DoctorsList = () => {
                           />
                         </mask>
                         <g mask="url(#mask0_10014_10966)">
-                          <path d="M0 0H24V24H0V0Z" fill="#336AEA" />
+                          <path d="M0 0H24V24H0V0Z" fill={theme.palette.primary.main} />
                         </g>
                       </svg>
                     </button>

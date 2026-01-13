@@ -16,7 +16,22 @@ export function getImageUrl(imagePath: string | null | undefined): string {
 
   // Already a full URL
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    try {
+      const url = new URL(imagePath);
+      if (url.pathname.startsWith('/uploads/')) {
+        return url.pathname;
+      }
+    } catch {
+      // Fall through to return the original URL
+    }
     return imagePath;
+  }
+
+  if (imagePath.startsWith('/uploads/')) {
+    return imagePath;
+  }
+  if (imagePath.startsWith('uploads/')) {
+    return `/${imagePath}`;
   }
 
   const apiUrl = REACT_APP_API_URL || process.env.NEXT_PUBLIC_API_URL || '';

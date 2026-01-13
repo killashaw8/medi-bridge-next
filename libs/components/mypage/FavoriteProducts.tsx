@@ -4,7 +4,8 @@ import { useQuery, useMutation } from "@apollo/client";
 import { GET_FAVORITES, LIKE_TARGET_PRODUCT } from "@/apollo/user/query";
 import { OrdinaryInquiry } from "@/libs/types/product/product.input";
 import { Product } from "@/libs/types/product/product";
-import { CircularProgress, Box, Typography, Grid, Stack, Button } from "@mui/material";
+import { Box, Typography, Grid, Stack, Button } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import ProductCard from "@/libs/components/common/ProductCard";
 import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
 
@@ -28,10 +29,25 @@ const FavoriteProducts: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ textAlign: "center", padding: "40px" }}>
-        <CircularProgress />
-        <Typography sx={{ marginTop: 2 }}>Loading favorite products...</Typography>
-      </Box>
+      <div className="mypage-section">
+        <div className="section-header">
+          <Skeleton variant="text" height={32} width="35%" />
+          <Skeleton variant="text" width="45%" />
+        </div>
+        <Grid container spacing={3}>
+          {[0, 1, 2, 3, 4, 5].map((index) => (
+            <Grid item xs={12} sm={6} md={4} lg={4} key={`favorite-product-skeleton-${index}`}>
+              <Box sx={{ borderRadius: 2, overflow: "hidden", border: "1px solid #eef1f6" }}>
+                <Skeleton variant="rectangular" height={180} />
+                <Box sx={{ p: 2 }}>
+                  <Skeleton variant="text" width="60%" />
+                  <Skeleton variant="text" width="40%" />
+                </Box>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+      </div>
     );
   }
 

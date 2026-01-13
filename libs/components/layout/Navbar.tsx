@@ -258,7 +258,7 @@ const userImageUrl = useMemo(() => {
     (sum: number, convo: ChatConversation) => sum + (convo.unreadCount ?? 0),
     0
   );
-  const notices = noticesData?.getMyNotices?.list ?? [];
+  const notices: Notice[] = noticesData?.getMyNotices?.list ?? [];
   const unreadNoticeCount = unreadNoticesData?.getMyNotices?.metaCounter?.[0]?.total ?? 0;
 
   const handleCartQuantityChange = (productId: string, delta: number) => {

@@ -1,40 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# MediBridge (Next.js Frontend)
 
-## Getting Started
+Live: https://medibridge.uz
 
-First, run the development server:
+MediBridge is a production‑style healthcare platform frontend that connects patients, doctors, and clinics in one place. It focuses on fast access to care, clear booking flows, and a modern patient experience.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Highlights
+- Patient‑first booking flow with real‑time availability
+- Dedicated doctor and clinic directories
+- Articles/blog experience for health education
+- Real‑time chat and notifications
+- Product marketplace and order tracking
+- Role‑aware “My Page” dashboards
+
+## Tech Stack
+- **Framework**: Next.js (Pages Router) + React 19 + TypeScript
+- **Data**: Apollo Client (GraphQL + subscriptions)
+- **UI**: MUI, Sass, Bootstrap, Swiper
+- **Realtime**: GraphQL WS + Socket.IO
+- **Auth & Security**: JWT, social login (Google, Kakao, Telegram)
+- **Content**: Toast UI Editor, DOMPurify
+
+## Core Features
+- **Appointments**: book, reschedule, and manage visit slots
+- **Slot Holding**: temporary holds prevent double-booking during checkout
+- **Doctors & Clinics**: browse, filter, and view profiles
+- **Articles**: blog listing, details, comments, likes
+- **Chat**: real‑time conversations and presence
+- **AI Chatbot**: guided help and quick medical assistance
+- **Marketplace**: products, favorites, orders, and history
+- **Profiles**: editable personal info, avatar upload/crop
+- **Email**: notifications and email subscriptions
+- **Internationalization**: i18next support
+
+## Strong Points
+- **Real‑world UX**: practical workflows and dashboards for multiple roles
+- **Scalable data layer**: GraphQL caching + upload support
+- **Consistent design system**: MUI + Sass with shared tokens
+- **Realtime readiness**: WebSocket and Socket.IO integrations
+
+## Project Structure
+```
+/ (root)
+├─ apollo/            # Apollo client setup
+├─ libs/              # App modules, components, helpers
+├─ pages/             # Next.js pages/routes
+├─ styles/            # Sass styles and theme
+└─ public/            # Static assets
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
+Create a `.env.local` and provide the following as needed:
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+```
+# GraphQL endpoints
+NEXT_PUBLIC_API_GRAPHQL_URL=...   # Browser GraphQL endpoint
+NEXT_PUBLIC_API_WS=...            # GraphQL WS endpoint (subscriptions)
+API_INTERNAL_GRAPHQL_URL=...      # Server‑side GraphQL endpoint
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+# REST/media base URL fallback
+REACT_APP_API_URL=...
+NEXT_PUBLIC_API_URL=...
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+# Social auth (optional)
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=...
+NEXT_PUBLIC_KAKAO_JS_KEY=...
+NEXT_PUBLIC_TELEGRAM_BOT_NAME=...
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Optional realtime socket
+NEXT_PUBLIC_API_SOCKET=...
+```
 
-## Learn More
+See `docker-compose.yml` for an example local setup.
 
-To learn more about Next.js, take a look at the following resources:
+## Getting Started
+```bash
+yarn install
+yarn run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+The app runs at `http://localhost:3000` by default.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Scripts
+- `yarn run dev` — local development (Turbopack)
+- `yarn run build` — production build
+- `yarn run start` — production server
 
-## Deploy on Vercel
+## Deployment
+This app is ready for Vercel or any Node host. Make sure all required environment variables are set before build.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architecture Diagram
+```
+Browser
+  |
+  v
+Next.js (Pages Router)
+  |            \
+  |             \-- Static Assets (public/)
+  v
+Apollo Client (GraphQL HTTP/WS)
+  |
+  v
+MediBridge API (GraphQL + REST media)
+  |
+  v
+Services (auth, scheduling, content, chat)
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+---

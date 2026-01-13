@@ -6,7 +6,8 @@ import { useReactiveVar } from "@apollo/client";
 import { userVar } from "@/apollo/store";
 import { FollowInquiry } from "@/libs/types/follow/follow.input";
 import { Following } from "@/libs/types/follow/follow";
-import { CircularProgress, Box, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import MemberCard from "@/libs/components/member/MemberCard";
 import { LIKE_TARGET_MEMBER, UNSUBSCRIBE } from "@/apollo/user/mutation";
 import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
@@ -39,10 +40,30 @@ const Followings: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ textAlign: "center", padding: "40px" }}>
-        <CircularProgress />
-        <Typography sx={{ marginTop: 2 }}>Loading followings...</Typography>
-      </Box>
+      <div className="mypage-section">
+        <div className="section-header">
+          <Skeleton variant="text" height={32} width="25%" />
+          <Skeleton variant="text" width="40%" />
+        </div>
+        <div className="members-list">
+          <div className="row">
+            {[0, 1, 2, 3, 4, 5].map((index) => (
+              <div key={`following-skeleton-${index}`} className="col-md-6 col-lg-4">
+                <Box sx={{ borderRadius: 2, border: "1px solid #eef1f6", p: 2 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Skeleton variant="circular" width={56} height={56} />
+                    <Box sx={{ flex: 1 }}>
+                      <Skeleton variant="text" width="60%" />
+                      <Skeleton variant="text" width="40%" />
+                    </Box>
+                  </Box>
+                  <Skeleton variant="rectangular" height={36} sx={{ mt: 2, borderRadius: 2 }} />
+                </Box>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     );
   }
 

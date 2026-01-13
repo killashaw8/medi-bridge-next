@@ -56,7 +56,7 @@ Default Btn Area CSS
     transition: $transition;
   }
   &:hover {
-    background-color: $secondaryColor;
+    background-color: $primaryHover;
     margin: {
       left: 50px;
       right: 0;
@@ -64,11 +64,11 @@ Default Btn Area CSS
     .left {
       left: -50px;
       opacity: 1;
-      background-color: $secondaryColor;
+      background-color: $primaryHover;
     }
     .right {
       opacity: 0;
-      background-color: $secondaryColor;
+      background-color: $primaryHover;
     }
   }
 }

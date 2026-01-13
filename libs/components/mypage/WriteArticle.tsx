@@ -6,7 +6,8 @@ import { ArticleInput } from "@/libs/types/article/article.input";
 import { ArticleUpdate } from "@/libs/types/article/article.update";
 import { ArticleCategory } from "@/libs/enums/article.enum";
 import { sweetMixinSuccessAlert, sweetMixinErrorAlert } from "@/libs/sweetAlert";
-import { CircularProgress, Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import { getImageUrl } from "@/libs/imageHelper";
 import { getJwtToken } from "@/libs/auth";
 import { REACT_APP_API_URL } from "@/libs/config";
@@ -262,9 +263,12 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess, onCan
 
   if (articleLoading) {
     return (
-      <Box sx={{ textAlign: "center", padding: "40px" }}>
-        <CircularProgress />
-        <Typography sx={{ marginTop: 2 }}>Loading article...</Typography>
+      <Box sx={{ padding: "40px" }}>
+        <Skeleton variant="text" width="35%" height={32} />
+        <Skeleton variant="text" width="55%" height={24} />
+        <Skeleton variant="rectangular" height={44} sx={{ mt: 3, borderRadius: 1 }} />
+        <Skeleton variant="rectangular" height={44} sx={{ mt: 2, borderRadius: 1 }} />
+        <Skeleton variant="rectangular" height={220} sx={{ mt: 2, borderRadius: 2 }} />
       </Box>
     );
   }
@@ -272,9 +276,10 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess, onCan
   // Don't render editor on server side
   if (typeof window === 'undefined' || !Editor) {
     return (
-      <Box sx={{ textAlign: "center", padding: "40px" }}>
-        <CircularProgress />
-        <Typography sx={{ marginTop: 2 }}>Loading editor...</Typography>
+      <Box sx={{ padding: "40px" }}>
+        <Skeleton variant="text" width="30%" height={32} />
+        <Skeleton variant="text" width="45%" height={24} />
+        <Skeleton variant="rectangular" height={220} sx={{ mt: 3, borderRadius: 2 }} />
       </Box>
     );
   }
@@ -442,13 +447,10 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess, onCan
             <Button
               type="submit"
               variant="contained"
+              color="primary"
               disabled={loading}
               onClick={handleSubmit}
               sx={{
-                backgroundColor: '#336AEA',
-                '&:hover': {
-                  backgroundColor: '#2856c7',
-                },
                 padding: '12px 30px',
                 fontSize: '16px',
                 fontWeight: 500,

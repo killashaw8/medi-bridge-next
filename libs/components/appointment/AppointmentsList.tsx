@@ -10,6 +10,7 @@ import { userVar } from "@/apollo/store";
 import { MemberType } from "@/libs/enums/member.enum";
 import { Direction } from "@/libs/enums/common.enum";
 import { Pagination, Stack } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 
 interface AppointmentsListProps {
   appointments?: Appointment[];
@@ -85,7 +86,17 @@ const AppointmentsList: React.FC<AppointmentsListProps> = ({
           <div className="row justify-content-center g-4">
             {loading ? (
               <div className="col-12">
-                <p>Loading appointments...</p>
+                <div className="row g-4">
+                  {[0, 1, 2, 3].map((index) => (
+                    <div key={`appointment-skeleton-${index}`} className="col-lg-6 col-md-6">
+                      <div style={{ border: "1px solid #eef1f6", borderRadius: 12, padding: 16 }}>
+                        <Skeleton variant="text" width="50%" />
+                        <Skeleton variant="text" width="70%" />
+                        <Skeleton variant="rectangular" height={60} sx={{ mt: 2, borderRadius: 2 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : appointmentItems.length === 0 ? (
               <div className="col-12">

@@ -7,6 +7,7 @@ import { ArticlesInquiry } from "@/libs/types/article/article.input";
 import { GET_ARTICLES } from "@/apollo/user/query";
 import { Article } from "@/libs/types/article/article";
 import { IconButton, Stack, Tooltip, } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import Moment from 'react-moment';
 import { getImageUrl } from "@/libs/imageHelper";
@@ -144,7 +145,17 @@ const Sidebar = ( props: SidebarProps ) => {
         <h3 className="widget-title">Popular Posts</h3>
         {popularLoading ? (
           <div className="sidebar-status">
-            Loading...
+            {[0, 1, 2].map((index) => (
+              <article key={`popular-skeleton-${index}`} className="item">
+                <div className="thumb">
+                  <Skeleton variant="rounded" width={85} height={85} />
+                </div>
+                <div className="info">
+                  <Skeleton variant="text" width={90} />
+                  <Skeleton variant="text" width={160} />
+                </div>
+              </article>
+            ))}
           </div>
         ) : popularError ? (
           <div className="sidebar-status is-error">

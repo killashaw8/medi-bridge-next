@@ -97,7 +97,7 @@ const BlogDetailsContent = (props: BlogCardProps) => {
           <Stack 
             direction="row" 
             alignItems="center" 
-            width={'600px'}
+            width={'100%'}
             gap={1}
             sx={{ marginTop: '15px' }}
           >
@@ -153,7 +153,7 @@ const BlogDetailsContent = (props: BlogCardProps) => {
                   marginLeft: 'auto',
                   cursor: 'pointer',
                   '&:hover': {
-                    color: '#336AEA'
+                    color: 'primary.main'
                   }
                 }}
                 onClick={(e: any) => {

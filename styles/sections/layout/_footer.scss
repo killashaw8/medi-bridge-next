@@ -51,7 +51,7 @@ Footer Area Area CSS
   .right-social {
     display: flex;
     align-items: center;
-    justify-content: end;
+    justify-content: flex-end;
     margin-bottom: 0;
     padding: {
       left: 0;
@@ -118,7 +118,7 @@ Footer Area Area CSS
     }
   }
   &.end-style {
-    text-align: end;
+    text-align: right;
   }
 }
 .copyright-area {
@@ -141,7 +141,7 @@ Footer Area Area CSS
   }
   .lists {
     display: flex;
-    justify-content: end;
+    justify-content: flex-end;
     margin-bottom: 0;
     padding: {
       left: 0;

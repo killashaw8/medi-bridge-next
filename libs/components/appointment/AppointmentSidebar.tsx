@@ -2,19 +2,20 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useQuery } from "@apollo/client";
-import { AppointmentInquiry } from "@/libs/types/appointment/appointment.input";
+import { AppointmentsInquiry } from "@/libs/types/appointment/appointment.input";
 import { GET_CLINICS } from "@/apollo/user/query";
 import { Location } from "@/libs/enums/appointment.enum";
 import { Member } from "@/libs/types/member/member";
 import { IconButton, Stack, Tooltip } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BusinessIcon from '@mui/icons-material/Business';
 
 interface AppointmentSidebarProps {
-  searchFilter?: AppointmentInquiry | any;
+  searchFilter?: AppointmentsInquiry | any;
   setSearchFilter?: any;
-  initialInput?: AppointmentInquiry;
+  initialInput?: AppointmentsInquiry;
 }
 
 const AppointmentSidebar = (props: AppointmentSidebarProps) => {
@@ -193,7 +194,7 @@ const AppointmentSidebar = (props: AppointmentSidebarProps) => {
         </Stack>
         {clinicsLoading && (
           <div className="appointment-filter-status">
-            Loading clinics...
+            <Skeleton variant="text" width="70%" />
           </div>
         )}
       </div>

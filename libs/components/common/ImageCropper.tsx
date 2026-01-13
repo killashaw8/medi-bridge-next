@@ -186,14 +186,9 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
           </Button>
           <Button
             variant="contained"
+            color="primary"
             onClick={handleSave}
             disabled={!croppedAreaPixels}
-            sx={{
-              backgroundColor: '#336AEA',
-              '&:hover': {
-                backgroundColor: '#2856c7',
-              },
-            }}
           >
             Save Cropped Image
           </Button>

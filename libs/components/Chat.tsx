@@ -171,7 +171,7 @@ const Ask_AI = () => {
 									<Box key={message.id} className="chat-row" component={'div'}>
 										<Avatar 
 											alt={'AI Assistant'} 
-											sx={{ bgcolor: '#336AEA', width: 32, height: 32 }}
+											sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}
 										>
 											<SmartToyIcon className="chat-icon" />
 										</Avatar>
@@ -181,7 +181,7 @@ const Ask_AI = () => {
 							})}
 							{loading && (
 								<Box className="chat-row" component={'div'}>
-									<Avatar sx={{ bgcolor: '#336AEA', width: 32, height: 32 }}>
+									<Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
 										<SmartToyIcon className="chat-icon" />
 									</Avatar>
 									<div className={'msg-left'}>

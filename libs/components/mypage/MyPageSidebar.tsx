@@ -128,11 +128,11 @@ const MyPageSidebar: React.FC<MyPageSidebarProps> = ({
                   padding: '12px 16px',
                   color: '#666',
                   '&.Mui-selected': {
-                    color: '#336AEA',
-
+                    color: 'primary.main',
                     fontWeight: 500,
                     border: '1px solid',
-                    borderRadius: '10px'
+                    borderRadius: '10px',
+                    borderColor: 'primary.main',
                   },
                   '&:hover': {
                     backgroundColor: '#fff',

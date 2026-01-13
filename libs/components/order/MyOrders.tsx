@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
-import { Box, CircularProgress, Pagination, Stack, Tab, Tabs, Typography } from "@mui/material";
+import { Box, Pagination, Stack, Tab, Tabs, Typography } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import { useRouter } from "next/router";
 import { GET_MY_ORDERS } from "@/apollo/user/query";
 import { UPDATE_ORDER, UPDATE_ORDER_ITEM } from "@/apollo/user/mutation";
@@ -171,10 +172,21 @@ const MyOrders = () => {
           </Tabs>
 
           {loading ? (
-            <Box sx={{ textAlign: "center", padding: "40px" }}>
-              <CircularProgress />
-              <Typography sx={{ marginTop: 2 }}>Loading orders...</Typography>
-            </Box>
+            <Stack spacing={2}>
+              {[0, 1, 2].map((index) => (
+                <Box key={`order-skeleton-${index}`} sx={{ borderRadius: 2, border: "1px solid #eef1f6", p: 2 }}>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Skeleton variant="rectangular" width={80} height={80} />
+                    <Box sx={{ flex: 1 }}>
+                      <Skeleton variant="text" width="60%" />
+                      <Skeleton variant="text" width="40%" />
+                    </Box>
+                    <Skeleton variant="rectangular" width={100} height={32} />
+                  </Stack>
+                  <Skeleton variant="text" width="75%" sx={{ mt: 2 }} />
+                </Box>
+              ))}
+            </Stack>
           ) : orders.length === 0 ? (
             <Box sx={{ textAlign: "center", padding: "40px" }}>
               <Typography>No orders found.</Typography>

@@ -29,7 +29,7 @@ const Terms: NextPage = () => {
             <h3>
               <span>1.</span> Our Website
             </h3>
-            <p>Our website address is: <Link href={'http://medibridge.com'}>www.medibridge.com</Link></p>
+            <p>Our website address is: <Link href={'http://medibridge.uz'}>www.medibridge.uz</Link></p>
             <blockquote className="blockquote">
               <p>
                 We collect certain data from you directly, like information you

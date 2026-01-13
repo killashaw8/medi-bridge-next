@@ -6,7 +6,8 @@ import { ProductUpdate } from "@/libs/types/product/product.update";
 import { ProductType, ProductCollection, ProductStatus } from "@/libs/enums/product.enum";
 import { sweetMixinSuccessAlert, sweetMixinErrorAlert } from "@/libs/sweetAlert";
 import { getImageUrl } from "@/libs/imageHelper";
-import { CircularProgress, Box, Typography, Grid, Stack, IconButton, Button } from "@mui/material";
+import { Box, Typography, Grid, Stack, IconButton, Button } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
@@ -156,9 +157,10 @@ const EditProduct: React.FC<EditProductProps> = ({ productId, onSuccess }) => {
 
   if (productLoading) {
     return (
-      <Box sx={{ textAlign: "center", padding: "40px" }}>
-        <CircularProgress />
-        <Typography sx={{ marginTop: 2 }}>Loading product...</Typography>
+      <Box sx={{ padding: "40px" }}>
+        <Skeleton variant="text" width="30%" height={32} />
+        <Skeleton variant="text" width="45%" height={24} />
+        <Skeleton variant="rectangular" height={240} sx={{ mt: 3, borderRadius: 2 }} />
       </Box>
     );
   }

@@ -165,6 +165,9 @@ export const signUp = async (
 
 export async function refreshTokens(): Promise<string> {
 	const graphQlUrl =
+		(typeof window === 'undefined'
+			? process.env.API_INTERNAL_GRAPHQL_URL
+			: undefined) ??
 		process.env.NEXT_PUBLIC_API_GRAPHQL_URL ??
 		process.env.REACT_APP_API_GRAPHQL_URL ??
 		'http://localhost:5885/graphql';

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_AVAILABLE_SLOTS } from "@/apollo/user/query";
 import { AppointmentTime } from "@/libs/enums/appointment.enum";
+import Skeleton from "@mui/material/Skeleton";
 
 interface CalendarContentProps {
   doctorId?: string;
@@ -268,7 +269,11 @@ const CalendarContent: React.FC<CalendarContentProps> = ({
               <p color="gray">Weekends are non-working days</p>
             )}
             {isMounted && doctorId && selectedDate && !isWeekend && slotsLoading && (
-              <div className="slot">Loading slots...</div>
+              <>
+                {[0, 1, 2, 3, 4, 5].map((index) => (
+                  <Skeleton key={`slot-skeleton-${index}`} variant="rounded" width={110} height={38} />
+                ))}
+              </>
             )}
             {isMounted &&
               doctorId &&

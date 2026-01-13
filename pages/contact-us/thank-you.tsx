@@ -5,6 +5,7 @@ import withLayoutBasic from "@/libs/components/layout/LayoutBasic";
 import PageBanner from "@/libs/components/layout/PageBanner";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Button from "@mui/material/Button";
+import { useTheme } from "@mui/material/styles";
 
 export const getStaticProps = async ({ locale }: any) => ({
   props: {
@@ -13,6 +14,7 @@ export const getStaticProps = async ({ locale }: any) => ({
 });
 
 const ThankYou: NextPage = () => {
+  const theme = useTheme();
   const router = useRouter();
 
   return (
@@ -39,10 +41,10 @@ const ThankYou: NextPage = () => {
                     viewBox="0 0 80 80"
                     fill="none"
                   >
-                    <circle cx="40" cy="40" r="40" fill="#336AEA" opacity="0.1" />
+                    <circle cx="40" cy="40" r="40" fill={theme.palette.primary.main} opacity="0.1" />
                     <path
                       d="M40 20C28.9543 20 20 28.9543 20 40C20 51.0457 28.9543 60 40 60C51.0457 60 60 51.0457 60 40C60 28.9543 51.0457 20 40 20ZM35 50L25 40L27.5 37.5L35 45L52.5 27.5L55 30L35 50Z"
-                      fill="#336AEA"
+                      fill={theme.palette.primary.main}
                     />
                   </svg>
                 </div>
@@ -68,4 +70,3 @@ const ThankYou: NextPage = () => {
 };
 
 export default withLayoutBasic(ThankYou);
-

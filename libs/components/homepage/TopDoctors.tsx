@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useTheme } from "@mui/material/styles";
+import Skeleton from "@mui/material/Skeleton";
 import { DoctorsInquiry } from "@/libs/types/member/member.input";
 import { useMutation, useQuery, useApolloClient, useReactiveVar } from "@apollo/client";
 import { GET_DOCTORS, GET_MEMBER } from "@/apollo/user/query";
@@ -17,6 +19,7 @@ interface TopDoctorsProps {
 }
 
 const TopDoctors = (props: TopDoctorsProps = {}) => {
+  const theme = useTheme();
   const { initialInput } = props;
   const apolloClient = useApolloClient();
   const router = useRouter();
@@ -212,7 +215,7 @@ const TopDoctors = (props: TopDoctorsProps = {}) => {
                     >
                       <path
                         d="M12.5 0H0.5C0.224 0 0 0.224 0 0.5C0 0.776 0.224 1 0.5 1H11.2928L0.1465 12.1465C-0.04875 12.3417 -0.04875 12.6583 0.1465 12.8535C0.24425 12.9513 0.372 13 0.5 13C0.628 13 0.756 12.9513 0.8535 12.8535L12 1.707V12.5C12 12.776 12.224 13 12.5 13C12.776 13 13 12.776 13 12.5V0.5C13 0.224 12.776 0 12.5 0Z"
-                        fill="#336AEA"
+                        fill={theme.palette.primary.main}
                       />
                     </svg>
                   </Link>
@@ -222,31 +225,43 @@ const TopDoctors = (props: TopDoctorsProps = {}) => {
           </div>
 
           <div className="row justify-content-center g-4">
-            {topDoctors.map((doctor: Member) => (
-              <div key={doctor._id} className="col-xl-3 col-md-6">
-                {(() => {
-                  const isFollowing =
-                    localFollowingIds.has(doctor._id) ||
-                    doctor.meFollowed?.some((follow) => follow.myFollowing);
-                  return (
-                <DoctorCard
-                  doctor={doctor}
-                  clinicName={
-                    doctor.clinicId
-                      ? clinicNames[doctor.clinicId] || doctor.clinicId
-                      : "No Clinic"
-                  }
-                  reviews={doctor.memberLikes ?? 0}
-                  isFollowing={!!isFollowing}
-                  onFollow={handleFollow}
-                  onUnfollow={handleUnfollow}
-                  isLiked={doctor.meLiked?.some((like) => like.myFavorite)}
-                  onLike={handleLike}
-                />
-                  );
-                })()}
-              </div>
-            ))}
+            {getDoctorsLoading ? (
+              [0, 1, 2, 3].map((index) => (
+                <div key={`top-doctor-skeleton-${index}`} className="col-xl-3 col-md-6">
+                  <div className="doctor-card">
+                    <Skeleton variant="rectangular" height={220} sx={{ borderRadius: 2 }} />
+                    <Skeleton variant="text" width="70%" sx={{ mt: 2 }} />
+                    <Skeleton variant="text" width="50%" />
+                  </div>
+                </div>
+              ))
+            ) : (
+              topDoctors.map((doctor: Member) => (
+                <div key={doctor._id} className="col-xl-3 col-md-6">
+                  {(() => {
+                    const isFollowing =
+                      localFollowingIds.has(doctor._id) ||
+                      doctor.meFollowed?.some((follow) => follow.myFollowing);
+                    return (
+                      <DoctorCard
+                        doctor={doctor}
+                        clinicName={
+                          doctor.clinicId
+                            ? clinicNames[doctor.clinicId] || doctor.clinicId
+                            : "No Clinic"
+                        }
+                        reviews={doctor.memberLikes ?? 0}
+                        isFollowing={!!isFollowing}
+                        onFollow={handleFollow}
+                        onUnfollow={handleUnfollow}
+                        isLiked={doctor.meLiked?.some((like) => like.myFavorite)}
+                        onLike={handleLike}
+                      />
+                    );
+                  })()}
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
