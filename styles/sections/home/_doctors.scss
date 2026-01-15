@@ -73,6 +73,29 @@ Doctors Area CSS
       display: block;
       margin-bottom: 20px;
     }
+    .doctor-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: $font-fifteen;
+      color: $bodyTextColor;
+      margin-bottom: 20px;
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #9ca3af;
+      }
+
+      &.is-online {
+        color: #16a34a;
+
+        .status-dot {
+          background-color: #16a34a;
+        }
+      }
+    }
     .rating-info {
       display: flex;
       gap: 5px;

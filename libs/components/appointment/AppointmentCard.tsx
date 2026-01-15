@@ -6,6 +6,7 @@ import { useMutation } from "@apollo/client";
 import { useRouter } from "next/router";
 import { Appointment } from "@/libs/types/appointment/appointment";
 import { AppointmentStatus, AppointmentTime } from "@/libs/enums/appointment.enum";
+import { AppointmentType } from "@/libs/enums/appointment.enum";
 import { getImageUrl } from "@/libs/imageHelper";
 import { CANCEL_APPOINTMENT, OPEN_CONVERSATION } from "@/apollo/user/mutation";
 import { sweetMixinErrorAlert, sweetMixinSuccessAlert } from "@/libs/sweetAlert";
@@ -73,6 +74,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   const isChatWindowOpen = appointmentStartAt
     ? isWithinChatWindow(appointmentStartAt)
     : false;
+  const isOnline = appointment.channel === AppointmentType.ONLINE;
 
   const handleCancel = async () => {
     if (isCancelled || isCanceling) {
@@ -165,7 +167,10 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
         </span>
         <span className="tag">{specialization}</span>
         <span className="experience">{clinicLocationLabel}</span>
-        <span className="experience">{appointment.channel}</span>
+        <span className={`doctor-status ${isOnline ? "is-online" : "is-offline"}`}>
+          <span className="status-dot" />
+          {isOnline ? "ONLINE" : "OFFLINE"}
+        </span>
         <span className="experience">
           Date &amp; Time: <br/>
           {dateLabel} · {timeLabel}
