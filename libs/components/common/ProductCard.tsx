@@ -120,7 +120,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <IconButton
               color="default"
               size="small"
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent<HTMLElement>) => {
                 e.stopPropagation();
                 onLike?.(product._id);
               }}
@@ -142,7 +142,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <CardActions>
           <Button
             startIcon={<EditIcon />}
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
               onEdit?.(product._id);
             }}
@@ -152,7 +152,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <Button
             endIcon={<DeleteIcon />}
             color="error"
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
               onDelete?.(product._id);
             }}

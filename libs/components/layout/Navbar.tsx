@@ -387,7 +387,7 @@ const userImageUrl = useMemo(() => {
             <div className="option-item">
               <IconButton
                 size="small"
-                onClick={(event) => setCartAnchor(event.currentTarget)}
+                onClick={(event: React.MouseEvent<HTMLElement>) => setCartAnchor(event.currentTarget)}
                 aria-label="Cart"
               >
                 <Badge badgeContent={cartCount} color="error">

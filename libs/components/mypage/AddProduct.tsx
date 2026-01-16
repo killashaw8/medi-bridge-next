@@ -274,7 +274,7 @@ const AddProduct: React.FC<AddProductProps> = ({ onSuccess }) => {
                               <IconButton
                                 size="small"
                                 color="error"
-                                onClick={(e) => {
+                                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                                   e.stopPropagation();
                                   handleImageRemove(index);
                                 }}

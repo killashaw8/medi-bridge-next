@@ -493,7 +493,7 @@ const ProductDetails: NextPage = () => {
                   </Typography>
                   <Box
                     component="form"
-                    onSubmit={(event) => {
+                    onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
                       event.preventDefault();
                       handleSubmitComment();
                     }}

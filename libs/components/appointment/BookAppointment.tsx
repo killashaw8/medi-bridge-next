@@ -29,7 +29,7 @@ import {
   Chip,
   Stack
 } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { alpha, Theme } from "@mui/material/styles";
 import Skeleton from "@mui/material/Skeleton";
 import { getImageUrl } from "@/libs/imageHelper";
 import { useApolloClient } from "@apollo/client";
@@ -53,6 +53,7 @@ const BookAppointment = () => {
   // Sidebar filters
   const [selectedLocation, setSelectedLocation] = useState<Location | "">("");
   const [selectedSpecialization, setSelectedSpecialization] = useState<DoctorSpecialization | "">("");
+  const [selectedClinicId, setSelectedClinicId] = useState<string>("");
   
   // Selected doctor
   const [selectedDoctor, setSelectedDoctor] = useState<Member | null>(null);
@@ -346,18 +347,18 @@ const BookAppointment = () => {
 
   const specializationFilteredDoctors = selectedSpecialization
     ? allDoctors.filter((doctor) => doctor.specialization === selectedSpecialization)
-    : [];
+    : allDoctors;
 
   // Get unique clinic IDs from filtered doctors
   const uniqueClinicIds = useMemo(() => {
     const ids = new Set<string>();
-    specializationFilteredDoctors.forEach(doctor => {
+    allDoctors.forEach(doctor => {
       if (doctor.clinicId) {
         ids.add(doctor.clinicId);
       }
     });
     return Array.from(ids).sort(); // Sort for stable comparison
-  }, [specializationFilteredDoctors]);
+  }, [allDoctors]);
 
   // Create a stable string key for comparison
   const uniqueClinicIdsKey = useMemo(() => uniqueClinicIds.join(','), [uniqueClinicIds]);
@@ -483,6 +484,10 @@ const BookAppointment = () => {
 
   const handleSpecializationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSpecialization(e.target.value as DoctorSpecialization | "");
+  };
+
+  const handleClinicChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedClinicId(e.target.value);
   };
 
   const handleDoctorSelect = (doctor: Member) => {
@@ -734,14 +739,20 @@ const BookAppointment = () => {
 
   const locationFilteredDoctors = useMemo(() => {
     if (!selectedLocation) {
-      return specializationFilteredDoctors;
+      return [];
     }
 
     return specializationFilteredDoctors.filter((doctor) => {
       if (!doctor.clinicId) return false;
-      return clinicData[doctor.clinicId]?.location === selectedLocation;
+      if (clinicData[doctor.clinicId]?.location !== selectedLocation) {
+        return false;
+      }
+      if (selectedClinicId && doctor.clinicId !== selectedClinicId) {
+        return false;
+      }
+      return true;
     });
-  }, [selectedLocation, specializationFilteredDoctors, clinicData]);
+  }, [selectedLocation, selectedClinicId, specializationFilteredDoctors, clinicData]);
 
   useEffect(() => {
     if (!selectedDoctor?._id) return;
@@ -760,6 +771,33 @@ const BookAppointment = () => {
       setFormData(prev => ({ ...prev, date: "", time: "" as AppointmentTimeKey | "" }));
     }
   }, [locationFilteredDoctors, selectedDoctor?._id]);
+
+  const clinicOptions = useMemo(() => {
+    if (!selectedLocation) {
+      return [];
+    }
+    const entries = Object.entries(clinicData)
+      .filter(([, clinic]) => clinic.location === selectedLocation)
+      .map(([id, clinic]) => ({
+        id,
+        name: clinic.name,
+      }));
+    const unique = new Map<string, { id: string; name: string }>();
+    entries.forEach((entry) => unique.set(entry.id, entry));
+    return Array.from(unique.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [clinicData, selectedLocation]);
+
+  useEffect(() => {
+    if (!selectedLocation) {
+      if (selectedClinicId) {
+        setSelectedClinicId("");
+      }
+      return;
+    }
+    if (selectedClinicId && !clinicOptions.some((clinic) => clinic.id === selectedClinicId)) {
+      setSelectedClinicId("");
+    }
+  }, [selectedLocation, selectedClinicId, clinicOptions]);
 
   // Location options
   const locationOptions = Object.values(Location);
@@ -798,13 +836,18 @@ const BookAppointment = () => {
                     value={selectedLocation}
                     onChange={handleLocationChange}
                   >
-                    <option value="">All Locations</option>
+                    <option value="">Select Location</option>
                     {locationOptions.map((location) => (
                       <option key={location} value={location}>
                         {location}
                       </option>
                     ))}
                   </select>
+                  {!selectedLocation && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      Location is required to search doctors.
+                    </Typography>
+                  )}
                 </div>
 
                 {/* Specialization Filter */}
@@ -814,11 +857,32 @@ const BookAppointment = () => {
                     className="form-control form-select appointment-input"
                     value={selectedSpecialization}
                     onChange={handleSpecializationChange}
+                    disabled={!selectedLocation}
                   >
                     <option value="">Select Specialization</option>
                     {specializationOptions.map((spec) => (
                       <option key={spec} value={spec}>
                         {spec}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Clinic Filter */}
+                <div className="widget widget_search">
+                  <h3 className="widget-title">Filter by Clinic</h3>
+                  <select
+                    className="form-control form-select appointment-input"
+                    value={selectedClinicId}
+                    onChange={handleClinicChange}
+                    disabled={!selectedLocation}
+                  >
+                    <option value="">
+                      {selectedLocation ? "All Clinics" : "Select Location First"}
+                    </option>
+                    {clinicOptions.map((clinic) => (
+                      <option key={clinic.id} value={clinic.id}>
+                        {clinic.name}
                       </option>
                     ))}
                   </select>
@@ -829,10 +893,10 @@ const BookAppointment = () => {
             {/* Main Content */}
             <div className="col-xl-8 col-lg-8">
               {/* Doctors List - MUI Cards */}
-              {!selectedSpecialization ? (
+              {!selectedLocation ? (
                 <Box sx={{ textAlign: 'center', padding: '40px' }}>
                   <Typography variant="h5" color="text.secondary">
-                    Please select a specialization to view available doctors
+                    Please select a location to view available doctors
                   </Typography>
                 </Box>
               ) : doctorsLoading ? (
@@ -855,7 +919,9 @@ const BookAppointment = () => {
               ) : locationFilteredDoctors.length === 0 ? (
                 <Box sx={{ textAlign: 'center', padding: '40px' }}>
                   <Typography variant="h6" color="error">
-                    No doctors available with {selectedSpecialization} specialization
+                    {selectedSpecialization
+                      ? `No doctors available with ${selectedSpecialization} specialization`
+                      : "No doctors available for the selected location"}
                   </Typography>
                 </Box>
               ) : (
@@ -863,7 +929,7 @@ const BookAppointment = () => {
                   {locationFilteredDoctors.map((doctor) => (
                     <Grid item xs={12} sm={6} md={4} key={doctor._id}>
                       <Card 
-                        sx={(theme) => ({ 
+                        sx={(theme: Theme) => ({ 
                           height: '100%',
                           display: 'flex',
                           flexDirection: 'column',

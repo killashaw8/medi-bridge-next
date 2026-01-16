@@ -16,10 +16,14 @@ export function getImageUrl(imagePath: string | null | undefined): string {
 
   // Already a full URL
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    const uploadsIndex = imagePath.indexOf('/uploads/');
+    if (uploadsIndex !== -1) {
+      return imagePath.slice(uploadsIndex);
+    }
     try {
       const url = new URL(imagePath);
       if (url.pathname.startsWith('/uploads/')) {
-        return url.pathname;
+        return `${url.pathname}${url.search || ''}`;
       }
     } catch {
       // Fall through to return the original URL

@@ -166,7 +166,16 @@ function createApolloClient() {
 	return new ApolloClient({
 		ssrMode: typeof window === 'undefined',
 		link: createIsomorphicLink(),
-		cache: new PatchedInMemoryCache(),
+		cache: new PatchedInMemoryCache({
+			typePolicies: {
+				Member: {
+					keyFields: ['_id'],
+				},
+				Article: {
+					keyFields: ['_id'],
+				},
+			},
+		}),
 	});
 }
 

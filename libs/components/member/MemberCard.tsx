@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
@@ -173,7 +174,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
             {showLike && (
               <IconButton
                 aria-label={isLiked ? "Unlike" : "Like"}
-                onClick={(e) => {
+                onClick={(e: MouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
                   onLike?.(member._id);
                 }}
@@ -185,7 +186,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
             {showFollow && (
               <IconButton
                 aria-label="Follow"
-                onClick={(e) => {
+                onClick={(e: MouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
                   onFollow?.(member._id);
                 }}
@@ -197,7 +198,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
             {showUnfollow && (
               <IconButton
                 aria-label="Unfollow"
-                onClick={(e) => {
+                onClick={(e: MouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
                   onUnfollow?.(member._id);
                 }}

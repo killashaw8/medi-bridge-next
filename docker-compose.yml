@@ -1,5 +1,5 @@
 services:
-  medi-bridge-next:
+  medibridge-next:
     container_name: medibridge-next
     restart: always
     image: node:24.12.0
@@ -12,6 +12,7 @@ services:
       - NEXT_PUBLIC_API_WS=ws://localhost:4001/graphql
       - API_INTERNAL_GRAPHQL_URL=http://medibridge-api:5885/graphql
       - API_PROXY_URL=http://medibridge-api:5885
+      - TZ=Asia/Seoul
     volumes:
       - ./:/usr/src/medibridge-next
     working_dir: /usr/src/medibridge-next

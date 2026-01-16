@@ -10,6 +10,7 @@ import { Article } from "@/libs/types/article/article";
 import { ArticleCategory } from "@/libs/enums/article.enum";
 import { getImageUrl } from "@/libs/imageHelper";
 import TViewer from "../common/TViewer";
+import Link from "next/link";
 import FacebookIcon from '@mui/icons-material/Facebook';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import InstagramIcon from '@mui/icons-material/Instagram';
@@ -30,6 +31,11 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ article, loading }) => {
   const coverImage = getImageUrl(article?.articleImage) || "/images/blog-details.jpg";
   const category =
     article?.articleCategory === ArticleCategory.NEWS ? "News" : "Blog";
+  const publisherName =
+    article?.memberData?.memberFullName ||
+    article?.memberData?.memberNick ||
+    "Anonymous";
+  const publisherId = article?.memberData?._id;
   const apolloClient = useApolloClient();
   const user = useReactiveVar(userVar);
   const [commentText, setCommentText] = useState("");
@@ -209,6 +215,15 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ article, loading }) => {
                     <li>{category}</li>
                     <li>
                       <Moment format="MMM DD, YYYY">{article?.createdAt}</Moment>
+                    </li>
+                    <li>
+                      {publisherId ? (
+                        <Link href={`/member?memberId=${publisherId}`}>
+                          {publisherName}
+                        </Link>
+                      ) : (
+                        publisherName
+                      )}
                     </li>
                   </ul>
                 </div>
@@ -391,7 +406,7 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ article, loading }) => {
                     </Typography>
                     <Box
                       component="form"
-                      onSubmit={(event) => {
+                      onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
                         event.preventDefault();
                         handleSubmitComment();
                       }}

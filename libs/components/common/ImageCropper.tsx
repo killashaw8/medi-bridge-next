@@ -175,7 +175,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
             min={1}
             max={3}
             step={0.1}
-            onChange={(e, value) => onZoomChange(value as number)}
+            onChange={(_: Event, value: number | number[]) => onZoomChange(value as number)}
             aria-labelledby="zoom-slider"
           />
         </Box>

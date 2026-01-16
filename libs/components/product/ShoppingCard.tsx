@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import AspectRatio from "@mui/joy/AspectRatio";
 import Button from "@mui/joy/Button";
 import Card from "@mui/joy/Card";
@@ -118,7 +119,7 @@ const ShoppingCard: React.FC<ShoppingCardProps> = ({ product, onLike, onAddToCar
         <IconButton
           color="default"
           size="small"
-          onClick={(event) => {
+          onClick={(event: MouseEvent<HTMLButtonElement>) => {
             event.preventDefault();
             event.stopPropagation();
             onLike?.(product._id);

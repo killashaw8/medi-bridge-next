@@ -115,6 +115,20 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess, onCan
   };
 
   // Image upload handler (from nestar-next)
+  const normalizeUploadUrl = (url: string): string => {
+    const uploadsIndex = url.indexOf("/uploads/");
+    if (uploadsIndex !== -1) return url.slice(uploadsIndex);
+    if (url.startsWith("uploads/")) return `/${url}`;
+    return url;
+  };
+
+  const normalizeUploadsInHtml = (html: string): string => {
+    if (!html) return html;
+    return html.replace(/https?:\/\/[^"']*\/uploads\/[^"'>\s]+/g, (match) => {
+      return normalizeUploadUrl(match);
+    });
+  };
+
   const uploadImage = async (image: any) => {
     try {
       const token = getJwtToken();
@@ -148,9 +162,7 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess, onCan
       });
 
       const responseImage = response.data.data.imageUploader;
-      const fullUrl = `${REACT_APP_API_URL}${responseImage}`;
-
-      return fullUrl;
+      return normalizeUploadUrl(responseImage);
     } catch (err) {
       console.log('Error, uploadImage:', err);
       throw err;
@@ -185,7 +197,7 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess, onCan
         return;
       }
 
-      let updatedContent = articleContent;
+      let updatedContent = normalizeUploadsInHtml(articleContent);
       const pendingUploads = pendingImages.filter((image) =>
         updatedContent.includes(image.blobUrl),
       );
@@ -204,6 +216,8 @@ const WriteArticle: React.FC<WriteArticleProps> = ({ articleId, onSuccess, onCan
           prev.filter((entry) => !pendingUploads.some((upload) => upload.blobUrl === entry.blobUrl)),
         );
       }
+
+      updatedContent = normalizeUploadsInHtml(updatedContent);
 
       // Extract first image from content if articleImage is not set
       let articleImage = formData.articleImage || "";

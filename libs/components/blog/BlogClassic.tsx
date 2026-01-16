@@ -58,6 +58,10 @@ const BlogClassic = (props: BlogClassicProps) => {
       search: baseSearch,
     };
   });
+
+  const activeCategory =
+    (searchArticles.search?.articleCategory as ArticleCategory) ||
+    ArticleCategory.NEWS;
   
   
   
@@ -157,7 +161,7 @@ const BlogClassic = (props: BlogClassicProps) => {
       {[0, 1, 2].map((index) => (
         <div key={`blog-list-skeleton-${index}`} className="blog-card wrap-style2">
           <div className="image">
-            <Skeleton variant="rectangular" height={320} />
+            <Skeleton variant="rectangular" height={400} />
           </div>
           <div className="content">
             <ul className="meta">
@@ -180,11 +184,11 @@ const BlogClassic = (props: BlogClassicProps) => {
     <>
       <div ref={blogAreaRef} className="blog-area ptb-140">
         <Stack className="container">
-          <TabContext value={searchArticles.search?.articleCategory}>
-            <Stack className="blog-view row justify-content-center g-4">
-              <Stack className="left col-xl-8 col-md-12">
-                <Stack className="row justify-content-center g-4">
-                  <Box sx={{ borderBottom: 1, borderColor: 'divider' }} className="blog-tablist">
+          <TabContext value={activeCategory}>
+            <div className="row justify-content-center g-4">
+              <div className="left col-xl-8 col-lg-8 col-md-12">
+                <div className="row justify-content-center g-4">
+                  <div className="blog-tablist">
                     <TabList
                       orientation="horizontal"
                       aria-label="basic tabs example"
@@ -197,27 +201,31 @@ const BlogClassic = (props: BlogClassicProps) => {
                       <Tab
                         value={'NEWS'}
                         label={'News'}
-                        className={`tab-button ${searchArticles.search?.articleCategory == 'NEWS' ? 'active' : ''}`}
+                        className={`tab-button ${activeCategory === ArticleCategory.NEWS ? 'active' : ''}`}
                       />    
                       <Tab
                         value={'BLOG'}
                         label={'Blog'}
-                        className={`tab-button ${searchArticles.search?.articleCategory == 'BLOG' ? 'active' : ''}`}
+                        className={`tab-button ${activeCategory === ArticleCategory.BLOG ? 'active' : ''}`}
                       />                                 
                     </TabList>
-                  </Box>
+                  </div>
 
                   <TabPanel value="NEWS">
                     {getArticlesLoading ? (
                       renderSkeletons()
                     ) : totalCount ? (
-                      articles.map((article: Article) => {
+                      articles.map((article: Article, index: number) => {
                         return (
-                          <BlogCard 
-                            article={article}
-                            key={article._id}
-                            likeArticleHandler={likeArticleHandler}
-                          />
+                          <React.Fragment key={article._id}>
+                            <BlogCard 
+                              article={article}
+                              likeArticleHandler={likeArticleHandler}
+                            />
+                            {index < articles.length - 1 && (
+                              <Box component="div" className="blog-card-divider" />
+                            )}
+                          </React.Fragment>
                         );
                       })
                     ) : (
@@ -231,13 +239,17 @@ const BlogClassic = (props: BlogClassicProps) => {
                     {getArticlesLoading ? (
                       renderSkeletons()
                     ) : totalCount ? (
-                      articles.map((article: Article) => {
+                      articles.map((article: Article, index: number) => {
                         return (
-                          <BlogCard 
-                            article={article}
-                            key={article._id}
-                            likeArticleHandler={likeArticleHandler}
-                          />
+                          <React.Fragment key={article._id}>
+                            <BlogCard 
+                              article={article}
+                              likeArticleHandler={likeArticleHandler}
+                            />
+                            {index < articles.length - 1 && (
+                              <Box component="div" className="blog-card-divider" />
+                            )}
+                          </React.Fragment>
                         );
                       })
                     ) : (
@@ -262,17 +274,17 @@ const BlogClassic = (props: BlogClassicProps) => {
                       />
                     </Stack>
                   )}
-                </Stack>
-              </Stack>
+                </div>
+              </div>
               
-              <div className="col-xl-4 col-md-12">
+              <div className="col-xl-4 col-lg-4 col-md-12">
                 <Sidebar 
                   searchFilter={searchArticles}
                   setSearchFilter={setSearchArticles}
                   initialInput={defaultInput}
                 />
               </div>
-            </Stack>
+            </div>
           </TabContext>
         </Stack>
       </div>

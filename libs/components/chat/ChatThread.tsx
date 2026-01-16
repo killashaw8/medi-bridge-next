@@ -439,7 +439,7 @@ const ChatThread: React.FC<ChatThreadProps> = ({ conversationId }) => {
                 key={`${group.senderId}-${lastMessage._id}`}
                 spacing={1}
                 sx={{ width: "100%" }}
-                ref={(el) => {
+                ref={(el: HTMLDivElement | null) => {
                   messageRowRefs.current[index] = el;
                 }}
               >
@@ -521,7 +521,7 @@ const ChatThread: React.FC<ChatThreadProps> = ({ conversationId }) => {
                         {group.isMine && !msg.isDeleted && (
                           <IconButton
                             size="small"
-                            onClick={(event) => openMenu(event, msg._id)}
+                            onClick={(event: React.MouseEvent<HTMLElement>) => openMenu(event, msg._id)}
                             sx={{
                               position: "absolute",
                               top: 6,

@@ -163,7 +163,7 @@ const MyOrders = () => {
         <Stack spacing={3}>
           <Tabs
             value={activeTab}
-            onChange={(_, value) => setActiveTab(value)}
+            onChange={(_: React.SyntheticEvent, value: OrderStatus) => setActiveTab(value)}
             textColor="primary"
             indicatorColor="primary"
           >

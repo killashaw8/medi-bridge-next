@@ -6,11 +6,20 @@ Blog Area CSS
 =================================================*/
 .blog-area {
   .blog-view {
-    display: flex;
-    flex-direction: row;
+    width: 100%;
     .left {
-      justify-content: center;
-      align-items: center;
+      width: 100%;
+    }
+  }
+  .no-data {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    img {
+      max-width: 320px;
+      width: 100%;
+      height: auto;
     }
   }
   .blog-tablist {
@@ -18,8 +27,11 @@ Blog Area CSS
     justify-content: center;
     padding-bottom: 10px;
     min-height: 52px;
+    width: 100%;
+    border-bottom: 1px solid #e0e0e0;
 
     .MuiTabs-flexContainer {
+      justify-content: center;
       gap: 24px;
     }
 
@@ -47,11 +59,20 @@ Blog Area CSS
 }
 .blog-card {
   transition: $transition;
+  width: 100%;
 
   .image {
     border-radius: 15px;
     overflow: hidden;
-    height: 320px;
+    height: 400px;
+    width: 100%;
+    flex-shrink: 0;
+
+    > span {
+      width: 100% !important;
+      height: 100% !important;
+      display: block !important;
+    }
 
     img {
       width: 100%;
@@ -150,8 +171,16 @@ Blog Area CSS
   }
   &.wrap-style2 {
     margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    flex-direction: column;
+    width: 600px;
+    max-width: 100%;
 
     .content {
+      flex: 1;
+      min-height: 160px;
       h3 {
         margin-bottom: 12px;
       }
@@ -160,4 +189,17 @@ Blog Area CSS
       }
     }
   }
+}
+
+.blog-card.wrap-style2.is-news,
+.blog-card.wrap-style2.is-blog {
+  .image {
+    height: 400px;
+  }
+}
+
+.blog-card-divider {
+  height: 1px;
+  background-color: #eef1f6;
+  margin: 20px 0;
 }

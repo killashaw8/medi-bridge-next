@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import { Box, Stack, CircularProgress } from '@mui/material';
 import DOMPurify from 'dompurify';
+import { getImageUrl } from '@/libs/imageHelper';
 
 interface TViewerProps {
 	content?: string;
@@ -11,6 +12,22 @@ interface TViewerProps {
 const TViewer: React.FC<TViewerProps> = ({ content = '', className }) => {
 	const viewerRef = useRef<any>(null);
 	const [ViewerComponent, setViewerComponent] = useState<any>(null);
+
+	const normalizeContentImages = (html: string) => {
+		if (!html || typeof window === 'undefined') return html;
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(html, 'text/html');
+		doc.querySelectorAll('img').forEach((img) => {
+			const src = img.getAttribute('src');
+			if (!src) return;
+			if (src.startsWith('data:') || src.startsWith('blob:')) return;
+			const normalized = getImageUrl(src);
+			if (normalized && normalized !== src) {
+				img.setAttribute('src', normalized);
+			}
+		});
+		return doc.body.innerHTML;
+	};
 
 	// Lazy-load viewer on client to avoid SSR issues (toast-ui expects window/self)
 	useEffect(() => {
@@ -37,10 +54,11 @@ const TViewer: React.FC<TViewerProps> = ({ content = '', className }) => {
 		// Prefer setHTML when available; fall back to markdown rendering
 		if (content) {
 			const sanitized = DOMPurify.sanitize(content, { USE_PROFILES: { html: true } });
+			const normalized = normalizeContentImages(sanitized);
 			if (typeof instance.setHTML === 'function') {
-				instance.setHTML(sanitized);
+				instance.setHTML(normalized);
 			} else if (typeof instance.setMarkdown === 'function') {
-				instance.setMarkdown(sanitized);
+				instance.setMarkdown(normalized);
 			}
 		} else if (typeof instance.setMarkdown === 'function') {
 			instance.setMarkdown('');

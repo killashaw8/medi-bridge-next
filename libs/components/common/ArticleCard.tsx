@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
@@ -40,6 +41,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   const fallbackImage = "/images/blog/blog-fallback.webp";
   const imageSrc = article.articleImage ? getImageUrl(article.articleImage) : fallbackImage;
   const plainText = article.articleContent?.replace(/<[^>]+>/g, "") || "";
+  const publisherName =
+    article.memberData?.memberFullName ||
+    article.memberData?.memberNick ||
+    "Anonymous";
   const goToDetails = () => {
     if (!article?._id) return;
     router.push({
@@ -69,6 +74,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           <Chip label={article.articleCategory} size="small" />
           <Typography variant="caption" color="text.secondary">
             <Moment format="MMM DD, YYYY">{article.createdAt}</Moment>
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {publisherName}
           </Typography>
         </Stack>
         <Typography gutterBottom variant="h6" component="div">
@@ -109,7 +117,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           <Button
             variant="contained"
             startIcon={<EditIcon />}
-            onClick={(e) => {
+            onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
               onEdit?.(article._id);
             }}
@@ -120,7 +128,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             variant="contained"
             endIcon={<DeleteIcon />}
             color="error"
-            onClick={(e) => {
+            onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
               onDelete?.(article._id);
             }}

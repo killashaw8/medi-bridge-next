@@ -2,7 +2,6 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useReactiveVar } from "@apollo/client";
 import { Article } from "@/libs/types/article/article";
 import { ArticleCategory } from "@/libs/enums/article.enum";
 import { getImageUrl } from "@/libs/imageHelper";
@@ -14,6 +13,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import { Stack, Typography } from "@mui/material";
+import { useReactiveVar } from "@apollo/client";
 
 interface BlogCardProps {
   article: Article;
@@ -29,6 +29,11 @@ const BlogDetailsContent = (props: BlogCardProps) => {
   // Get image URL with fallback
   const imagePath = getImageUrl(article?.articleImage) || "/images/blog/blog1.jpg";
   
+  const publisherName =
+    article?.memberData?.memberFullName ||
+    article?.memberData?.memberNick ||
+    'Anonymous';
+
   // Get category display name
   const getCategoryDisplayName = (category: ArticleCategory): string => {
     switch (category) {
@@ -51,14 +56,11 @@ const BlogDetailsContent = (props: BlogCardProps) => {
     );
   };
 
-  const goMemberPage = (id: string) => {
-    if (id === user?._id) router.push('/mypage');
-    else router.push(`/member?memberId=${id}`);
-  };
+  const cardClassName = `blog-card wrap-style2 ${article?.articleCategory === ArticleCategory.NEWS ? 'is-news' : 'is-blog'}`;
 
   return (
     <div className="col-lg-12 col-md-12">
-      <div className="blog-card wrap-style2">
+      <div className={cardClassName}>
         <div 
           className="image"
           onClick={(e: any) => chooseArticleHandler(e, article)}
@@ -81,6 +83,7 @@ const BlogDetailsContent = (props: BlogCardProps) => {
                 {article?.createdAt}
               </Moment>
             </li>
+            <li>{publisherName}</li>
           </ul>
           <h3>
             <Link
@@ -144,26 +147,6 @@ const BlogDetailsContent = (props: BlogCardProps) => {
               {article?.articleComments || 0}
             </Typography>
             
-            {article?.memberData && (
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  fontSize: '14px', 
-                  color: '#666',
-                  marginLeft: 'auto',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    color: 'primary.main'
-                  }
-                }}
-                onClick={(e: any) => {
-                  e.stopPropagation();
-                  goMemberPage(article?.memberData?._id as string);
-                }}
-              >
-                {article?.memberData?.memberFullName || 'Anonymous'}
-              </Typography>
-            )}
           </Stack>
         </div>
       </div>
