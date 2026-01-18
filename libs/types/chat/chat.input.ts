@@ -2,6 +2,10 @@ export interface OpenConversationInput {
   appointmentId: string;
 }
 
+export interface AdminOpenConversationInput {
+  memberId: string;
+}
+
 export interface ChatMessagesInput {
   conversationId: string;
   page: number;

@@ -1,0 +1,271 @@
+@use "../../variables" as *;
+
+.admin-dashboard {
+	background: $white-smokeColor;
+	min-height: 100vh;
+
+	&__banner {
+		background: $primary;
+		color: $white;
+		padding: 20px 32px;
+		font-weight: 600;
+		letter-spacing: 0.2px;
+
+		.MuiTypography-root {
+			color: inherit;
+			font-weight: 600;
+		}
+	}
+
+	&__body {
+		display: flex;
+		gap: 24px;
+		padding: 24px 32px 40px;
+		align-items: flex-start;
+	}
+
+	&__sidebar {
+		width: 260px;
+		flex: 0 0 260px;
+		background: $white;
+		border: 1px solid $dawn-pinkColor;
+		border-radius: 16px;
+		padding: 18px;
+		position: sticky;
+		top: 24px;
+	}
+
+	&__profile {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	&__profile-image {
+		width: 56px;
+		height: 56px;
+		border-radius: 14px;
+		overflow: hidden;
+		background: $white-smokeColor;
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+		}
+	}
+
+	&__profile-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	&__profile-name {
+		font-size: 15px;
+		font-weight: 600;
+		color: $blackColor;
+	}
+
+	&__profile-role {
+		font-size: 13px;
+		color: $bodyTextColor;
+	}
+
+	&__home-btn.MuiButton-root {
+		justify-content: flex-start;
+		text-transform: none;
+		border-radius: 10px;
+		padding: 8px 12px;
+		border: 1px solid rgba($primary, 0.18);
+		color: $primary;
+		font-weight: 500;
+	}
+
+	&__nav {
+		margin-top: 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	&__nav-item {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 10px 12px;
+		border-radius: 12px;
+		border: 1px solid transparent;
+		background: transparent;
+		color: $blackColor;
+		font-size: 14px;
+		font-weight: 500;
+		cursor: pointer;
+		text-align: left;
+
+		svg {
+			font-size: 18px;
+			color: $bodyTextColor;
+		}
+
+		&:hover {
+			background: rgba($primary, 0.08);
+		}
+
+		&.is-active {
+			background: rgba($primary, 0.12);
+			border-color: rgba($primary, 0.18);
+			color: $primary;
+
+			svg {
+				color: $primary;
+			}
+		}
+	}
+
+	&__nav-divider {
+		height: 1px;
+		background: $dawn-pinkColor;
+		margin: 4px 0;
+	}
+
+	&__content {
+		flex: 1;
+		min-width: 0;
+	}
+
+	&__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		background: $white;
+		border: 1px solid $dawn-pinkColor;
+		border-radius: 16px;
+		padding: 16px 20px;
+		margin-bottom: 20px;
+		gap: 16px;
+	}
+
+	&__period.MuiInputBase-root {
+		min-width: 140px;
+		background: $white;
+	}
+
+	&__panel {
+		border: 1px solid $dawn-pinkColor;
+		border-radius: 16px;
+		padding: 20px;
+		box-shadow: none;
+		background: $white;
+	}
+
+	&__panel-block {
+		margin-top: 10px;
+	}
+
+	&__section-title {
+		font-weight: 600;
+		margin-bottom: 10px;
+		color: $blackColor;
+	}
+
+	&__card {
+		border: 1px solid $dawn-pinkColor;
+		border-radius: 14px;
+		padding: 16px 18px;
+		background: $white;
+		flex: 1;
+		min-width: 0;
+		min-height: 110px;
+	}
+
+	&__card--flat {
+		background: $white;
+	}
+
+	&__metric {
+		font-weight: 700;
+		color: $blackColor;
+	}
+
+	&__chip-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	&__chip {
+		border: 1px solid $dawn-pinkColor;
+		background: $white;
+		color: $bodyTextColor;
+		border-radius: 999px;
+		padding: 6px 14px;
+		font-size: 13px;
+		font-weight: 500;
+		cursor: pointer;
+
+		&.is-active {
+			background: $primary;
+			border-color: $primary;
+			color: $white;
+		}
+	}
+
+	&__filter-search.MuiFormControl-root,
+	&__filter-select.MuiFormControl-root {
+		min-width: 220px;
+	}
+
+	&__table {
+		border: 1px solid $dawn-pinkColor;
+		border-radius: 16px;
+		overflow: hidden;
+		box-shadow: none;
+	}
+
+	&__table-actions {
+		flex-wrap: wrap;
+	}
+
+	&__list-title {
+		font-weight: 600;
+		color: $blackColor;
+	}
+}
+
+@media (max-width: 960px) {
+	.admin-dashboard {
+		&__body {
+			flex-direction: column;
+			padding: 20px;
+		}
+
+		&__sidebar {
+			width: 100%;
+			flex: 1 1 auto;
+			position: static;
+			padding: 16px;
+		}
+
+		&__header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		&__nav {
+			flex-direction: row;
+			flex-wrap: wrap;
+			gap: 8px;
+		}
+
+		&__nav-item {
+			flex: 1 1 calc(50% - 8px);
+		}
+
+		&__nav-divider {
+			display: none;
+		}
+	}
+}

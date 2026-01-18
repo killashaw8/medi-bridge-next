@@ -29,6 +29,7 @@ const MyPageSidebar: React.FC<MyPageSidebarProps> = ({
   const isDoctor = userType === MemberType.DOCTOR;
   const isClinic = userType === MemberType.CLINIC;
   const isDoctorOrClinic = isDoctor || isClinic;
+  const isAdmin = userType === MemberType.ADMIN;
 
   const menuItems = [
     {
@@ -41,31 +42,31 @@ const MyPageSidebar: React.FC<MyPageSidebarProps> = ({
       id: "favorite-products" as MyPageSection,
       label: "Favorite Products",
       icon: <FavoriteIcon />,
-      visible: true,
+      visible: !isAdmin,
     },
     {
       id: "favorite-articles" as MyPageSection,
       label: "Favorite Articles",
       icon: <BookmarkIcon />,
-      visible: true,
+      visible: !isAdmin,
     },
     {
       id: "recently-visited" as MyPageSection,
       label: "Recently Visited",
       icon: <HistoryIcon />,
-      visible: true,
+      visible: !isAdmin,
     },
     {
       id: "followers" as MyPageSection,
       label: "Followers",
       icon: <PeopleIcon />,
-      visible: true,
+      visible: !isAdmin,
     },
     {
       id: "followings" as MyPageSection,
       label: "Followings",
       icon: <PersonAddIcon />,
-      visible: true,
+      visible: !isAdmin,
     },
     {
       id: "my-articles" as MyPageSection,

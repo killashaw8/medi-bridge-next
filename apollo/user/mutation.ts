@@ -218,6 +218,18 @@ export const LOGIN_WITH_KAKAO = gql`
   }
 `;
 
+
+/**************************
+ *         VISIT          *
+ *************************/
+
+
+export const TRACK_VISIT = gql`
+  mutation TrackVisit($input: VisitInput!) {
+    trackVisit(input: $input)
+  }
+`;
+
 export const UPDATE_MEMBER = gql`
   mutation UpdateMember($input: MemberUpdate!) {
     updateMember(input: $input) {
@@ -603,6 +615,22 @@ export const RESCHEDULE_APPOINTMENT = gql`
 export const OPEN_CONVERSATION = gql`
   mutation OpenConversation($input: OpenConversationInput!) {
     openConversation(input: $input) {
+      _id
+      appointmentId
+      doctorId
+      patientId
+      lastMessageText
+      lastMessageAt
+      unreadCount
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const OPEN_ADMIN_CONVERSATION = gql`
+  mutation OpenAdminConversation($input: AdminOpenConversationInput!) {
+    openAdminConversation(input: $input) {
       _id
       appointmentId
       doctorId

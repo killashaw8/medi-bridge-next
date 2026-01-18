@@ -7,7 +7,7 @@ import { menus } from "./Menus";
 import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import { cartVar, userVar } from "@/apollo/store";
 import { logOut, getJwtToken, refreshTokens, updateUserInfo } from "@/libs/auth";
-import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Menu, MenuItem, Typography } from "@mui/material";
+import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Menu, MenuItem, TextField, Typography } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import EmailIcon from '@mui/icons-material/Email';
@@ -22,8 +22,10 @@ import { ChatConversation } from "@/libs/types/chat/chat";
 import { io, Socket } from "socket.io-client";
 import jwtDecode from "jwt-decode";
 import { MARK_NOTICE_READ } from "@/apollo/user/mutation";
+import { CREATE_NOTICE_FOR_ALL } from "@/apollo/admin/mutation";
 import { Notice } from "@/libs/types/notice/notice";
-import { NoticeStatus } from "@/libs/enums/notice.enum";
+import { NoticeCategory, NoticeStatus } from "@/libs/enums/notice.enum";
+import { MemberType } from "@/libs/enums/member.enum";
 
 const Navbar = () => {
   const router = useRouter();
@@ -31,6 +33,11 @@ const Navbar = () => {
   const user = useReactiveVar(userVar);
   const cartItems = useReactiveVar(cartVar);
   const isLoggedIn = !!(user?._id && user._id !== '');
+  const isAdmin = user?.memberType === MemberType.ADMIN;
+  const filteredMenus = useMemo(() => {
+    if (!isAdmin) return menus;
+    return menus.filter((item) => item.id !== "services" && item.id !== "pricing");
+  }, [isAdmin]);
   const { data: conversationsData, refetch: refetchConversations } = useQuery(GET_CONVERSATIONS, {
     skip: !user?._id,
     fetchPolicy: "cache-and-network",
@@ -46,6 +53,7 @@ const Navbar = () => {
     variables: { input: { page: 1, limit: 1, status: NoticeStatus.UNREAD } },
   });
   const [markNoticeRead] = useMutation(MARK_NOTICE_READ);
+  const [createNoticeForAll] = useMutation(CREATE_NOTICE_FOR_ALL);
   const socketRef = useRef<Socket | null>(null);
   const [logoutAnchor, setLogoutAnchor] = useState<null | HTMLElement>(null);
   const logoutOpen = Boolean(logoutAnchor);
@@ -55,6 +63,11 @@ const Navbar = () => {
   const noticeOpen = Boolean(noticeAnchor);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
   const [noticeDialogOpen, setNoticeDialogOpen] = useState(false);
+  const [notifyDialogOpen, setNotifyDialogOpen] = useState(false);
+  const [notifyTitle, setNotifyTitle] = useState("");
+  const [notifyContent, setNotifyContent] = useState("");
+  const [notifyCategory, setNotifyCategory] = useState<NoticeCategory>(NoticeCategory.ADMIN);
+  const [notifySubmitting, setNotifySubmitting] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const [colorChange, setColorChange] = useState(false);
@@ -291,6 +304,36 @@ const userImageUrl = useMemo(() => {
     }
   };
 
+  const handleNotifyOpen = () => {
+    setNotifyDialogOpen(true);
+  };
+
+  const handleNotifyClose = () => {
+    setNotifyDialogOpen(false);
+  };
+
+  const handleNotifySend = async () => {
+    if (!notifyTitle.trim() || !notifyContent.trim()) return;
+    setNotifySubmitting(true);
+    try {
+      await createNoticeForAll({
+        variables: {
+          input: {
+            title: notifyTitle.trim(),
+            content: notifyContent.trim(),
+            category: notifyCategory,
+          },
+        },
+      });
+      setNotifyTitle("");
+      setNotifyContent("");
+      setNotifyCategory(NoticeCategory.ADMIN);
+      setNotifyDialogOpen(false);
+    } finally {
+      setNotifySubmitting(false);
+    }
+  };
+
   return (
     <>
       <nav className={navClasses} id="navbar">
@@ -314,7 +357,7 @@ const userImageUrl = useMemo(() => {
           {/* For Desktop Menu */}
           <div className="collapse navbar-collapse">
             <ul className="navbar-nav">
-              {menus.map((item) => (
+              {filteredMenus.map((item) => (
                 <li key={item.id} className="nav-item">
                   {item.isDropdown ? (
                     <>
@@ -379,11 +422,33 @@ const userImageUrl = useMemo(() => {
                   </Link>
                 </li>
               )}
+              {isLoggedIn && isAdmin && (
+                <li className="nav-item">
+                  <Link
+                    href="/_admin/dashboard"
+                    className={`nav-link ${isActive("/_admin/dashboard") ? "active" : ""}`}
+                  >
+                    Admin Dashboard
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 
           {/* Conditional rendering based on login status */}
           <div className="others-option align-items-center overflow-hidden d-none d-sm-flex">
+            {isLoggedIn && isAdmin && (
+              <div className="option-item">
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleNotifyOpen}
+                  startIcon={<NotificationsNoneIcon />}
+                >
+                  Notify
+                </Button>
+              </div>
+            )}
             <div className="option-item">
               <IconButton
                 size="small"
@@ -742,13 +807,13 @@ const userImageUrl = useMemo(() => {
             />
           </Offcanvas.Title>
         </Offcanvas.Header>
-        <Offcanvas.Body>
+      <Offcanvas.Body>
           <div className="mobile-menu">
             {/* ✅ MODIFIED: others-options for mobile */}
             <div className="others-option d-flex align-items-center gap-3 mb-3">
               {isLoggedIn ? (
                 // ✅ User is logged in - show profile
-                <div className="option-item w-100">
+            <div className="option-item w-100">
                   <div
                     className="user-profile-box d-flex align-items-center gap-2 p-2"
                     onClick={(event: React.MouseEvent<HTMLElement>) => 
@@ -852,11 +917,23 @@ const userImageUrl = useMemo(() => {
                     </Badge>
                     <span>Notifications</span>
                   </button>
-                </div>
-              )}
-              {isLoggedIn && (
-                <div className="option-item w-100">
-                  <Link
+            </div>
+          )}
+          {isLoggedIn && isAdmin && (
+            <div className="option-item w-100">
+              <button
+                type="button"
+                className="login-btn d-flex align-items-center gap-2"
+                onClick={handleNotifyOpen}
+              >
+                <NotificationsNoneIcon />
+                <span>Notify</span>
+              </button>
+            </div>
+          )}
+          {isLoggedIn && (
+            <div className="option-item w-100">
+              <Link
                     href="/chat"
                     className="login-btn d-flex align-items-center gap-2"
                   >
@@ -871,7 +948,7 @@ const userImageUrl = useMemo(() => {
             
             {/* mobile-menu-list */}
             <ul className="mobile-menu-list">
-              {menus.map((item) => (
+              {filteredMenus.map((item) => (
                 <li key={item.id} className="nav-item">
                   {item.isDropdown ? (
                     <>
@@ -945,10 +1022,68 @@ const userImageUrl = useMemo(() => {
                   </Link>
                 </li>
               )}
+              {isLoggedIn && isAdmin && (
+                <li className="nav-item">
+                  <Link
+                    href="/_admin/dashboard"
+                    className={`nav-link ${isActive("/_admin/dashboard") ? "active" : ""}`}
+                    onClick={handleClose}
+                  >
+                    Admin Dashboard
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
         </Offcanvas.Body>
       </Offcanvas>
+
+      <Dialog open={notifyDialogOpen} onClose={handleNotifyClose} maxWidth="sm" fullWidth>
+        <DialogTitle>Send notification to all members</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+            <TextField
+              label="Title"
+              value={notifyTitle}
+              onChange={(event) => setNotifyTitle(event.target.value)}
+              fullWidth
+            />
+            <TextField
+              label="Message"
+              value={notifyContent}
+              onChange={(event) => setNotifyContent(event.target.value)}
+              multiline
+              minRows={4}
+              fullWidth
+            />
+            <TextField
+              select
+              label="Category"
+              value={notifyCategory}
+              onChange={(event) => setNotifyCategory(event.target.value as NoticeCategory)}
+              fullWidth
+            >
+              {Object.values(NoticeCategory).map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleNotifyClose} disabled={notifySubmitting}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleNotifySend}
+            disabled={notifySubmitting || !notifyTitle.trim() || !notifyContent.trim()}
+          >
+            Send
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

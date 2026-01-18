@@ -242,3 +242,8 @@ export async function refreshTokens(): Promise<string> {
 **Result**
 - Refresh tokens are no longer accessible to JavaScript (reduces XSS impact).
 - Access tokens remain in localStorage for now; moving them to cookies would be the next hardening step.
+
+---
+
+## Latest UI Updates
+- Polished admin dashboard with skeleton loaders that mirror table/card layouts, quick member actions (copy + view profile), and improved mobile sidebar tabs.

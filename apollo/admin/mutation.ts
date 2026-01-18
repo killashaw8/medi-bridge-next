@@ -162,3 +162,15 @@ export const REMOVE_COMMENT_BY_ADMIN = gql`
     }
   }
 `;
+
+
+/**************************
+ *         NOTICE         *
+ *************************/
+
+
+export const CREATE_NOTICE_FOR_ALL = gql`
+  mutation CreateNoticeForAll($input: NoticeBroadcastInput!) {
+    createNoticeForAll(input: $input)
+  }
+`;

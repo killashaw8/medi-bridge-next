@@ -2,7 +2,7 @@ import { NextPage } from "next";
 import withLayoutBasic from "@/libs/components/layout/LayoutBasic";
 import PageBanner from "@/libs/components/layout/PageBanner";
 import Cta from "@/libs/components/homepage/Cta";
-import HowItWorks2 from "@/libs/components/common/HowItWorks2";
+import HowItWorks2 from "@/libs/components/common/HowItWorks";
 import DoctorsList from "@/libs/components/clinics-doctors/DoctorsList";
 
 

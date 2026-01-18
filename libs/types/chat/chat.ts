@@ -2,7 +2,7 @@ import { Member } from "@/libs/types/member/member";
 
 export interface ChatConversation {
   _id: string;
-  appointmentId: string;
+  appointmentId?: string | null;
   doctorId: string;
   patientId: string;
   lastMessageText?: string | null;

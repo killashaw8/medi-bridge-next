@@ -6,7 +6,7 @@ import Collapse from '@mui/material/Collapse';
 import Typography from '@mui/material/Typography';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import { ChatsCircle, Headset, User, UserCircleGear } from 'phosphor-react';
+import { ChartLineUp, ChatsCircle, Headset, User, UserCircleGear } from 'phosphor-react';
 import cookies from 'js-cookie';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 
@@ -30,6 +30,9 @@ const AdminMenuList = (props: any) => {
 		if (device === 'mobile') setMobileLayout(true);
 
 		switch (pathnames[1]) {
+			case 'dashboard':
+				setClickMenu(['Dashboard']);
+				break;
 			case 'properties':
 				setClickMenu(['Properties']);
 				break;
@@ -44,25 +47,29 @@ const AdminMenuList = (props: any) => {
 				break;
 		}
 
-		switch (pathnames[2]) {
-			case 'logs':
-				setClickSubMenu('Logs');
-				break;
-			case 'inquiry':
-				setClickSubMenu('1:1 Inquiry');
-				break;
-			case 'notice':
-				setClickSubMenu('Notice');
-				break;
-			case 'faq':
-				setClickSubMenu('FAQ');
-				break;
-			case 'board_create':
-				setClickSubMenu('Board Create');
-				break;
-			default:
-				setClickSubMenu('List');
-				break;
+		if (pathnames[1] === 'dashboard') {
+			setClickSubMenu('Overview');
+		} else {
+			switch (pathnames[2]) {
+				case 'logs':
+					setClickSubMenu('Logs');
+					break;
+				case 'inquiry':
+					setClickSubMenu('1:1 Inquiry');
+					break;
+				case 'notice':
+					setClickSubMenu('Notice');
+					break;
+				case 'faq':
+					setClickSubMenu('FAQ');
+					break;
+				case 'board_create':
+					setClickSubMenu('Board Create');
+					break;
+				default:
+					setClickSubMenu('List');
+					break;
+			}
 		}
 	}, []);
 
@@ -78,6 +85,11 @@ const AdminMenuList = (props: any) => {
 	};
 
 	const menu_set = [
+		{
+			title: 'Dashboard',
+			icon: <ChartLineUp size={20} color="#bdbdbd" weight="fill" />,
+			on_click: () => subMenuChangeHandler('Dashboard'),
+		},
 		{
 			title: 'Users',
 			icon: <User size={20} color="#bdbdbd" weight="fill" />,
@@ -101,6 +113,7 @@ const AdminMenuList = (props: any) => {
 	];
 
 	const sub_menu_set: any = {
+		Dashboard: [{ title: 'Overview', url: '/_admin/dashboard' }],
 		Users: [{ title: 'List', url: '/_admin/users' }],
 		Properties: [{ title: 'List', url: '/_admin/properties' }],
 		Community: [{ title: 'List', url: '/_admin/community' }],

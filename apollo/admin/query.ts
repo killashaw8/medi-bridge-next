@@ -112,3 +112,77 @@ export const GET_ARTICLES_BY_ADMIN = gql`
     }
   }
 `;
+
+
+/**************************
+ *         COMMENT        *
+ *************************/
+
+
+export const GET_ALL_COMMENTS_BY_ADMIN = gql`
+  query GetAllCommentsByAdmin($input: AdminCommentsInquiry!) {
+    getAllCommentsByAdmin(input: $input) {
+      list {
+        _id
+        commentStatus
+        commentGroup
+        commentContent
+        commentRefId
+        memberId
+        memberData {
+          _id
+          memberNick
+          memberFullName
+          memberImage
+        }
+        createdAt
+        updatedAt
+      }
+      metaCounter {
+        total
+      }
+    }
+  }
+`;
+
+
+/**************************
+ *         STATS          *
+ *************************/
+
+
+export const GET_ADMIN_DASHBOARD_STATS = gql`
+  query GetAdminDashboardStats($input: AdminStatsInput) {
+    getAdminDashboardStats(input: $input) {
+      period
+      visitors {
+        total
+        memberVisitors
+        nonMemberVisitors
+      }
+      members {
+        total
+        active
+        blocked
+      }
+      sales {
+        totalRevenue
+        totalOrders
+        totalItems
+      }
+      appointments {
+        count
+        topClinics {
+          memberId
+          name
+          count
+        }
+        topDoctors {
+          memberId
+          name
+          count
+        }
+      }
+    }
+  }
+`;

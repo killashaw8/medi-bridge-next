@@ -8,6 +8,7 @@ import {
 	split,
 	from,
 	OperationVariables,
+	Observable,
 } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import { getMainDefinition } from '@apollo/client/utilities';
@@ -63,6 +64,16 @@ function buildAuthHeaders(): Record<string, string> {
 	return { Authorization: `Bearer ${token}` };
 }
 
+const suppressIntrospectionLink = new ApolloLink((operation, forward) => {
+	if (operation.operationName === 'IntrospectionQuery') {
+		return new Observable((observer) => {
+			observer.next({ data: { __schema: null } });
+			observer.complete();
+		});
+	}
+	return forward(operation);
+});
+
 const authLink = new ApolloLink((operation, forward) => {
 	const operationName = operation.operationName || '';
 	
@@ -79,7 +90,10 @@ const authLink = new ApolloLink((operation, forward) => {
 	return forward(operation);
 });
 
-const errorLink = onError(({ graphQLErrors, networkError }) => {
+const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
+	const operationName = operation?.operationName ?? '';
+	if (operationName === 'IntrospectionQuery') return;
+
 	if (graphQLErrors) {
 		graphQLErrors.forEach(({ message, locations, path }) => {
 			console.error(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
@@ -116,7 +130,7 @@ function createIsomorphicLink() {
 		credentials: 'include',
 	});
 
-	const links: ApolloLink[] = [errorLink, tokenRefreshLink];
+	const links: ApolloLink[] = [suppressIntrospectionLink, errorLink, tokenRefreshLink];
 
 	// Server-side: HTTP only
 	if (typeof window === 'undefined') {

@@ -9,6 +9,7 @@ export enum NoticeCategory {
 	LIKE = 'LIKE',
 	COMMENT = 'COMMENT',
 	FOLLOW = 'FOLLOW',
+	ADMIN = 'ADMIN',
 }
 
 export enum NoticeStatus {
