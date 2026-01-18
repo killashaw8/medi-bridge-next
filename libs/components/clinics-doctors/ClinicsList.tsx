@@ -94,7 +94,7 @@ const ClinicsList = () => {
         clinic,
         name: clinic.memberFullName || clinic.memberNick || "Clinic",
         location,
-        rating: clinic.memberLikes ?? 0,
+        rating: clinic.memberRatingAvg ?? 0,
         reviews: clinic.memberComments ?? 0,
         createdAt: clinic.createdAt,
       };

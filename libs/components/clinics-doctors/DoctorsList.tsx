@@ -120,7 +120,7 @@ const DoctorsList = () => {
         id: index + 1,
         name: doc.memberFullName || doc.memberNick || "Doctor",
         specialization: doc.specialization || "General",
-        rating: doc.memberLikes ?? 0,
+        rating: doc.memberRatingAvg ?? 0,
         reviews: doc.memberComments ?? 0,
         clinicLocation: clinic?.location,
         clinicName: clinic?.name,

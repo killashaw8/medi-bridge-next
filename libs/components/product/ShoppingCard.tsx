@@ -14,7 +14,7 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import { Product } from "@/libs/types/product/product";
 import { getImageUrl } from "@/libs/imageHelper";
-import { Box, IconButton } from "@mui/material";
+import { Box, IconButton, Rating } from "@mui/material";
 
 interface ShoppingCardProps {
   product: Product;
@@ -74,6 +74,12 @@ const ShoppingCard: React.FC<ShoppingCardProps> = ({ product, onLike, onAddToCar
         >
           ${product.productPrice?.toLocaleString() ?? 0}
         </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+          <Rating value={product.productRatingAvg ?? 0} precision={0.5} readOnly size="small" />
+          <Typography level="body-sm">
+            {(product.productRatingAvg ?? 0).toFixed(1)} ({product.productRatingCount ?? 0})
+          </Typography>
+        </Box>
         <Typography level="body-sm">
           Type: <b>{product.productType}</b>
         </Typography>

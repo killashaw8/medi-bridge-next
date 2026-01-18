@@ -67,7 +67,7 @@ const ClinicCard: React.FC<ClinicCardProps> = ({
     );
   };
 
-  const rating = clinic.memberLikes ?? 0;
+  const rating = clinic.memberRatingAvg ?? 0;
 
   const canStartFollow =
     !!currentUser?._id &&
@@ -100,7 +100,7 @@ const ClinicCard: React.FC<ClinicCardProps> = ({
         )}
         <div className="rating-info">
           <ul className="list">{renderRatingStars(rating)}</ul>
-          <b>{rating}</b>
+          <b>{rating.toFixed(1)}</b>
           <span>({reviews.toLocaleString()} Reviews)</span>
         </div>
         <div className="doctor-btn">

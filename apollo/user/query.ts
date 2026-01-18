@@ -26,6 +26,8 @@ export const GET_MEMBER = gql`
       memberFollowings
       memberPoints
       memberLikes
+      memberRatingCount
+      memberRatingAvg
       memberViews
       memberComments
       memberRank
@@ -75,6 +77,8 @@ export const GET_DOCTORS = gql`
         memberFollowings
         memberPoints
         memberLikes
+        memberRatingCount
+        memberRatingAvg
         memberViews
         memberComments
         memberRank
@@ -128,6 +132,8 @@ export const GET_CLINICS = gql`
         memberFollowings
         memberPoints
         memberLikes
+        memberRatingCount
+        memberRatingAvg
         memberViews
         memberComments
         memberRank
@@ -202,6 +208,8 @@ export const GET_PRODUCT = gql`
       productCount
       productViews
       productLikes
+      productRatingCount
+      productRatingAvg
       productComments
       productImages
       productDesc
@@ -241,6 +249,8 @@ export const GET_PRODUCTS = gql`
         productCount
         productViews
         productLikes
+        productRatingCount
+        productRatingAvg
         productComments
         productImages
         productDesc
@@ -284,6 +294,8 @@ export const GET_CLINIC_PRODUCTS = gql`
         productCount
         productViews
         productLikes
+        productRatingCount
+        productRatingAvg
         productComments
         productImages
         productDesc
@@ -317,6 +329,8 @@ export const LIKE_TARGET_PRODUCT = gql`
       productCount
       productViews
       productLikes
+      productRatingCount
+      productRatingAvg
       productComments
       productImages
       productDesc
@@ -342,6 +356,8 @@ export const GET_VIEWED = gql`
         productCount
         productViews
         productLikes
+        productRatingCount
+        productRatingAvg
         productComments
         productImages
         productDesc
@@ -376,6 +392,8 @@ export const GET_FAVORITES = gql`
         productCount
         productViews
         productLikes
+        productRatingCount
+        productRatingAvg
         productComments
         productImages
         productDesc
@@ -715,6 +733,7 @@ export const GET_COMMENTS = gql`
         commentGroup
         commentContent
         commentRefId
+        rating
         memberId
         memberData {
           _id

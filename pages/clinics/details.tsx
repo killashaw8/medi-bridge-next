@@ -13,6 +13,7 @@ import {
   IconButton,
   Pagination,
   Paper,
+  Rating,
   Stack,
   TextField,
   Typography,
@@ -42,6 +43,7 @@ const ClinicDetails: NextPage = () => {
   const apolloClient = useApolloClient();
   const user = useReactiveVar(userVar);
   const [commentText, setCommentText] = useState("");
+  const [commentRating, setCommentRating] = useState<number | null>(0);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [showAllComments, setShowAllComments] = useState(false);
   const [commentsPage, setCommentsPage] = useState(1);
@@ -209,6 +211,10 @@ const ClinicDetails: NextPage = () => {
       await sweetMixinErrorAlert("Please enter your review.");
       return;
     }
+    if (!commentRating || commentRating < 1) {
+      await sweetMixinErrorAlert("Please select a rating.");
+      return;
+    }
     if (!clinicId) {
       await sweetMixinErrorAlert("Clinic not found.");
       return;
@@ -221,6 +227,7 @@ const ClinicDetails: NextPage = () => {
             input: {
               _id: editingCommentId,
               commentContent: trimmed,
+              rating: commentRating,
             },
           },
         });
@@ -232,6 +239,7 @@ const ClinicDetails: NextPage = () => {
               commentGroup: CommentGroup.MEMBER,
               commentContent: trimmed,
               commentRefId: clinicId,
+              rating: commentRating,
             },
           },
         });
@@ -239,6 +247,7 @@ const ClinicDetails: NextPage = () => {
         await sweetMixinSuccessAlert("Review submitted.");
       }
       setCommentText("");
+      setCommentRating(0);
       setEditingCommentId(null);
       await Promise.all([refetchComments(), refetchClinic()]);
     } catch (error: any) {
@@ -253,6 +262,7 @@ const ClinicDetails: NextPage = () => {
   const handleEditComment = (comment: Comment) => {
     setEditingCommentId(comment._id);
     setCommentText(comment.commentContent);
+    setCommentRating(comment.rating ?? 0);
   };
 
   const handleDeleteComment = async (commentId: string) => {
@@ -271,6 +281,7 @@ const ClinicDetails: NextPage = () => {
       if (editingCommentId === commentId) {
         setEditingCommentId(null);
         setCommentText("");
+        setCommentRating(0);
       }
       await Promise.all([refetchComments(), refetchClinic()]);
       await sweetMixinSuccessAlert("Review deleted.");
@@ -308,6 +319,12 @@ const ClinicDetails: NextPage = () => {
                     <Typography variant="h4" sx={{ fontWeight: 700 }}>
                       {clinicName}
                     </Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Rating value={clinic.memberRatingAvg ?? 0} precision={0.5} readOnly size="small" />
+                      <Typography variant="body2" color="text.secondary">
+                        {(clinic.memberRatingAvg ?? 0).toFixed(1)} ({clinic.memberRatingCount ?? 0})
+                      </Typography>
+                    </Stack>
                     <Stack direction="row" spacing={1} justifyContent="center" alignItems="center" flexWrap="wrap">
                       <IconButton
                         aria-label={isLiked ? "Unlike" : "Like"}
@@ -463,6 +480,11 @@ const ClinicDetails: NextPage = () => {
                                 </Stack>
                               )}
                             </Stack>
+                            {comment.rating ? (
+                              <Box sx={{ mt: 1 }}>
+                                <Rating value={comment.rating} readOnly size="small" />
+                              </Box>
+                            ) : null}
                             <Typography variant="body2" sx={{ mt: 1 }}>
                               {comment.commentContent}
                             </Typography>
@@ -512,6 +534,15 @@ const ClinicDetails: NextPage = () => {
                         value={commentText}
                         onChange={(event) => setCommentText(event.target.value)}
                       />
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography variant="body2" color="text.secondary">
+                          Rating
+                        </Typography>
+                        <Rating
+                          value={commentRating ?? 0}
+                          onChange={(_, value) => setCommentRating(value)}
+                        />
+                      </Stack>
                       <Stack direction="row" spacing={2}>
                         <Button
                           type="submit"
@@ -533,6 +564,7 @@ const ClinicDetails: NextPage = () => {
                             onClick={() => {
                               setEditingCommentId(null);
                               setCommentText("");
+                              setCommentRating(0);
                             }}
                           >
                             Cancel

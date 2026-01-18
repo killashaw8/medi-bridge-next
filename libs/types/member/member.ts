@@ -24,6 +24,8 @@ export interface Member {
   memberFollowings: number;
   memberPoints: number;
   memberLikes: number;
+  memberRatingCount: number;
+  memberRatingAvg: number;
   memberViews: number;
   memberComments: number;
   memberRank: number;

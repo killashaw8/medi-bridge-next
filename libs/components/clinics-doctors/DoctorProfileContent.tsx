@@ -12,7 +12,7 @@ import { Member } from "@/libs/types/member/member";
 import { Comment } from "@/libs/types/comment/comment";
 import { CommentGroup, CommentStatus } from "@/libs/enums/comment.enum";
 import { getImageUrl } from "@/libs/imageHelper";
-import { Avatar, Box, Button, IconButton, Stack, TextField, Pagination, Typography } from "@mui/material";
+import { Avatar, Box, Button, IconButton, Stack, TextField, Pagination, Typography, Rating } from "@mui/material";
 import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
@@ -35,6 +35,7 @@ const DoctorProfileContent = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedSlot, setSelectedSlot] = useState("");
   const [commentText, setCommentText] = useState("");
+  const [commentRating, setCommentRating] = useState<number | null>(0);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [showAllComments, setShowAllComments] = useState(false);
   const [commentsPage, setCommentsPage] = useState(1);
@@ -116,7 +117,7 @@ const DoctorProfileContent = () => {
   const doctorName = doctor?.memberFullName || doctor?.memberNick || "";
   const doctorTitle = doctor?.specialization ? `MD, ${doctor.specialization}` : "";
   const doctorSpecialty = doctor?.specialization || "";
-  const ratingValue = Math.min(5, Math.max(0, doctor?.memberLikes ?? 0));
+  const ratingValue = Math.min(5, Math.max(0, doctor?.memberRatingAvg ?? 0));
   const reviewsCount = activeComments.length;
   const reviewsTotalCount = reviewsCount.toLocaleString();
   const profileImage = doctor?.memberImage
@@ -238,6 +239,10 @@ const DoctorProfileContent = () => {
       await sweetMixinErrorAlert("Please enter your review.");
       return;
     }
+    if (!commentRating || commentRating < 1) {
+      await sweetMixinErrorAlert("Please select a rating.");
+      return;
+    }
     if (!doctorId) {
       await sweetMixinErrorAlert("Doctor not found.");
       return;
@@ -250,6 +255,7 @@ const DoctorProfileContent = () => {
             input: {
               _id: editingCommentId,
               commentContent: trimmed,
+              rating: commentRating,
             },
           },
         });
@@ -261,6 +267,7 @@ const DoctorProfileContent = () => {
               commentGroup: CommentGroup.MEMBER,
               commentContent: trimmed,
               commentRefId: doctorId,
+              rating: commentRating,
             },
           },
         });
@@ -268,6 +275,7 @@ const DoctorProfileContent = () => {
         await sweetMixinSuccessAlert("Review submitted.");
       }
       setCommentText("");
+      setCommentRating(0);
       setEditingCommentId(null);
       await Promise.all([refetchComments(), refetchDoctor()]);
     } catch (error: any) {
@@ -282,6 +290,7 @@ const DoctorProfileContent = () => {
   const handleEditComment = (comment: Comment) => {
     setEditingCommentId(comment._id);
     setCommentText(comment.commentContent);
+    setCommentRating(comment.rating ?? 0);
   };
 
   const handleDeleteComment = async (commentId: string) => {
@@ -300,6 +309,7 @@ const DoctorProfileContent = () => {
       if (editingCommentId === commentId) {
         setEditingCommentId(null);
         setCommentText("");
+        setCommentRating(0);
       }
       await Promise.all([refetchComments(), refetchDoctor()]);
       await sweetMixinSuccessAlert("Review deleted.");
@@ -392,7 +402,7 @@ const DoctorProfileContent = () => {
                           <div className="list">
                             {renderStars(ratingValue)}
                           </div>
-                          <b>{ratingValue}</b>
+                          <b>{ratingValue.toFixed(1)}</b>
                           <span className="review">
                             ({reviewsCount})
                           </span>
@@ -489,7 +499,7 @@ const DoctorProfileContent = () => {
                               Reviews{" "}
                               <span>
                                 ⭐{" "}
-                                <strong>{ratingValue}</strong> ({reviewsTotalCount}{" "}
+                                <strong>{ratingValue.toFixed(1)}</strong> ({reviewsTotalCount}{" "}
                                 patient reviews)
                               </span>
                             </h3>
@@ -571,6 +581,11 @@ const DoctorProfileContent = () => {
                                       </Stack>
                                     )}
                                   </Stack>
+                                  {comment.rating ? (
+                                    <Box sx={{ mt: 1 }}>
+                                      <Rating value={comment.rating} readOnly size="small" />
+                                    </Box>
+                                  ) : null}
                                   <Typography variant="body2" sx={{ mt: 1 }}>
                                     {comment.commentContent}
                                   </Typography>
@@ -605,6 +620,15 @@ const DoctorProfileContent = () => {
                               value={commentText}
                               onChange={(event) => setCommentText(event.target.value)}
                             />
+                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+                              <Typography variant="body2" color="text.secondary">
+                                Rating
+                              </Typography>
+                              <Rating
+                                value={commentRating ?? 0}
+                                onChange={(_, value) => setCommentRating(value)}
+                              />
+                            </Stack>
                             <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
                               <Button
                                 variant="contained"
@@ -625,6 +649,7 @@ const DoctorProfileContent = () => {
                                   onClick={() => {
                                     setEditingCommentId(null);
                                     setCommentText("");
+                                    setCommentRating(0);
                                   }}
                                 >
                                   Cancel

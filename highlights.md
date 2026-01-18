@@ -247,3 +247,4 @@ export async function refreshTokens(): Promise<string> {
 
 ## Latest UI Updates
 - Polished admin dashboard with skeleton loaders that mirror table/card layouts, quick member actions (copy + view profile), and improved mobile sidebar tabs.
+- Added star ratings for doctor/clinic/product reviews with averaged scores and rating counts.

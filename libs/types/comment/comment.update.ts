@@ -5,4 +5,5 @@ export interface CommentUpdate {
 	_id: string;
 	commentStatus?: CommentStatus;
 	commentContent?: string;
+	rating?: number;
 }

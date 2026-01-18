@@ -8,6 +8,7 @@ export interface Comment {
 	commentGroup: CommentGroup;
 	commentContent: string;
 	commentRefId: string;
+	rating?: number;
 	memberId: string;
 	createdAt: Date;
 	updatedAt: Date;

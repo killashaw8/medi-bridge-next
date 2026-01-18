@@ -7,6 +7,7 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Chip from "@mui/material/Chip";
+import Rating from "@mui/material/Rating";
 import Moment from "react-moment";
 import IconButton from "@mui/material/IconButton";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
@@ -108,6 +109,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
           ${product.productPrice?.toFixed(2)}
         </Typography>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+          <Rating value={product.productRatingAvg ?? 0} precision={0.5} readOnly size="small" />
+          <Typography variant="caption" color="text.secondary">
+            {(product.productRatingAvg ?? 0).toFixed(1)} ({product.productRatingCount ?? 0})
+          </Typography>
+        </Stack>
         <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }} noWrap>
           {product.productDesc || "No description"}
         </Typography>

@@ -15,6 +15,7 @@ import {
   IconButton,
   Pagination,
   Paper,
+  Rating,
   Stack,
   TextField,
   Typography,
@@ -39,6 +40,7 @@ const ProductDetails: NextPage = () => {
   const apolloClient = useApolloClient();
   const user = useReactiveVar(userVar);
   const [commentText, setCommentText] = useState("");
+  const [commentRating, setCommentRating] = useState<number | null>(0);
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [showAllComments, setShowAllComments] = useState(false);
@@ -165,6 +167,10 @@ const ProductDetails: NextPage = () => {
       await sweetMixinErrorAlert("Please enter your review.");
       return;
     }
+    if (!commentRating || commentRating < 1) {
+      await sweetMixinErrorAlert("Please select a rating.");
+      return;
+    }
     if (!productId) {
       await sweetMixinErrorAlert("Product not found.");
       return;
@@ -177,6 +183,7 @@ const ProductDetails: NextPage = () => {
             input: {
               _id: editingCommentId,
               commentContent: trimmed,
+              rating: commentRating,
             },
           },
         });
@@ -188,6 +195,7 @@ const ProductDetails: NextPage = () => {
               commentGroup: CommentGroup.PRODUCT,
               commentContent: trimmed,
               commentRefId: productId,
+              rating: commentRating,
             },
           },
         });
@@ -195,6 +203,7 @@ const ProductDetails: NextPage = () => {
         await sweetMixinSuccessAlert("Review submitted.");
       }
       setCommentText("");
+      setCommentRating(0);
       setEditingCommentId(null);
       await refetchComments();
     } catch (error: any) {
@@ -209,6 +218,7 @@ const ProductDetails: NextPage = () => {
   const handleEditComment = (comment: Comment) => {
     setEditingCommentId(comment._id);
     setCommentText(comment.commentContent);
+    setCommentRating(comment.rating ?? 0);
   };
 
   const handleDeleteComment = async (commentId: string) => {
@@ -227,6 +237,7 @@ const ProductDetails: NextPage = () => {
       if (editingCommentId === commentId) {
         setEditingCommentId(null);
         setCommentText("");
+        setCommentRating(0);
       }
       await refetchComments();
       await sweetMixinSuccessAlert("Review deleted.");
@@ -345,6 +356,12 @@ const ProductDetails: NextPage = () => {
                     <Typography variant="h5" sx={{ fontWeight: 700 }}>
                       ${product.productPrice?.toLocaleString() ?? 0}
                     </Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Rating value={product.productRatingAvg ?? 0} precision={0.5} readOnly size="small" />
+                      <Typography variant="body2" color="text.secondary">
+                        {(product.productRatingAvg ?? 0).toFixed(1)} ({product.productRatingCount ?? 0})
+                      </Typography>
+                    </Stack>
                     <Chip
                       label={product.productCount > 0 ? "In Stock" : "Out of Stock"}
                       color={product.productCount > 0 ? "success" : "error"}
@@ -459,6 +476,11 @@ const ProductDetails: NextPage = () => {
                                 </Stack>
                               )}
                             </Stack>
+                            {comment.rating ? (
+                              <Box sx={{ mt: 1 }}>
+                                <Rating value={comment.rating} readOnly size="small" />
+                              </Box>
+                            ) : null}
                             <Typography variant="body2" sx={{ mt: 1 }}>
                               {comment.commentContent}
                             </Typography>
@@ -508,6 +530,15 @@ const ProductDetails: NextPage = () => {
                         value={commentText}
                         onChange={(event) => setCommentText(event.target.value)}
                       />
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography variant="body2" color="text.secondary">
+                          Rating
+                        </Typography>
+                        <Rating
+                          value={commentRating ?? 0}
+                          onChange={(_, value) => setCommentRating(value)}
+                        />
+                      </Stack>
                       <Stack direction="row" spacing={2}>
                         <Button
                           type="submit"
@@ -529,6 +560,7 @@ const ProductDetails: NextPage = () => {
                             onClick={() => {
                               setEditingCommentId(null);
                               setCommentText("");
+                              setCommentRating(0);
                             }}
                           >
                             Cancel

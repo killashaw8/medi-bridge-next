@@ -13,6 +13,8 @@ export interface Product {
 	productCount: number;
 	productViews: number;
 	productLikes: number;
+	productRatingCount: number;
+	productRatingAvg: number;
 	productComments: number;
 	productImages: string[];
 	productDesc?: string;

@@ -250,7 +250,7 @@ const TopDoctors = (props: TopDoctorsProps = {}) => {
                             ? clinicNames[doctor.clinicId] || doctor.clinicId
                             : "No Clinic"
                         }
-                        reviews={doctor.memberLikes ?? 0}
+                        reviews={doctor.memberComments ?? 0}
                         isFollowing={!!isFollowing}
                         onFollow={handleFollow}
                         onUnfollow={handleUnfollow}
